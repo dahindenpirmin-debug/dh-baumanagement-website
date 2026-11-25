@@ -40,14 +40,19 @@ for (let n = 1; n < lines.length; n++) {
   const remote = cells[iBild].split('|').map((b) => b.trim()).filter((b) => b.startsWith('wix:') || /^https?:/.test(b));
   if (!remote.length) continue;
   let ok = true;
-  // Neue Bilder werden hinten angehängt: Nummerierung beginnt nach den bereits vorhandenen Dateien
+  // Enthält die Zeile mehr Bilder, als im Ordner liegen, gilt sie als vollständige Galerie: Ordner wird ersetzt.
+  // Sonst werden die neuen Bilder hinten angehängt.
   const pdir = path.join(ROOT, 'src/images/projekte', cells[iSlug]);
-  const start = fs.existsSync(pdir) ? fs.readdirSync(pdir).filter((f) => /\.(jpe?g|png|webp)$/i.test(f)).length : 0;
+  const vorhanden = fs.existsSync(pdir) ? fs.readdirSync(pdir).filter((f) => /\.(jpe?g|png|webp)$/i.test(f)) : [];
+  const ersetzen = remote.length > vorhanden.length;
+  if (ersetzen) for (const f of vorhanden) fs.unlinkSync(path.join(pdir, f));
+  const start = ersetzen ? 0 : vorhanden.length;
   for (const [i, b] of remote.entries()) {
     const raw = b.startsWith('wix:') ? WIX + b.slice(4) : b;
-    // Wix liefert auf Wunsch eine verkleinerte Fassung (max. 2400 px) – spart Speicher im Repository
-    const url = raw.startsWith(WIX) ? `${raw}/v1/fit/w_2400,h_2400,q_88/bild${ext(raw)}` : raw;
-    const file = path.join(ROOT, 'src/images/projekte', cells[iSlug], String(start + i + 1).padStart(2, '0') + ext(raw));
+    // Wix liefert eine verkleinerte Fassung (max. 2000 px) und wandelt PNG auf Wunsch in JPG um – spart Speicher im Repository
+    const zielExt = raw.startsWith(WIX) ? '.jpg' : ext(raw);
+    const url = raw.startsWith(WIX) ? `${raw}/v1/fit/w_2000,h_2000,q_85/bild.jpg` : raw;
+    const file = path.join(pdir, String(start + i + 1).padStart(2, '0') + zielExt);
     await load(url, file).catch((e) => { ok = false; console.warn('Fehler:', e.message); });
   }
   if (ok) { cells[iBild] = ''; lines[n] = cells.join(';'); }
