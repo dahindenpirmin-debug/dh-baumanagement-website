@@ -235,3 +235,13 @@ address { font-style: normal; margin-bottom: 1em; }
 .service .art { width: 96px; height: 96px; } .service .art svg { width: 70px; }
 .ph { background: var(--ink); } .ph svg { width: 42%; height: auto; }
 .grafik img { max-width: 940px; margin: 0 auto; }
+
+/* Karten: gleicher Aufbau, Link immer unten */
+.card-body { display: flex; flex-direction: column; }
+.card-body > .art, .card-body > .icon { align-self: flex-start; }
+.card .more { margin-top: auto; padding-top: 10px; margin-bottom: 0; }
+.card.project h3 { min-height: 2.5em; }
+.card.project .leist { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; min-height: 2.9em; }
+.download .btns { display: flex; gap: 12px; flex-wrap: wrap; }
+.region-hint { background: var(--bg-alt); border-radius: var(--radius); padding: 18px 22px; margin: 32px 0 0; }
+.region-hint p { margin: 6px 0 0; }

@@ -13,7 +13,9 @@ Statische, zweisprachige Website (DE unter `/`, EN unter `/en/`). Kein CMS, kein
 | Firmenangaben, Seitentexte DE/EN | `src/texts.mjs` |
 | Wissensbeiträge | `content/wissen/de/NN-slug.md` und `content/wissen/en/NN-slug.md` |
 | Online-Rechner (Richtwerte, Texte) | `src/tools.mjs`, Logik in `src/assets/js/tools.js` |
-| Unternehmensprofil (PDF, DE/EN) | `src/profil.mjs` – wird bei jedem Build aus Texten und Projektliste neu erzeugt (`/downloads/…`) |
+| Unternehmensprofil (PDF, DE/EN, je zwei Varianten: mit Referenzliste / Portfolio mit Bildern) | `src/profil.mjs` – wird bei jedem Build aus Texten und Projektliste neu erzeugt (`/downloads/…`) |
+| Regionenseiten (Zürich, Zentralschweiz, Aargau, Bern) | `src/regionen.mjs` – Text je Region; Referenzen werden über die Spalte `kanton` der CSV automatisch zugeordnet. Neue Region nur mit echten Referenzen |
+| Titelbild Startseite | `SITE.heroProjekt` in `src/texts.mjs` (Foto eines eigenen Projekts) |
 | Impressum & Datenschutz | `content/seiten/` |
 | Design (Farben, Schrift) | `src/assets/css/style.css`, Block `:root`. CI: Blau `#0e2f47`, Gold `#e7c984`, Schrift Avenir (Lauftext Book, Titel Black) |
 | Logo (Variante A-1), Bildmarke, Wasserzeichen | `src/images/logo-quer-hell.svg` (Header, weiss), `logo-quer.svg` (für blaue Flächen), `logo.png` (PDFs), `logo-mark.png`, `wasserzeichen.png`, `hintergrund-navy.jpg`. Kleinformat-Zeichen A-2 in den Favicons |
@@ -35,6 +37,7 @@ Der Benutzer liefert im Chat: Titel, Ort, Zeitraum, Leistungen, Kategorie, evtl.
    - `projektart`: `neubau`, `umbau`, `sanierung` oder `arealentwicklung` (Schlüssel aus `TYPES`)
    - `ort`, `kanton` (Kürzel, z. B. LU)
    - `jahr_von`, `jahr_bis` (bei laufenden Projekten das geplante Endjahr)
+   - `bauvolumen_mchf` (letzte Spalte, optional): Bauvolumen in Mio. CHF als Zahl, z. B. `4.2`; erscheint als «4.2 MCHF» auf Karte, Projektseite, Referenzliste und im Portfolio. Nur vom Benutzer genannte Werte.
    - `leistungen_de`, `leistungen_en`: mehrere Einträge mit `|` trennen
    - `bauherr` (optional; nur mit Einverständnis der Bauherrschaft nennen)
    - `beschreibung_de`, `beschreibung_en` (optional; leer = automatisch erzeugter Kurztext). Absätze mit `\n\n` trennen. Enthält der Text einen Strichpunkt, das Feld in "Anführungszeichen" setzen.

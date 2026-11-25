@@ -9,6 +9,7 @@ import crypto from 'node:crypto';
 import { SITE, CATS, TYPES, T } from './src/texts.mjs';
 import { TOOLS, CONFIG, toolForm, toolResult, toolLabels } from './src/tools.mjs';
 import { buildProfile, profileFile } from './src/profil.mjs';
+import { REGIONEN, RT } from './src/regionen.mjs';
 
 const ROOT = path.dirname(fileURLToPath(import.meta.url));
 const OUT = path.join(ROOT, 'dist');
@@ -60,6 +61,7 @@ const ICONS = Object.fromEntries(fs.readdirSync(path.join(ROOT, 'src/assets/icon
 const ILLUS = Object.fromEntries(fs.readdirSync(path.join(ROOT, 'src/assets/illus')).filter((f) => f.endsWith('.svg')).map((f) => [f.replace('.svg', ''), fs.readFileSync(path.join(ROOT, 'src/assets/illus', f), 'utf8').trim().replace('<svg ', '<svg width="64" height="50" ')]));
 // Kategorie-Illustration (goldenes Objekt auf blauer Kachel); Fallback: Linien-Icon
 const icon = (name) => (ILLUS[name] ? `<span class="art">${ILLUS[name]}</span>` : ICONS[name] ? `<span class="icon">${ICONS[name]}</span>` : '');
+const HEROP = SITE.heroProjekt && exists('src/images/projekte/' + SITE.heroProjekt) ? '/images/projekte/' + SITE.heroProjekt : null;
 const LOGO = brand('logo', 'logo.png'), HERO = brand('hero', 'hero.jpg'), PORTRAIT = brand('portrait', 'martin-dahinden.jpg');
 
 /* ---------- Daten laden ---------- */
@@ -76,6 +78,7 @@ function loadProjects() {
     return { ...r, bilder, zeit: zeit(), featured: /^(ja|yes|x|1)$/i.test(r.featured), order: i,
       t: { de: r.titel_de, en: r.titel_en || r.titel_de },
       leist: { de: r.leistungen_de.split('|').map((s) => s.trim()).filter(Boolean), en: (r.leistungen_en || r.leistungen_de).split('|').map((s) => s.trim()).filter(Boolean) },
+      vol: r.bauvolumen_mchf ? (/[a-z]/i.test(r.bauvolumen_mchf) ? r.bauvolumen_mchf.trim() : r.bauvolumen_mchf.trim() + ' MCHF') : '',
       beschr: { de: r.beschreibung_de, en: r.beschreibung_en || '' }, kenn: { de: r.kennzahlen_de, en: r.kennzahlen_en || '' } };
   });
 }
@@ -157,6 +160,7 @@ ${body}
     <div><strong>${SITE.name}</strong><br>${SITE.street}<br>${SITE.zip} ${SITE.city}</div>
     <div><a href="tel:${SITE.phoneIntl}">${SITE.phone}</a><br><a href="mailto:${SITE.email}">${SITE.email}</a><br><a href="${SITE.linkedin}" rel="noopener">LinkedIn</a></div>
     <div>${nav.map(([k, p]) => `<a href="${u(lang, p)}">${t.nav[k]}</a>`).join('<br>')}</div>
+    <div><strong>${RT[lang].nav}</strong><br>${REGIONEN.map((r) => `<a href="${regUrl(r, lang)}">${r.name[lang]}</a>`).join('<br>')}</div>
     <div><a href="${profileUrl(lang)}" download>${t.profil.b}</a><br><a href="${u(lang, '/impressum-datenschutz/')}">${t.footer.legal}</a><br>${SITE.uid}<br>© ${new Date().getFullYear()} ${SITE.name}</div>
   </div>
 </footer>
@@ -164,10 +168,14 @@ ${body}
 </body>
 </html>`;
 }
+const regUrl = (r, lang) => u(lang, `/regionen/${r.slug[lang]}/`);
+const regRefs = (r) => projects.filter((p) => r.kantone.includes(p.kanton));
+const regBlock = (lang) => `<aside class="region-hint"><strong>${RT[lang].block}</strong><p>${RT[lang].blockText} ${REGIONEN.map((r) => `<a href="${regUrl(r, lang)}">${r.name[lang]}</a>`).join(' · ')}</p></aside>`;
 const cta = (lang) => `<section class="cta"><div class="wrap"><h2>${T[lang].cta.h}</h2><p>${T[lang].cta.p}</p><p><a class="btn" href="${u(lang, '/kontakt/')}">${T[lang].cta.b}</a> <a class="btn ghost" href="tel:${SITE.phoneIntl}">${SITE.phone}</a></p></div></section>`;
 const grafik = (name, lang, alt) => (exists(`src/images/grafiken/${name}-${lang}.svg`) ? `<div class="grafik"><img src="/images/grafiken/${name}-${lang}.svg" alt="${alt}" loading="lazy" width="1200" height="${name === 'leistungen' ? 430 : 330}"></div>` : '');
-const profileUrl = (lang) => '/downloads/' + profileFile(lang);
-const profileBox = (lang) => `<section class="alt"><div class="wrap download"><div><h2>${T[lang].profil.h}</h2><p>${T[lang].profil.p}</p></div><a class="btn" href="${profileUrl(lang)}" download>${T[lang].profil.b}</a></div></section>`;
+const profileUrl = (lang, v) => '/downloads/' + profileFile(lang, v);
+const anyVol = () => projects.some((p) => p.vol);
+const profileBox = (lang) => `<section class="alt"><div class="wrap download"><div><h2>${T[lang].profil.h}</h2><p>${T[lang].profil.p}</p></div><div class="btns"><a class="btn" href="${profileUrl(lang)}" download>${T[lang].profil.b1}</a><a class="btn ghost" href="${profileUrl(lang, 'portfolio')}" download>${T[lang].profil.b2}</a></div></div></section>`;
 const pageHead = (h1, lead, crumbs) => `<section class="page-head"><div class="wrap">${crumbs ? `<nav class="crumbs" aria-label="Breadcrumb">${crumbs.map(([n, p], i) => (i < crumbs.length - 1 ? `<a href="${p}">${esc(n)}</a>` : `<span>${esc(n)}</span>`)).join(' › ')}</nav>` : ''}<h1>${esc(h1)}</h1>${lead ? `<p class="lead">${esc(lead)}</p>` : ''}</div></section>`;
 
 /* ---------- Bausteine ---------- */
@@ -176,26 +184,27 @@ function projectCard(p, lang) {
   return `<article class="card project" data-cat="${p.kategorie}" data-type="${p.projektart}">
   <a href="${u(lang, `/projekte/${p.slug}/`)}">
     <div class="thumb">${pic ? `<img src="${img(pic, 640, 480)}" alt="${esc(p.t[lang])}, ${esc(p.ort)}" loading="lazy" width="640" height="480">` : `<div class="ph" aria-hidden="true">${ILLUS[p.kategorie === 'wohnen' ? 'wohnbau' : 'gewerbe'] || ''}</div>`}</div>
-    <div class="card-body"><p class="tag">${CATS[p.kategorie][lang]}</p><h3>${esc(p.t[lang])}</h3><p class="meta">${esc(p.ort)} · ${p.zeit}</p><p class="meta">${p.leist[lang].map(esc).join(', ')}</p></div>
+    <div class="card-body"><p class="tag">${CATS[p.kategorie][lang]} · ${TYPES[p.projektart][lang]}</p><h3>${esc(p.t[lang])}</h3><p class="meta">${esc(p.ort)}${p.kanton ? ' ' + p.kanton : ''} · ${p.zeit}${p.vol ? ' · ' + esc(p.vol) : ''}</p><p class="meta leist">${p.leist[lang].map(esc).join(', ')}</p></div>
   </a></article>`;
 }
 const articleCard = (a, lang) => `<article class="card"><a href="${a.url}"><div class="card-body"><p class="tag">${esc(a.category)}</p><h3>${esc(a.title)}</h3><p>${esc(a.description)}</p><p class="meta">${a.min} ${T[lang].wissen.min}</p></div></a></article>`;
-const toolCard = (tl, lang) => `<article class="card"><a href="${u(lang, `/tools/${tl.slug[lang]}/`)}"><div class="card-body">${icon(tl.icon)}<h3>${tl.title[lang]}</h3><p>${tl.desc[lang]}</p><p class="more">${T[lang].tools.open} →</p></div></a></article>`;
+const toolCard = (tl, lang) => `<article class="card"><a href="${u(lang, `/tools/${tl.slug[lang]}/`)}"><div class="card-body">${icon(tl.icon)}<h3>${tl.title[lang]}</h3><p>${tl.kurz[lang]}</p><p class="more">${T[lang].tools.open} →</p></div></a></article>`;
 
 /* ---------- Seiten ---------- */
 function buildHome(lang) {
   const t = T[lang], h = t.home, paths = { de: '/', en: '/en/' };
-  const body = `<section class="hero" style="background-image:linear-gradient(90deg,rgba(10,36,54,.92) 0%,rgba(14,47,71,.72) 55%,rgba(14,47,71,.35) 100%),url('${img(HERO, 2000, 1100)}')">
+  const body = `<section class="hero" style="background-image:linear-gradient(90deg,rgba(10,36,54,.94) 0%,rgba(14,47,71,.78) 45%,rgba(14,47,71,.15) 100%),url('${img(HEROP || HERO, 2000, 1100)}')">
   <div class="wrap"><p class="eyebrow">${SITE.name} · ${SITE.city}</p><h1>${h.h1.replace('Gesamtdienstleistungsanbieter', 'Gesamtdienst&shy;leistungs&shy;anbieter')}</h1><p class="lead">${h.lead}</p>
   <p><a class="btn" href="${u(lang, '/kontakt/')}">${h.cta1}</a> <a class="btn ghost light" href="${u(lang, '/projekte/')}">${h.cta2}</a></p></div></section>
 <section class="facts"><div class="wrap grid3">${h.facts.map(([n, l]) => `<div><strong>${n}</strong><span>${l}</span></div>`).join('')}</div></section>
-<section><div class="wrap"><h2>${h.servicesH}</h2><div class="grid4">${t.services.map((s) => `<article class="card"><a href="${u(lang, '/leistungen/')}#${s.id}"><div class="card-body">${icon(s.icon)}<h3>${s.t}</h3><p>${s.p}</p></div></a></article>`).join('')}</div></div></section>
-<section class="alt"><div class="wrap"><h2>${t.segments.h}</h2><div class="grid4">${t.segments.items.map(([a, b, l, ic]) => `<article class="card"><a href="${u(lang, l)}"><div class="card-body">${icon(ic)}<h3>${a}</h3><p>${b}</p></div></a></article>`).join('')}</div></div></section>
+<section><div class="wrap"><h2>${h.servicesH}</h2><div class="grid4">${t.services.map((s) => `<article class="card"><a href="${u(lang, '/leistungen/')}#${s.id}"><div class="card-body">${icon(s.icon)}<h3>${s.t}</h3><p>${s.k}</p></div></a></article>`).join('')}</div></div></section>
+<section class="alt"><div class="wrap"><h2>${t.segments.h}</h2><div class="grid4">${t.segments.items.map(([a, b, l, ic, k]) => `<article class="card"><a href="${u(lang, l)}"><div class="card-body">${icon(ic)}<h3>${a}</h3><p>${k}</p></div></a></article>`).join('')}</div></div></section>
 <section><div class="wrap"><div class="h-row"><h2>${h.projectsH}</h2><a href="${u(lang, '/projekte/')}">${h.projectsAll} →</a></div><div class="grid3">${projects.filter((p) => p.featured).slice(0, 6).map((p) => projectCard(p, lang)).join('')}</div></div></section>
 <section class="alt about"><div class="wrap split"><img src="${img(PORTRAIT, 600, 720)}" alt="Martin Dahinden, ${lang === 'de' ? 'Projektleiter und Inhaber' : 'project manager and owner'}" loading="lazy" width="600" height="720">
   <div><h2>${h.aboutH}</h2><p class="quote">${h.quote}</p><p>${h.about}</p><p class="claim">${h.claim}</p><p><a class="btn ghost" href="${profileUrl(lang)}" download>${t.profil.b}</a></p></div></div></section>
-<section><div class="wrap"><div class="h-row"><h2>${h.knowH}</h2><a href="${u(lang, '/wissen/')}">${h.knowAll} →</a></div><div class="grid3">${articles[lang].filter((a) => a.featured).slice(0, 3).map((a) => articleCard(a, lang)).join('')}</div></div></section>
-<section class="alt"><div class="wrap"><h2>${h.toolsH}</h2><p class="lead">${h.toolsLead}</p><div class="grid3">${TOOLS.map((tl) => toolCard(tl, lang)).join('')}</div></div></section>
+<section><div class="wrap"><div class="h-row"><h2>${RT[lang].h1}</h2><a href="${u(lang, '/regionen/')}">${RT[lang].nav} →</a></div><div class="grid4">${REGIONEN.map((r) => `<article class="card"><a href="${regUrl(r, lang)}"><div class="card-body"><h3>${r.name[lang]}</h3><p>${RT[lang].anzahl(regRefs(r).length)}</p><p class="more">${RT[lang].mehr} →</p></div></a></article>`).join('')}</div></div></section>
+<section class="alt"><div class="wrap"><div class="h-row"><h2>${h.knowH}</h2><a href="${u(lang, '/wissen/')}">${h.knowAll} →</a></div><div class="grid3">${articles[lang].filter((a) => a.featured).slice(0, 3).map((a) => articleCard(a, lang)).join('')}</div></div></section>
+<section><div class="wrap"><h2>${h.toolsH}</h2><p class="lead">${h.toolsLead}</p><div class="grid3">${TOOLS.map((tl) => toolCard(tl, lang)).join('')}</div></div></section>
 ${cta(lang)}`;
   const ld = [{ '@context': 'https://schema.org', '@type': 'WebSite', name: SITE.name, url: SITE.domain, inLanguage: ['de-CH', 'en'] }];
   write(paths[lang], layout({ lang, title: h.title, desc: h.desc, paths, body, ld }));
@@ -223,8 +232,8 @@ function buildProjekte(lang) {
 <section><div class="wrap">
   <div class="filters">${btns('cat', CATS)}${btns('type', TYPES)}<div class="filter view" role="group"><button class="on" data-view="grid">${tp.grid}</button><button data-view="table">${tp.table}</button></div></div>
   <div class="grid3" id="p-grid">${projects.map((p) => projectCard(p, lang)).join('')}</div>
-  <div class="table-wrap" id="p-table" hidden><table><thead><tr>${tp.th.map((h) => `<th>${h}</th>`).join('')}</tr></thead><tbody>
-  ${projects.map((p) => `<tr data-cat="${p.kategorie}" data-type="${p.projektart}"><td><a href="${u(lang, `/projekte/${p.slug}/`)}">${esc(p.t[lang])}</a></td><td>${CATS[p.kategorie][lang]}</td><td>${TYPES[p.projektart][lang]}</td><td>${esc(p.ort)}${p.kanton ? ' ' + p.kanton : ''}</td><td>${p.zeit}</td><td>${p.leist[lang].map(esc).join(', ')}</td></tr>`).join('\n  ')}
+  <div class="table-wrap" id="p-table" hidden><table><thead><tr>${[...tp.th.slice(0, 5), ...(anyVol() ? [t.profil.vol] : []), tp.th[5]].map((h) => `<th>${h}</th>`).join('')}</tr></thead><tbody>
+  ${projects.map((p) => `<tr data-cat="${p.kategorie}" data-type="${p.projektart}"><td><a href="${u(lang, `/projekte/${p.slug}/`)}">${esc(p.t[lang])}</a></td><td>${CATS[p.kategorie][lang]}</td><td>${TYPES[p.projektart][lang]}</td><td>${esc(p.ort)}${p.kanton ? ' ' + p.kanton : ''}</td><td>${p.zeit}</td>${anyVol() ? `<td>${esc(p.vol) || '–'}</td>` : ''}<td>${p.leist[lang].map(esc).join(', ')}</td></tr>`).join('\n  ')}
   </tbody></table></div>
 </div></section>
 ${profileBox(lang)}
@@ -243,7 +252,7 @@ ${cta(lang)}`;
 <section><div class="wrap split top">
   <div>${text.split(/\n{2,}|\\n\\n/).map((x) => `<p>${esc(x)}</p>`).join('')}${p.kenn[lang] ? `<ul class="check">${p.kenn[lang].split('|').map((k) => `<li>${esc(k.trim())}</li>`).join('')}</ul>` : ''}
   ${p.dokument ? `<p><a class="btn ghost" href="${esc(p.dokument)}">${f.doc}</a></p>` : ''}</div>
-  <dl class="facts-list"><dt>${f.cat}</dt><dd>${CATS[p.kategorie][lang]}</dd><dt>${f.type}</dt><dd>${typ}</dd><dt>${f.loc}</dt><dd>${esc(p.ort)}${p.kanton ? ' ' + p.kanton : ''}</dd><dt>${f.time}</dt><dd>${p.zeit}</dd>${p.bauherr ? `<dt>${f.client}</dt><dd>${esc(p.bauherr)}</dd>` : ''}<dt>${f.serv}</dt><dd>${p.leist[lang].map(esc).join('<br>')}</dd></dl>
+  <dl class="facts-list"><dt>${f.cat}</dt><dd>${CATS[p.kategorie][lang]}</dd><dt>${f.type}</dt><dd>${typ}</dd><dt>${f.loc}</dt><dd>${esc(p.ort)}${p.kanton ? ' ' + p.kanton : ''}</dd><dt>${f.time}</dt><dd>${p.zeit}</dd>${p.vol ? `<dt>${t.profil.vol}</dt><dd>${esc(p.vol)}</dd>` : ''}${p.bauherr ? `<dt>${f.client}</dt><dd>${esc(p.bauherr)}</dd>` : ''}<dt>${f.serv}</dt><dd>${p.leist[lang].map(esc).join('<br>')}</dd></dl>
 </div></section>
 ${p.bilder.length ? `<section class="alt"><div class="wrap gallery">${p.bilder.map((b, i) => `<a href="${img(b, 1800)}"><img src="${img(b, 900, 675)}" alt="${esc(p.t[lang])}, ${esc(p.ort)} – ${lang === 'de' ? 'Bild' : 'image'} ${i + 1}" loading="${i ? 'lazy' : 'eager'}" width="900" height="675"></a>`).join('')}</div></section>` : ''}
 ${more.length ? `<section><div class="wrap"><div class="h-row"><h2>${tp.more}</h2><a href="${paths[lang]}">${tp.back} →</a></div><div class="grid3">${more.map((x) => projectCard(x, lang)).join('')}</div></div></section>` : ''}
@@ -275,6 +284,7 @@ ${cta(lang)}`;
   <div class="prose">${a.html}</div>
   ${toolHint ? `<aside class="tool-hint"><strong>${toolHint.title[lang]}</strong><p>${toolHint.desc[lang]}</p><a class="btn" href="${u(lang, `/tools/${toolHint.slug[lang]}/`)}">${t.tools.open}</a></aside>` : ''}
   ${a.faq?.length ? `<section class="faq"><h2>${tw.faq}</h2>${a.faq.map((f) => `<details><summary>${esc(f.q)}</summary><p>${esc(f.a)}</p></details>`).join('')}</section>` : ''}
+  ${regBlock(lang)}
   <p class="byline">${tw.by}</p><p class="disclaimer">${tw.disclaimer}</p>
 </div></article>
 <section class="alt"><div class="wrap"><h2>${tw.related}</h2><div class="grid3">${rel.map((x) => articleCard(x, lang)).join('')}</div></div></section>
@@ -302,6 +312,28 @@ function buildTools(lang) {
 <section class="alt"><div class="wrap grid3">${TOOLS.filter((x) => x.id !== tool.id).map((x) => toolCard(x, lang)).join('')}</div></section>`;
     const ld = [{ '@context': 'https://schema.org', '@type': 'WebApplication', name: tool.title[lang], description: tool.desc[lang], url: abs(tp[lang]), applicationCategory: 'BusinessApplication', operatingSystem: 'All', offers: { '@type': 'Offer', price: '0', priceCurrency: 'CHF' }, provider: { '@id': SITE.domain + '/#organisation' } }];
     write(tp[lang], layout({ lang, title: tool.title[lang], desc: tool.desc[lang], paths: tp, body, ld, active: 'tools', crumbs: cr }));
+  }
+}
+
+function buildRegionen(lang) {
+  const t = T[lang], rt = RT[lang], paths = { de: '/regionen/', en: '/en/regionen/' };
+  const crumbs = [[t.crumbHome, u(lang, '/')], [rt.nav, paths[lang]]];
+  const body = `${pageHead(rt.h1, rt.lead, crumbs)}
+<section><div class="wrap grid4">${REGIONEN.map((r) => `<article class="card"><a href="${regUrl(r, lang)}"><div class="card-body"><h3>${r.name[lang]}</h3><p>${r.lead[lang]}</p><p class="meta">${rt.anzahl(regRefs(r).length)}</p><p class="more">${rt.mehr} →</p></div></a></article>`).join('')}</div>
+<div class="wrap"><p class="lead" style="margin-top:32px">${rt.sonst}</p></div></section>
+${cta(lang)}`;
+  write(paths[lang], layout({ lang, title: rt.title, desc: rt.desc, paths, body, crumbs }));
+  for (const r of REGIONEN) {
+    const rp = { de: `/regionen/${r.slug.de}/`, en: `/en/regionen/${r.slug.en}/` }, refs = regRefs(r), cr = [...crumbs, [r.name[lang], rp[lang]]];
+    const art = articles[lang].find((a) => a.id === r.artikel);
+    const rbody = `${pageHead(r.title[lang], r.lead[lang], cr)}
+<section><div class="wrap split top"><div>${r.text[lang].map((x) => `<p>${x}</p>`).join('')}${art ? `<p><strong>${rt.lesen}:</strong> <a href="${art.url}">${esc(art.title)}</a></p>` : ''}</div>
+<div><h2>${rt.was}</h2><ul class="check">${r.punkte[lang].map((x) => `<li>${x}</li>`).join('')}</ul></div></div></section>
+${refs.length ? `<section class="alt"><div class="wrap"><div class="h-row"><h2>${rt.refs}</h2><a href="${u(lang, '/projekte/')}">${t.home.projectsAll} →</a></div><div class="grid3">${refs.map((p) => projectCard(p, lang)).join('')}</div></div></section>` : ''}
+<section><div class="wrap"><h2>${rt.andere}</h2><div class="grid3">${REGIONEN.filter((x) => x !== r).map((x) => `<article class="card"><a href="${regUrl(x, lang)}"><div class="card-body"><h3>${x.name[lang]}</h3><p>${rt.anzahl(regRefs(x).length)}</p><p class="more">${rt.mehr} →</p></div></a></article>`).join('')}</div></div></section>
+${cta(lang)}`;
+    const ld = [{ '@context': 'https://schema.org', '@type': 'Service', name: r.title[lang], description: r.desc[lang], provider: { '@id': SITE.domain + '/#organisation' }, areaServed: r.kantone.map((k) => ({ '@type': 'AdministrativeArea', name: 'Kanton ' + k })), serviceType: 'Baumanagement, Bauleitung, Bauherrenvertretung' }];
+    write(rp[lang], layout({ lang, title: r.title[lang], desc: r.desc[lang], paths: rp, body: rbody, ld, crumbs: cr }));
   }
 }
 
@@ -348,7 +380,7 @@ ${[...new Map(pages.map((p) => [p.de, p])).values()].flatMap((p) => LANGS.map((l
   const li = (lang) => articles[lang].map((a) => `- [${a.title}](${abs(a.url)}): ${a.description}`).join('\n');
   write('/llms.txt', `# ${SITE.name}
 
-> Baumanagement, Gesamtprojektleitung und Bauherrenvertretung aus ${SITE.city} (Kanton Luzern, Schweiz). Schwerpunkte: Industrie- und Gewerbebauten, Arealentwicklungen, Ein- und Mehrfamilienhäuser, Sanierungen. Inhaber und Projektleiter: Martin Dahinden, dipl. Techniker HF Hochbau.
+> Baumanagement, Gesamtprojektleitung und Bauherrenvertretung aus ${SITE.city} (Kanton Luzern, Schweiz), tätig in der ganzen Deutschschweiz mit Schwerpunkt Zürich und Zentralschweiz. Schwerpunkte: Industrie- und Gewerbebauten, Arealentwicklungen, Ein- und Mehrfamilienhäuser, Sanierungen. Inhaber und Projektleiter: Martin Dahinden, dipl. Techniker HF Hochbau.
 
 Kontakt: ${SITE.street}, ${SITE.zip} ${SITE.city} · Telefon ${SITE.phone} · ${SITE.email} · UID ${SITE.uid}
 
@@ -367,9 +399,14 @@ ${li('en')}
 ## Online-Rechner
 ${TOOLS.map((x) => `- [${x.title.de}](${abs(`/tools/${x.slug.de}/`)}): ${x.desc.de}`).join('\n')}
 
+## Regionen
+${REGIONEN.map((r) => `- [${r.title.de}](${abs(`/regionen/${r.slug.de}/`)}): ${r.desc.de}`).join('\n')}
+
 ## Downloads
 - [Unternehmensprofil mit Referenzliste (PDF)](${SITE.domain}${profileUrl('de')})
+- [Portfolio mit allen Projekten und Bildern (PDF)](${SITE.domain}${profileUrl('de', 'portfolio')})
 - [Company profile with reference list (PDF)](${SITE.domain}${profileUrl('en')})
+- [Portfolio with all projects and images (PDF)](${SITE.domain}${profileUrl('en', 'portfolio')})
 
 ## Optional
 - [Alle Wissensbeiträge im Volltext](${SITE.domain}/llms-full.txt)
@@ -396,8 +433,8 @@ if (exists('src/images')) fs.cpSync(path.join(ROOT, 'src/images'), path.join(OUT
 fs.cpSync(path.join(ROOT, 'src/static'), OUT, { recursive: true });
 fs.mkdirSync(path.join(OUT, 'assets/vendor'), { recursive: true });
 fs.copyFileSync(path.join(ROOT, 'node_modules/jspdf/dist/jspdf.umd.min.js'), path.join(OUT, 'assets/vendor/jspdf.umd.min.js'));
-for (const lang of LANGS) await buildProfile({ lang, outDir: path.join(OUT, 'downloads'), root: ROOT, SITE, T, CATS, TYPES, projects });
-for (const lang of LANGS) { buildHome(lang); buildLeistungen(lang); buildProjekte(lang); buildWissen(lang); buildTools(lang); buildKontakt(lang); buildLegal(lang); }
+for (const lang of LANGS) for (const variant of ['liste', 'portfolio']) await buildProfile({ variant, lang, outDir: path.join(OUT, 'downloads'), root: ROOT, SITE, T, CATS, TYPES, projects });
+for (const lang of LANGS) { buildHome(lang); buildLeistungen(lang); buildProjekte(lang); buildWissen(lang); buildTools(lang); buildRegionen(lang); buildKontakt(lang); buildLegal(lang); }
 buildMeta();
 const unpaired = articles.de.filter((a) => !articles.en.some((b) => b.id === a.id)).map((a) => a.id);
 if (unpaired.length) console.warn('Hinweis: keine englische Fassung für', unpaired.join(', '));

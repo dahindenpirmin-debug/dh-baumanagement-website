@@ -32,6 +32,7 @@ export const CONFIG = {
 export const TOOLS = [
   {
     id: 'kosten',
+    kurz: { de: 'Erstellungskosten für Neubau oder Sanierung als Bandbreite schätzen.', en: 'Estimate construction cost for new build or refurbishment as a range.' },
     icon: 'kosten',
     slug: { de: 'baukosten-rechner', en: 'construction-cost-calculator' },
     title: { de: 'Baukosten-Rechner', en: 'Construction cost calculator' },
@@ -40,6 +41,7 @@ export const TOOLS = [
   },
   {
     id: 'areal',
+    kurz: { de: 'Ausnützungsreserve, Investition und Ertrag eines Grundstücks berechnen.', en: 'Calculate development reserve, investment and income of a plot.' },
     icon: 'potenzial',
     slug: { de: 'arealpotenzial-rechner', en: 'site-potential-calculator' },
     title: { de: 'Arealpotenzial-Rechner', en: 'Site potential calculator' },
@@ -48,6 +50,7 @@ export const TOOLS = [
   },
   {
     id: 'dauer',
+    kurz: { de: 'Projektdauer von der Vorstudie bis zum Bezug ab Startdatum planen.', en: 'Plan project duration from preliminary study to occupation.' },
     icon: 'termine',
     slug: { de: 'bauzeit-rechner', en: 'project-duration-calculator' },
     title: { de: 'Bauzeit- und Terminrechner', en: 'Project duration calculator' },
