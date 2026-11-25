@@ -32,7 +32,7 @@ export const CONFIG = {
 export const TOOLS = [
   {
     id: 'kosten',
-    icon: 'finanzierung',
+    icon: 'kosten',
     slug: { de: 'baukosten-rechner', en: 'construction-cost-calculator' },
     title: { de: 'Baukosten-Rechner', en: 'Construction cost calculator' },
     desc: { de: 'Grobe Baukosten für Neubau oder Sanierung von Wohn-, Büro-, Gewerbe- und Industriebauten in der Schweiz schätzen – nach Geschossfläche (m²) oder Gebäudevolumen (m³), Gebäudetyp und Standard.', en: 'Estimate rough construction costs for new builds or refurbishments of residential, office, commercial and industrial buildings in Switzerland – by floor area (m²) or building volume (m³), building type and standard.' },
@@ -40,7 +40,7 @@ export const TOOLS = [
   },
   {
     id: 'areal',
-    icon: 'entwicklung',
+    icon: 'potenzial',
     slug: { de: 'arealpotenzial-rechner', en: 'site-potential-calculator' },
     title: { de: 'Arealpotenzial-Rechner', en: 'Site potential calculator' },
     desc: { de: 'Ausnützungsreserve eines Grundstücks oder Areals berechnen: zulässige Geschossfläche, Reserve gegenüber dem Bestand, grobe Investition und Ertragspotenzial.', en: 'Calculate the development reserve of a plot or site: permissible floor area, reserve compared with existing buildings, rough investment and income potential.' },
@@ -48,7 +48,7 @@ export const TOOLS = [
   },
   {
     id: 'dauer',
-    icon: 'plan',
+    icon: 'termine',
     slug: { de: 'bauzeit-rechner', en: 'project-duration-calculator' },
     title: { de: 'Bauzeit- und Terminrechner', en: 'Project duration calculator' },
     desc: { de: 'Wie lange dauert ein Bauprojekt? Phasen nach SIA 112 von der Vorstudie bis zum Bezug – mit realistischem Bezugstermin ab Ihrem Startdatum.', en: 'How long does a construction project take? SIA 112 phases from preliminary study to occupation – with a realistic move-in date from your start date.' },

@@ -57,7 +57,9 @@ function img(src, w, h) {
 const brand = (name, file) => (exists('src/images/' + file) ? '/images/' + file : SITE.remote[name]);
 const MARK = exists('src/images/logo-mark.png') ? '/images/logo-mark.png' : null;
 const ICONS = Object.fromEntries(fs.readdirSync(path.join(ROOT, 'src/assets/icons')).filter((f) => f.endsWith('.svg')).map((f) => [f.replace('.svg', ''), fs.readFileSync(path.join(ROOT, 'src/assets/icons', f), 'utf8').trim()]));
-const icon = (name) => (ICONS[name] ? `<span class="icon">${ICONS[name]}</span>` : '');
+const ILLUS = Object.fromEntries(fs.readdirSync(path.join(ROOT, 'src/assets/illus')).filter((f) => f.endsWith('.svg')).map((f) => [f.replace('.svg', ''), fs.readFileSync(path.join(ROOT, 'src/assets/illus', f), 'utf8').trim().replace('<svg ', '<svg width="64" height="50" ')]));
+// Kategorie-Illustration (goldenes Objekt auf blauer Kachel); Fallback: Linien-Icon
+const icon = (name) => (ILLUS[name] ? `<span class="art">${ILLUS[name]}</span>` : ICONS[name] ? `<span class="icon">${ICONS[name]}</span>` : '');
 const LOGO = brand('logo', 'logo.png'), HERO = brand('hero', 'hero.jpg'), PORTRAIT = brand('portrait', 'martin-dahinden.jpg');
 
 /* ---------- Daten laden ---------- */
@@ -173,7 +175,7 @@ function projectCard(p, lang) {
   const pic = p.bilder[0];
   return `<article class="card project" data-cat="${p.kategorie}" data-type="${p.projektart}">
   <a href="${u(lang, `/projekte/${p.slug}/`)}">
-    <div class="thumb">${pic ? `<img src="${img(pic, 640, 480)}" alt="${esc(p.t[lang])}, ${esc(p.ort)}" loading="lazy" width="640" height="480">` : `<div class="ph" aria-hidden="true">${esc(TYPES[p.projektart][lang])}</div>`}</div>
+    <div class="thumb">${pic ? `<img src="${img(pic, 640, 480)}" alt="${esc(p.t[lang])}, ${esc(p.ort)}" loading="lazy" width="640" height="480">` : `<div class="ph" aria-hidden="true">${ILLUS[p.kategorie === 'wohnen' ? 'wohnbau' : 'gewerbe'] || ''}</div>`}</div>
     <div class="card-body"><p class="tag">${CATS[p.kategorie][lang]}</p><h3>${esc(p.t[lang])}</h3><p class="meta">${esc(p.ort)} · ${p.zeit}</p><p class="meta">${p.leist[lang].map(esc).join(', ')}</p></div>
   </a></article>`;
 }
@@ -187,7 +189,7 @@ function buildHome(lang) {
   <div class="wrap"><p class="eyebrow">${SITE.name} · ${SITE.city}</p><h1>${h.h1}</h1><p class="lead">${h.lead}</p>
   <p><a class="btn" href="${u(lang, '/kontakt/')}">${h.cta1}</a> <a class="btn ghost light" href="${u(lang, '/projekte/')}">${h.cta2}</a></p></div></section>
 <section class="facts"><div class="wrap grid3">${h.facts.map(([n, l]) => `<div><strong>${n}</strong><span>${l}</span></div>`).join('')}</div></section>
-<section><div class="wrap"><h2>${h.servicesH}</h2>${grafik('leistungen', lang, h.servicesH)}<div class="grid4">${t.services.map((s) => `<article class="card"><a href="${u(lang, '/leistungen/')}#${s.id}"><div class="card-body">${icon(s.icon)}<h3>${s.t}</h3><p>${s.p}</p></div></a></article>`).join('')}</div></div></section>
+<section><div class="wrap"><h2>${h.servicesH}</h2><div class="grid4">${t.services.map((s) => `<article class="card"><a href="${u(lang, '/leistungen/')}#${s.id}"><div class="card-body">${icon(s.icon)}<h3>${s.t}</h3><p>${s.p}</p></div></a></article>`).join('')}</div></div></section>
 <section class="alt"><div class="wrap"><h2>${t.segments.h}</h2><div class="grid4">${t.segments.items.map(([a, b, l, ic]) => `<article class="card"><a href="${u(lang, l)}"><div class="card-body">${icon(ic)}<h3>${a}</h3><p>${b}</p></div></a></article>`).join('')}</div></div></section>
 <section><div class="wrap"><div class="h-row"><h2>${h.projectsH}</h2><a href="${u(lang, '/projekte/')}">${h.projectsAll} →</a></div><div class="grid3">${projects.filter((p) => p.featured).slice(0, 6).map((p) => projectCard(p, lang)).join('')}</div></div></section>
 <section class="alt about"><div class="wrap split"><img src="${img(PORTRAIT, 600, 720)}" alt="Martin Dahinden, ${lang === 'de' ? 'Projektleiter und Inhaber' : 'project manager and owner'}" loading="lazy" width="600" height="720">

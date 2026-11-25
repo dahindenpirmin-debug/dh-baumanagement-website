@@ -229,3 +229,10 @@ address { font-style: normal; margin-bottom: 1em; }
 .grafik { overflow-x: auto; margin: 8px 0 32px; -webkit-overflow-scrolling: touch; }
 .grafik img { width: 100%; min-width: 760px; height: auto; }
 .grafik-sec { padding-bottom: 0; }
+
+/* Kategorie-Illustrationen: goldenes Objekt auf kleiner blauer Kachel */
+.art { display: flex; align-items: center; justify-content: center; width: 76px; height: 76px; border-radius: 8px; background: var(--ink); margin-bottom: 16px; flex: none; }
+.art svg { width: 54px; height: auto; display: block; }
+.service .art { width: 96px; height: 96px; } .service .art svg { width: 70px; }
+.ph { background: var(--ink); } .ph svg { width: 42%; height: auto; }
+.grafik img { max-width: 940px; margin: 0 auto; }
