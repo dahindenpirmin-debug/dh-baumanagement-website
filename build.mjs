@@ -61,7 +61,10 @@ const MARK = exists('src/images/logo-mark.png') ? '/images/logo-mark.png' : null
 const ICONS = Object.fromEntries(fs.readdirSync(path.join(ROOT, 'src/assets/icons')).filter((f) => f.endsWith('.svg')).map((f) => [f.replace('.svg', ''), fs.readFileSync(path.join(ROOT, 'src/assets/icons', f), 'utf8').trim()]));
 const ILLUS = Object.fromEntries(fs.readdirSync(path.join(ROOT, 'src/assets/illus')).filter((f) => f.endsWith('.svg')).map((f) => [f.replace('.svg', ''), fs.readFileSync(path.join(ROOT, 'src/assets/illus', f), 'utf8').trim().replace('<svg ', '<svg width="64" height="50" ')]));
 // Kategorie-Illustration (goldenes Objekt auf blauer Kachel); Fallback: Linien-Icon
-const icon = (name) => (ILLUS[name] ? `<span class="art">${ILLUS[name]}</span>` : ICONS[name] ? `<span class="icon">${ICONS[name]}</span>` : '');
+// Helle Variante der Illustrationen für die Website: Baukörper blau, Seitenflächen blaugrau, Gold nur als Akzent
+const hell = (svg) => svg.replace(/(<path d="M4 97[^>]*?)fill="#e7c984"/g, '$1fill="@G@"').replace(/fill="#0e2f47"/g, 'fill="var(--art-bg)"').replace(/stroke="#0e2f47"/g, 'stroke="var(--art-bg)"')
+  .replace(/fill="#e7c984"/g, 'fill="#0e2f47"').replace(/fill="#f3e3b8"/g, 'fill="#5d7385"').replace(/fill="#cdb98a"/g, 'fill="#c3ccd3"').replace(/fill="#b9ad90"/g, 'fill="#aab5be"').replace(/stroke="#f3e3b8"/g, 'stroke="#e7c984"').replace(/@G@/g, '#e7c984');
+const icon = (name) => (ILLUS[name] ? `<span class="art">${hell(ILLUS[name])}</span>` : ICONS[name] ? `<span class="icon">${ICONS[name]}</span>` : '');
 const HEROP = SITE.heroProjekt && exists('src/images/projekte/' + SITE.heroProjekt) ? '/images/projekte/' + SITE.heroProjekt : null;
 const LOGO = brand('logo', 'logo.png'), HERO = brand('hero', 'hero.jpg'), PORTRAIT = brand('portrait', 'martin-dahinden.jpg');
 
@@ -245,10 +248,10 @@ function buildLeistungen(lang) {
   const t = T[lang], paths = { de: '/leistungen/', en: '/en/leistungen/' };
   const crumbs = [[t.crumbHome, u(lang, '/')], [t.nav.leistungen, paths[lang]]];
   const body = `${pageHead(t.leistungen.h1, t.leistungen.lead, crumbs)}
- <section class="grafik-sec"><div class="wrap">${grafik('leistungen', lang, t.leistungen.h1)}</div></section>
+
 <section><div class="wrap">${t.services.map((s) => `<article class="service" id="${s.id}"><div>${icon(s.icon)}<h2>${s.t}</h2><p>${s.p}</p></div><ul class="check">${s.li.map((x) => `<li>${x}</li>`).join('')}</ul></article>`).join('')}</div></section>
 <section class="alt"><div class="wrap"><h2>${t.leistungen.whatH}</h2><div class="grid3">${t.strengths.map(([a, b]) => `<div class="card"><div class="card-body"><h3>${a}</h3><p>${b}</p></div></div>`).join('')}</div></div></section>
-<section><div class="wrap"><h2>${t.segments.h}</h2>${grafik('marktsegmente', lang, t.segments.h)}<div class="grid4">${t.segments.items.map(([a, b, l, ic]) => `<article class="card"><a href="${u(lang, l)}"><div class="card-body">${icon(ic)}<h3>${a}</h3><p>${b}</p></div></a></article>`).join('')}</div></div></section>
+<section><div class="wrap"><h2>${t.segments.h}</h2><div class="grid4">${t.segments.items.map(([a, b, l, ic]) => `<article class="card"><a href="${u(lang, l)}"><div class="card-body">${icon(ic)}<h3>${a}</h3><p>${b}</p></div></a></article>`).join('')}</div></div></section>
 ${profileBox(lang)}
 ${cta(lang)}`;
   const ld = t.services.map((s) => ({ '@context': 'https://schema.org', '@type': 'Service', name: s.t, description: s.p, provider: { '@id': SITE.domain + '/#organisation' }, areaServed: 'CH' }));

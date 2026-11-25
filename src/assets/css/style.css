@@ -265,3 +265,9 @@ address { font-style: normal; margin-bottom: 1em; }
 .refbar { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; margin-bottom: 22px; }
 .refbar strong { font-size: 1.1rem; }
 @media (max-width: 900px) { .reffilter { grid-template-columns: 1fr 1fr; } .reffilter input { grid-column: 1 / -1; } }
+
+/* Illustrationen hell: blaues Objekt mit Goldakzent auf heller Kachel */
+.art { --art-bg: #f5f3ee; background: var(--art-bg); }
+.alt .art, .card .art { --art-bg: #f5f3ee; }
+.alt .card .art { --art-bg: #f5f3ee; }
+.service .art { width: 104px; height: 104px; } .service .art svg { width: 78px; }
