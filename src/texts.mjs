@@ -30,7 +30,7 @@ export const CATS = {
 export const TEAM = [
   { name: 'Martin Dahinden', rolle: { de: 'Inhaber und Projektleiter', en: 'Owner and project manager' }, bild: 'martin-dahinden.jpg' },
   { name: 'Manuel Unternährer', rolle: { de: 'Junior Bauleiter', en: 'Junior site manager' } },
-  { name: 'Pirmin Dahinden', rolle: { de: 'Finanzen und Administration', en: 'Finance and administration' } },
+  { name: 'Pirmin Dahinden', rolle: { de: 'Finanzen und Administration', en: 'Finance and administration' }, bild: 'pirmin-dahinden.jpg' },
 ];
 
 // Vordefinierte Dienstleistungen für Referenzen. Im Admin-Bereich als Auswahl (Häkchen); die englische
@@ -54,7 +54,12 @@ export const TYPES = {
 export const T = {
   de: {
     nav: { home: 'Home', leistungen: 'Leistungen', projekte: 'Projekte', wissen: 'Wissen', tools: 'Tools', ueber: 'Über uns', kontakt: 'Kontakt' },
-    ueber: { title: 'Über uns: Team der DH Baumanagement AG', desc: 'Das Team der DH Baumanagement AG in Grosswangen: Martin Dahinden, Inhaber und Projektleiter, Manuel Unternährer, Junior Bauleiter, und Pirmin Dahinden, Finanzen und Administration.', h1: 'Über uns', lead: 'Ein kleines Team, das Ihr Projekt persönlich kennt. Bei uns sprechen Sie mit den Menschen, die Ihr Bauvorhaben tatsächlich führen.', teamH: 'Unser Team', teamP: 'Wir bleiben bewusst überschaubar. So wissen wir bei jedem Projekt, worum es geht, und Sie haben einen festen Ansprechpartner.', link: 'Unser Team kennenlernen' },
+    leitbild: { h: 'Leitbild', lead: 'Drei Grundsätze bestimmen, wie wir arbeiten und entscheiden.', satz: 'Ihr Projekt führen wir so, als wäre es unser eigenes.', werte: [
+      { t: 'Der Kunde steht im Zentrum', p: 'Jedes Bauvorhaben beginnt mit den Zielen der Bauherrschaft. Wir hören zu, bevor wir planen.', li: ['Wir vertreten Ihre Interessen gegenüber Planern, Unternehmern und Behörden.', 'Sie haben einen festen Ansprechpartner, der Ihr Projekt persönlich kennt.', 'Wir informieren offen über Kosten, Termine und Risiken, auch wenn es unbequem ist.'] },
+      { t: 'Die technisch und wirtschaftlich beste Lösung', p: 'Wir suchen nicht die einfachste und nicht die teuerste Lösung, sondern die richtige.', li: ['Wir prüfen Varianten und legen Kosten, Nutzen und Risiken nachvollziehbar dar.', 'Wir denken über die Bauzeit hinaus: Betrieb, Unterhalt und Werterhalt zählen mit.', 'Wir empfehlen unabhängig, ohne Bindung an Planer, Unternehmer oder Produkte.'] },
+      { t: 'Flexibel und auf den Kunden abgestimmt', p: 'Jeder Kunde und jedes Projekt ist anders. Wir passen unsere Arbeitsweise an, nicht umgekehrt.', li: ['Wir übernehmen so viel, wie Sie brauchen: vom einzelnen Mandat bis zur Gesamtdienstleistung.', 'Wir richten uns nach Ihrem Betrieb, Ihren Abläufen und Ihrem Zeitplan.', 'Wir reagieren rasch, wenn sich die Rahmenbedingungen ändern.'] },
+    ] },
+    ueber: { title: 'Über uns: Team und Leitbild der DH Baumanagement AG', desc: 'Team und Leitbild der DH Baumanagement AG in Grosswangen: Martin Dahinden, Inhaber und Projektleiter, Manuel Unternährer, Junior Bauleiter, und Pirmin Dahinden, Finanzen und Administration.', h1: 'Über uns', lead: 'Ein kleines Team, das Ihr Projekt persönlich kennt. Bei uns sprechen Sie mit den Menschen, die Ihr Bauvorhaben tatsächlich führen.', teamH: 'Unser Team', teamP: 'Wir bleiben bewusst überschaubar. So wissen wir bei jedem Projekt, worum es geht, und Sie haben einen festen Ansprechpartner.', link: 'Unser Team kennenlernen' },
     skip: 'Zum Inhalt springen', menu: 'Menü',
     home: {
       title: 'Baumanagement Zürich & Zentralschweiz',
@@ -105,7 +110,12 @@ export const T = {
   },
   en: {
     nav: { home: 'Home', leistungen: 'Services', projekte: 'Projects', wissen: 'Insights', tools: 'Tools', ueber: 'About', kontakt: 'Contact' },
-    ueber: { title: 'About us: the DH Baumanagement AG team', desc: 'The DH Baumanagement AG team in Grosswangen: Martin Dahinden, owner and project manager, Manuel Unternährer, junior site manager, and Pirmin Dahinden, finance and administration.', h1: 'About us', lead: 'A small team that knows your project personally. With us you talk to the people who actually run your construction project.', teamH: 'Our team', teamP: 'We deliberately stay a manageable size. That way we know what every project is about, and you have one fixed contact.', link: 'Meet our team' },
+    leitbild: { h: 'Our principles', lead: 'Three principles determine how we work and decide.', satz: 'We run your project as if it were our own.', werte: [
+      { t: 'The client comes first', p: 'Every construction project starts with the owner’s goals. We listen before we plan.', li: ['We represent your interests towards designers, contractors and authorities.', 'You have one fixed contact who knows your project personally.', 'We report openly on cost, schedule and risk, even when it is uncomfortable.'] },
+      { t: 'The best technical and economic solution', p: 'We look neither for the simplest nor for the most expensive solution, but for the right one.', li: ['We examine options and set out cost, benefit and risk transparently.', 'We think beyond construction: operation, maintenance and value retention count too.', 'We advise independently, with no ties to designers, contractors or products.'] },
+      { t: 'Flexible and tailored to the client', p: 'Every client and every project is different. We adapt the way we work, not the other way round.', li: ['We take on as much as you need: from a single mandate to full service.', 'We work around your operations, your processes and your schedule.', 'We respond quickly when circumstances change.'] },
+    ] },
+    ueber: { title: 'About us: team and principles of DH Baumanagement AG', desc: 'Team and principles of DH Baumanagement AG in Grosswangen: Martin Dahinden, owner and project manager, Manuel Unternährer, junior site manager, and Pirmin Dahinden, finance and administration.', h1: 'About us', lead: 'A small team that knows your project personally. With us you talk to the people who actually run your construction project.', teamH: 'Our team', teamP: 'We deliberately stay a manageable size. That way we know what every project is about, and you have one fixed contact.', link: 'Meet our team' },
     skip: 'Skip to content', menu: 'Menu',
     home: {
       title: 'Construction management Zurich & Lucerne',

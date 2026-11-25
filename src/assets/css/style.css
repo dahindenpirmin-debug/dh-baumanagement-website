@@ -321,3 +321,12 @@ p.form-err.top { margin: 0 0 12px; }
 .member h3 { margin: 0 0 4px; } .member h3::after { display: none; }
 .member p { margin: 0; color: var(--ink-soft); }
 .about .btns, p.btns { display: flex; gap: 12px; flex-wrap: wrap; }
+
+/* Leitbild */
+.leitsatz { font-size: clamp(1.3rem, 2.4vw, 1.75rem); font-style: italic; font-weight: 600; color: var(--ink); border-left: 4px solid var(--accent); padding: 4px 0 4px 20px; margin: 26px 0 34px; max-width: 760px; }
+.wert .nr { font-size: 2.4rem; font-weight: 800; color: var(--accent); line-height: 1; margin-bottom: 10px; }
+.wert .wp { color: var(--ink-soft); }
+.wert .check { margin: 6px 0 0; padding: 0; list-style: none; font-size: .95rem; }
+.wert .check li:last-child { border-bottom: 0; }
+section[id="leitbild"] { scroll-margin-top: 80px; }
+.member img { object-position: center 18%; filter: grayscale(1); }

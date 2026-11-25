@@ -254,7 +254,7 @@ function buildHome(lang) {
 <section class="alt"><div class="wrap"><h2>${t.segments.h}</h2><div class="grid4">${t.segments.items.map(([a, b, l, ic, k]) => `<article class="card"><a href="${u(lang, l)}"><div class="card-body">${icon(ic)}<h3>${a}</h3><p>${k}</p></div></a></article>`).join('')}</div></div></section>
 <section><div class="wrap"><div class="h-row"><h2>${h.projectsH}</h2><a href="${u(lang, '/projekte/')}">${h.projectsAll} →</a></div><div class="grid3">${projects.filter((p) => p.featured).slice(0, 6).map((p) => projectCard(p, lang)).join('')}</div></div></section>
 <section class="alt about"><div class="wrap split"><img src="${img(PORTRAIT, 600, 720)}" alt="Martin Dahinden, ${lang === 'de' ? 'Projektleiter und Inhaber' : 'project manager and owner'}" loading="lazy" width="600" height="720">
-  <div><h2>${h.aboutH}</h2><p class="quote">${h.quote}</p><p>${h.about}</p><p class="claim">${h.claim}</p><p class="btns"><a class="btn" href="${u(lang, '/ueber-uns/')}">${t.ueber.link}</a><a class="btn ghost" href="${profileUrl(lang)}" download>${t.profil.b}</a></p></div></div></section>
+  <div><h2>${h.aboutH}</h2><p class="quote">${h.quote}</p><p>${h.about}</p><p class="claim">${h.claim}</p><p class="btns"><a class="btn" href="${u(lang, '/ueber-uns/')}">${t.ueber.link}</a><a class="btn ghost" href="${u(lang, '/ueber-uns/')}#leitbild">${t.leitbild.h}</a><a class="btn ghost" href="${profileUrl(lang)}" download>${t.profil.b}</a></p></div></div></section>
 <section><div class="wrap"><div class="h-row"><h2>${RT[lang].h1}</h2><a href="${u(lang, '/regionen/')}">${RT[lang].nav} →</a></div><div class="grid4">${REGIONEN.map((r) => `<article class="card"><a href="${regUrl(r, lang)}"><div class="card-body"><h3>${r.name[lang]}</h3><p>${RT[lang].anzahl(regRefs(r).length)}</p><p class="more">${RT[lang].mehr} →</p></div></a></article>`).join('')}</div></div></section>
 <section class="alt"><div class="wrap"><div class="h-row"><h2>${h.knowH}</h2><a href="${u(lang, '/wissen/')}">${h.knowAll} →</a></div><div class="grid3">${articles[lang].filter((a) => a.featured).slice(0, 3).map((a) => articleCard(a, lang)).join('')}</div></div></section>
 <section><div class="wrap"><h2>${h.toolsH}</h2><p class="lead">${h.toolsLead}</p><div class="grid3">${TOOLS.map((tl) => toolCard(tl, lang)).join('')}</div></div></section>
@@ -412,9 +412,11 @@ function buildUeber(lang) {
   const crumbs = [[t.crumbHome, u(lang, '/')], [t.nav.ueber, paths[lang]]];
   const body = `${pageHead(k.h1, k.lead, crumbs)}
 <section><div class="wrap"><h2>${k.teamH}</h2><p class="lead">${k.teamP}</p>${teamCards(lang)}</div></section>
-<section class="alt about"><div class="wrap split"><img src="${img(PORTRAIT, 600, 720)}" alt="Martin Dahinden, ${TEAM[0].rolle[lang]}" loading="lazy" width="600" height="720">
+<section class="alt" id="leitbild"><div class="wrap"><h2>${t.leitbild.h}</h2><p class="lead">${t.leitbild.lead}</p><p class="leitsatz">${t.leitbild.satz}</p>
+<div class="grid3 werte">${t.leitbild.werte.map((w, i) => `<article class="card wert"><div class="card-body"><span class="nr">0${i + 1}</span><h3>${w.t}</h3><p class="wp">${w.p}</p><ul class="check">${w.li.map((x) => `<li>${x}</li>`).join('')}</ul></div></article>`).join('')}</div></div></section>
+<section class="about"><div class="wrap split"><img src="${img(PORTRAIT, 600, 720)}" alt="Martin Dahinden, ${TEAM[0].rolle[lang]}" loading="lazy" width="600" height="720">
   <div><h2>Martin Dahinden</h2><p class="tag">${TEAM[0].rolle[lang]}</p><p class="quote">${h.quote}</p><p>${h.about}</p><p class="btns"><a class="btn" href="${u(lang, '/kontakt/')}">${t.nav.kontakt}</a><a class="btn ghost" href="tel:${SITE.phoneIntl}">${SITE.phone}</a></p></div></div></section>
-<section><div class="wrap"><h2>${t.leistungen.whatH}</h2><div class="grid3">${t.strengths.map(([a, b]) => `<article class="card"><div class="card-body"><h3>${a}</h3><p>${b}</p></div></article>`).join('')}</div></div></section>
+<section class="alt"><div class="wrap"><h2>${t.leistungen.whatH}</h2><div class="grid3">${t.strengths.map(([a, b]) => `<article class="card"><div class="card-body"><h3>${a}</h3><p>${b}</p></div></article>`).join('')}</div></div></section>
 ${profileBox(lang)}
 ${cta(lang)}`;
   const ld = [{ '@context': 'https://schema.org', '@type': 'AboutPage', name: k.title, url: abs(paths[lang]), about: { '@id': SITE.domain + '/#organisation' } },

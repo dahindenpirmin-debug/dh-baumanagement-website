@@ -67,6 +67,23 @@ export function buildProfile({ TEAM = [], variant = 'liste', lang, outDir, root,
   }
 
   /* Leistungen */
+  /* Leitbild: eigene Seite, drei Grundsätze im gleichen Aufbau */
+  if (t.leitbild) {
+    h1(t.leitbild.h);
+    p(t.leitbild.lead); doc.y += 16;
+    const sy = doc.y; doc.font('Helvetica-Oblique').fontSize(17).fillColor(INK).text(t.leitbild.satz, M + 18, sy + 2, { width: CW - 18, lineGap: 3 });
+    doc.rect(M, sy, 4, doc.y - sy + 2).fill(ACC); doc.y += 30;
+    t.leitbild.werte.forEach((w, i) => {
+      const tx = M + 62, tw = CW - 62, y0 = doc.y;
+      doc.font('Helvetica-Bold').fontSize(30).fillColor(ACC).text(`0${i + 1}`, M, y0 - 4, { width: 56, lineBreak: false });
+      doc.font('Helvetica-Bold').fontSize(13.5).fillColor(INK).text(w.t, tx, y0, { width: tw }); doc.y += 5;
+      doc.font('Helvetica').fontSize(10.5).fillColor(SOFT).text(w.p, tx, doc.y, { width: tw, lineGap: 3 }); doc.y += 9;
+      for (const li of w.li) { const y = doc.y; doc.rect(tx + 2, y + 4.5, 4, 4).fill(ACC); doc.font('Helvetica').fontSize(10).fillColor(INK).text(li, tx + 14, y, { width: tw - 14, lineGap: 2.5 }); doc.y += 4; }
+      doc.y += 14;
+      if (i < t.leitbild.werte.length - 1) { doc.moveTo(M, doc.y).lineTo(W - M, doc.y).lineWidth(0.5).strokeColor(LINE).stroke(); doc.y += 22; }
+    });
+  }
+
   h1(x.services);
   p(t.leistungen.lead); doc.moveDown(0.6);
   // Jeder Leistungsschritt: Illustration links, Text rechts, Block bleibt auf einer Seite zusammen
