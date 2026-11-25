@@ -37,8 +37,8 @@ export const T = {
     nav: { home: 'Home', leistungen: 'Leistungen', projekte: 'Projekte', wissen: 'Wissen', tools: 'Tools', kontakt: 'Kontakt' },
     skip: 'Zum Inhalt springen', menu: 'Menü',
     home: {
-      title: 'Baumanagement & Bauherrenvertretung – Zürich, Zentralschweiz, Deutschschweiz',
-      desc: 'DH Baumanagement AG: Projektleitung, Baumanagement und Bauherrenvertretung für Wohn-, Gewerbe- und Industriebauten sowie Arealentwicklungen in Zürich, der Zentralschweiz und der ganzen Deutschschweiz.',
+      title: 'Baumanagement Zürich & Zentralschweiz',
+      desc: 'Projektleitung, Baumanagement und Bauherrenvertretung für Wohn-, Gewerbe- und Industriebauten in Zürich, der Zentralschweiz und der ganzen Deutschschweiz.',
       h1: 'Ihr persönlicher Gesamtdienstleistungsanbieter',
       lead: 'Wir unterstützen Sie bei der Entwicklung, Realisierung und Modernisierung Ihres Bauvorhabens – und begleiten Sie von Anfang bis Schluss. Ein Ansprechpartner, klare Kosten, verlässliche Termine.',
       cta1: 'Projekt besprechen', cta2: 'Referenzen ansehen',
@@ -87,7 +87,7 @@ export const T = {
     nav: { home: 'Home', leistungen: 'Services', projekte: 'Projects', wissen: 'Insights', tools: 'Tools', kontakt: 'Contact' },
     skip: 'Skip to content', menu: 'Menu',
     home: {
-      title: 'Construction management & owner’s representation – Zurich, Central and German-speaking Switzerland',
+      title: 'Construction management Zurich & Lucerne',
       desc: 'DH Baumanagement AG, Grosswangen (Lucerne): project management, construction management and owner’s representation for residential, commercial and industrial buildings and long-term site developments.',
       h1: 'Your personal full-service provider',
       lead: 'We support you in developing, building and modernising your property – from the first idea to handover. One point of contact, transparent costs, reliable schedules.',

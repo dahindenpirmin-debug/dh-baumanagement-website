@@ -44,7 +44,8 @@
     var draw = function () {
       svg.setAttribute('viewBox', vb.x.toFixed(1) + ' ' + vb.y.toFixed(1) + ' ' + vb.w.toFixed(1) + ' ' + vb.h.toFixed(1));
       var k = W / vb.w; svg.classList.toggle('zoomed', k >= 2.2); svg.classList.toggle('pan', k > 1.01);
-      scales.forEach(function (g) { g.setAttribute('transform', 'scale(' + (1 / Math.sqrt(k)).toFixed(3) + ')'); });
+      var rw = svg.getBoundingClientRect().width || W, big = Math.max(1, Math.min(2.2, 560 / rw)); // auf schmalen Bildschirmen grössere Punkte
+      scales.forEach(function (g) { g.setAttribute('transform', 'scale(' + (big / Math.sqrt(k)).toFixed(3) + ')'); });
     };
     var clamp = function (v) {
       v.w = Math.max(W / 10, Math.min(W, v.w)); v.h = v.w * H / W;
@@ -100,6 +101,7 @@
         document.querySelectorAll('[data-view]').forEach(function (x) { x.classList.toggle('on', x === b); });
       });
     });
+    draw(); window.addEventListener('resize', draw);
     apply(); if (f.kt.value) zoomKt();
   }
 

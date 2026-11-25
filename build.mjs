@@ -140,8 +140,8 @@ function layout({ lang, title, desc, paths, body, ld = [], ogImage, active = '',
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>${esc(title)} | ${SITE.name}</title>
-<meta name="description" content="${esc(desc)}">
+<title>${esc(seoTitle(title))}</title>
+<meta name="description" content="${esc(seoDesc(desc))}">
 ${noindex ? '<meta name="robots" content="noindex">' : `<link rel="canonical" href="${abs(self)}">
 <link rel="alternate" hreflang="de-CH" href="${abs(paths.de)}">
 <link rel="alternate" hreflang="en" href="${abs(paths.en)}">
@@ -190,6 +190,9 @@ ${body}
 </body>
 </html>`;
 }
+// Suchresultate: Titel höchstens ca. 65 Zeichen (Firmenname nur, wenn er Platz hat), Beschreibung höchstens ca. 158 Zeichen
+const seoTitle = (t) => { for (const suf of [' | ' + SITE.name, ' | DH Baumanagement', '']) if ((t + suf).length <= 65) return t + suf; return t; };
+const seoDesc = (d) => { d = String(d || '').replace(/\s+/g, ' ').trim(); if (d.length <= 158) return d; const c = d.slice(0, 157); return c.slice(0, c.lastIndexOf(' ')).replace(/[,;:–-]$/, '') + '…'; };
 const regUrl = (r, lang) => u(lang, `/regionen/${r.slug[lang]}/`);
 const regRefs = (r) => projects.filter((p) => r.kantone.includes(p.kanton));
 const regBlock = (lang) => `<aside class="region-hint"><strong>${RT[lang].block}</strong><p>${RT[lang].blockText} ${REGIONEN.map((r) => `<a href="${regUrl(r, lang)}">${r.name[lang]}</a>`).join(' · ')}</p></aside>`;
