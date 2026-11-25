@@ -16,7 +16,8 @@ Statische, zweisprachige Website (DE unter `/`, EN unter `/en/`). Kein CMS, kein
 | Unternehmensprofil (PDF, DE/EN) | `src/profil.mjs` – wird bei jedem Build aus Texten und Projektliste neu erzeugt (`/downloads/…`) |
 | Impressum & Datenschutz | `content/seiten/` |
 | Design (Farben, Schrift) | `src/assets/css/style.css`, Block `:root`. CI: Blau `#0e2f47`, Gold `#e7c984`, Schrift Avenir (Lauftext Book, Titel Black) |
-| Logo, Bildmarke, Wasserzeichen | `src/images/logo.png`, `logo-mark.png`, `wasserzeichen.png`, `hintergrund-navy.jpg` |
+| Logo (Variante A-1), Bildmarke, Wasserzeichen | `src/images/logo-quer.svg` (Header), `logo.png` (PDFs), `logo-mark.png`, `wasserzeichen.png`, `hintergrund-navy.jpg`. Kleinformat-Zeichen A-2 in den Favicons |
+| Infografiken Leistungen / Marktsegmente | `src/images/grafiken/*-de|en.svg` (Website) und `.png` (Unternehmensprofil); Text ist in Pfade umgewandelt, Änderungen über das CI-Paket neu erzeugen |
 | CI-Icons (10 Stück, SVG, einfärbbar) | `src/assets/icons/*.svg` – Zuordnung über das Feld `icon` in `src/texts.mjs` und `src/tools.mjs` |
 | Favicons, App-Icons, Social-Bild | `src/static/` (`favicon.ico`, `favicon.svg`, `apple-touch-icon.png`, `icon-192/512.png`, `og-image.jpg`) |
 | Weiterleitungen, Sitemap, robots, llms.txt | werden in `build.mjs` erzeugt |
@@ -55,6 +56,10 @@ In `src/texts.mjs` bei `CATS` bzw. `TYPES` einen Eintrag mit deutschem und engli
 Je eine Datei in `content/wissen/de/` und `content/wissen/en/` mit derselben `id` im Kopfbereich (damit die Sprachversionen verknüpft werden). Pflichtfelder: `id`, `title`, `description` (max. ca. 155 Zeichen), `category`, `summary` (2–3 Sätze, beantwortet die Kernfrage direkt), `date`. Optional: `faq` (Liste mit `q` und `a`), `tool` (`kosten`, `areal` oder `dauer`), `featured: true`. Der Dateiname ohne Nummer wird zur URL.
 
 Schreibregeln: Schweizer Rechtschreibung (kein ß), konkrete Zahlen mit Einordnung, Normen und Gesetze nur nennen, wenn sie geprüft sind; Beitrag mit einer direkten Antwort beginnen, mindestens eine Tabelle oder Liste, drei FAQ.
+
+## Bilder von der alten Wix-Seite
+
+Steht in `data/projekte.csv` in der Spalte `bilder` ein Eintrag `wix:…` oder in `dokument` eine `https://`-Adresse, lädt die GitHub-Action «Bilder importieren» (`.github/workflows/`) die Dateien bei jedem Push der CSV ins Repository und stellt die Zeile auf lokale Dateien um. Von Hand: `npm run bilder`.
 
 ## Rechner und Formulare
 

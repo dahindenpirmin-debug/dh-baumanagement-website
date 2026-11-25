@@ -136,7 +136,7 @@ ${lds.map((l) => `<script type="application/ld+json">${JSON.stringify(l).replace
 <a class="skip" href="#inhalt">${t.skip}</a>
 <header class="site-header">
   <div class="wrap bar">
-    <a class="logo" href="${u(lang, '/')}" aria-label="${SITE.name} – Home">${MARK ? `<img src="${img(MARK, 240, 0)}" alt="" width="107" height="92"><span>${SITE.name}</span>` : `<img src="${img(LOGO, 400, 0)}" alt="${SITE.name}" width="200" height="56">`}</a>
+    <a class="logo" href="${u(lang, '/')}" aria-label="${SITE.name} – Home">${exists('src/images/logo-quer.svg') ? `<img src="/images/logo-quer.svg" alt="${SITE.name}" width="252" height="46">` : `<img src="${img(LOGO, 400, 0)}" alt="${SITE.name}" width="200" height="56">`}</a>
     <button class="burger" aria-expanded="false" aria-controls="nav" aria-label="${t.menu}"><span></span><span></span><span></span></button>
     <nav id="nav" aria-label="Hauptnavigation">
       <ul>${nav.map(([k, p]) => `<li><a href="${u(lang, p)}"${active === k ? ' aria-current="page"' : ''}>${t.nav[k]}</a></li>`).join('')}
@@ -160,6 +160,7 @@ ${body}
 </html>`;
 }
 const cta = (lang) => `<section class="cta"><div class="wrap"><h2>${T[lang].cta.h}</h2><p>${T[lang].cta.p}</p><p><a class="btn" href="${u(lang, '/kontakt/')}">${T[lang].cta.b}</a> <a class="btn ghost" href="tel:${SITE.phoneIntl}">${SITE.phone}</a></p></div></section>`;
+const grafik = (name, lang, alt) => (exists(`src/images/grafiken/${name}-${lang}.svg`) ? `<div class="grafik"><img src="/images/grafiken/${name}-${lang}.svg" alt="${alt}" loading="lazy" width="1200" height="${name === 'leistungen' ? 430 : 330}"></div>` : '');
 const profileUrl = (lang) => '/downloads/' + profileFile(lang);
 const profileBox = (lang) => `<section class="alt"><div class="wrap download"><div><h2>${T[lang].profil.h}</h2><p>${T[lang].profil.p}</p></div><a class="btn" href="${profileUrl(lang)}" download>${T[lang].profil.b}</a></div></section>`;
 const pageHead = (h1, lead, crumbs) => `<section class="page-head"><div class="wrap">${crumbs ? `<nav class="crumbs" aria-label="Breadcrumb">${crumbs.map(([n, p], i) => (i < crumbs.length - 1 ? `<a href="${p}">${esc(n)}</a>` : `<span>${esc(n)}</span>`)).join(' › ')}</nav>` : ''}<h1>${esc(h1)}</h1>${lead ? `<p class="lead">${esc(lead)}</p>` : ''}</div></section>`;
@@ -183,7 +184,7 @@ function buildHome(lang) {
   <div class="wrap"><p class="eyebrow">${SITE.name} · ${SITE.city}</p><h1>${h.h1}</h1><p class="lead">${h.lead}</p>
   <p><a class="btn" href="${u(lang, '/kontakt/')}">${h.cta1}</a> <a class="btn ghost light" href="${u(lang, '/projekte/')}">${h.cta2}</a></p></div></section>
 <section class="facts"><div class="wrap grid3">${h.facts.map(([n, l]) => `<div><strong>${n}</strong><span>${l}</span></div>`).join('')}</div></section>
-<section><div class="wrap"><h2>${h.servicesH}</h2><div class="grid4">${t.services.map((s) => `<article class="card"><a href="${u(lang, '/leistungen/')}#${s.id}"><div class="card-body">${icon(s.icon)}<h3>${s.t}</h3><p>${s.p}</p></div></a></article>`).join('')}</div></div></section>
+<section><div class="wrap"><h2>${h.servicesH}</h2>${grafik('leistungen', lang, h.servicesH)}<div class="grid4">${t.services.map((s) => `<article class="card"><a href="${u(lang, '/leistungen/')}#${s.id}"><div class="card-body">${icon(s.icon)}<h3>${s.t}</h3><p>${s.p}</p></div></a></article>`).join('')}</div></div></section>
 <section class="alt"><div class="wrap"><h2>${t.segments.h}</h2><div class="grid4">${t.segments.items.map(([a, b, l, ic]) => `<article class="card"><a href="${u(lang, l)}"><div class="card-body">${icon(ic)}<h3>${a}</h3><p>${b}</p></div></a></article>`).join('')}</div></div></section>
 <section><div class="wrap"><div class="h-row"><h2>${h.projectsH}</h2><a href="${u(lang, '/projekte/')}">${h.projectsAll} →</a></div><div class="grid3">${projects.filter((p) => p.featured).slice(0, 6).map((p) => projectCard(p, lang)).join('')}</div></div></section>
 <section class="alt about"><div class="wrap split"><img src="${img(PORTRAIT, 600, 720)}" alt="Martin Dahinden, ${lang === 'de' ? 'Projektleiter und Inhaber' : 'project manager and owner'}" loading="lazy" width="600" height="720">
@@ -199,9 +200,10 @@ function buildLeistungen(lang) {
   const t = T[lang], paths = { de: '/leistungen/', en: '/en/leistungen/' };
   const crumbs = [[t.crumbHome, u(lang, '/')], [t.nav.leistungen, paths[lang]]];
   const body = `${pageHead(t.leistungen.h1, t.leistungen.lead, crumbs)}
+ <section class="grafik-sec"><div class="wrap">${grafik('leistungen', lang, t.leistungen.h1)}</div></section>
 <section><div class="wrap">${t.services.map((s) => `<article class="service" id="${s.id}"><div>${icon(s.icon)}<h2>${s.t}</h2><p>${s.p}</p></div><ul class="check">${s.li.map((x) => `<li>${x}</li>`).join('')}</ul></article>`).join('')}</div></section>
 <section class="alt"><div class="wrap"><h2>${t.leistungen.whatH}</h2><div class="grid3">${t.strengths.map(([a, b]) => `<div class="card"><div class="card-body"><h3>${a}</h3><p>${b}</p></div></div>`).join('')}</div></div></section>
-<section><div class="wrap"><h2>${t.segments.h}</h2><div class="grid4">${t.segments.items.map(([a, b, l, ic]) => `<article class="card"><a href="${u(lang, l)}"><div class="card-body">${icon(ic)}<h3>${a}</h3><p>${b}</p></div></a></article>`).join('')}</div></div></section>
+<section><div class="wrap"><h2>${t.segments.h}</h2>${grafik('marktsegmente', lang, t.segments.h)}<div class="grid4">${t.segments.items.map(([a, b, l, ic]) => `<article class="card"><a href="${u(lang, l)}"><div class="card-body">${icon(ic)}<h3>${a}</h3><p>${b}</p></div></a></article>`).join('')}</div></div></section>
 ${profileBox(lang)}
 ${cta(lang)}`;
   const ld = t.services.map((s) => ({ '@context': 'https://schema.org', '@type': 'Service', name: s.t, description: s.p, provider: { '@id': SITE.domain + '/#organisation' }, areaServed: 'CH' }));

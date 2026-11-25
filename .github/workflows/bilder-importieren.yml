@@ -1,0 +1,27 @@
+# Lädt Bilder und PDFs, die in data/projekte.csv noch auf die alte Wix-Seite zeigen,
+# ins Repository und stellt die Projektliste auf lokale Dateien um.
+name: Bilder importieren
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths: ['data/projekte.csv', 'scripts/bilder-importieren.mjs', '.github/workflows/bilder-importieren.yml']
+permissions:
+  contents: write
+jobs:
+  import:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: npm ci
+      - run: npm run bilder
+      - run: npm run build
+      - name: Änderungen committen
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A src/images src/static data/projekte.csv
+          git diff --cached --quiet || (git commit -m "Bilder und PDFs der Referenzen ins Repository übernommen" && git push)

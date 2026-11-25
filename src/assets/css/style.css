@@ -3,7 +3,7 @@
   --ink: #0e2f47;        /* CI-Blau (C100 M76 Y44 K45): Text, Header, Footer */
   --ink-soft: #4d6172;
   --accent: #e7c984;     /* CI-Gold (C11 M20 Y55 K1): Flächen, Linien, Buttons */
-  --accent-dark: #9a7b2e;
+  --accent-dark: #8a6d24;
   --bg: #ffffff;
   --bg-alt: #f5f3ee;
   --line: #dfddd7;
@@ -197,7 +197,7 @@ address { font-style: normal; margin-bottom: 1em; }
   h1 { hyphens: auto; }
   section { padding: 44px 0; }
   .wrap { padding: 0 18px; }
-  .bar { min-height: 64px; } .logo img { height: 36px; } .logo { font-size: .98rem; gap: 9px; }
+  .bar { min-height: 64px; } .logo img { height: 34px; }
   .grid3, .grid4 { grid-template-columns: 1fr; gap: 16px; }
   .facts div div { border-left: 0; border-top: 1px solid rgba(255,255,255,.12); padding: 20px 0; }
   .filters { gap: 10px; } .filter.view { margin-left: 0; }
@@ -224,3 +224,8 @@ address { font-style: normal; margin-bottom: 1em; }
 .hero { background-color: var(--ink); }
 .facts { background: #0a2436; }
 .quote { border-color: var(--accent); }
+
+/* Infografiken (Leistungen, Marktsegmente) */
+.grafik { overflow-x: auto; margin: 8px 0 32px; -webkit-overflow-scrolling: touch; }
+.grafik img { width: 100%; min-width: 760px; height: auto; }
+.grafik-sec { padding-bottom: 0; }

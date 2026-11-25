@@ -4,7 +4,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import PDFDocument from 'pdfkit';
 
-const INK = '#0e2f47', ACC = '#e7c984', DARKGOLD = '#9a7b2e', SOFT = '#4d6172', ALT = '#f5f3ee', LINE = '#dfddd7', GOLD = '#e7c984';
+const INK = '#0e2f47', ACC = '#e7c984', DARKGOLD = '#8a6d24', SOFT = '#4d6172', ALT = '#f5f3ee', LINE = '#dfddd7', GOLD = '#e7c984';
 const TX = {
   de: { file: 'DH-Baumanagement-Unternehmensprofil.pdf', title: 'Unternehmensprofil', sub: 'mit Referenzliste', about: 'Über uns', strengths: 'Was uns ausmacht', person: 'Ihr Ansprechpartner', role: 'Projektleiter und Inhaber, dipl. Techniker HF Hochbau', services: 'Leistungen', segments: 'Für wen wir bauen', refs: 'Referenzen', selected: 'Ausgewählte Projekte', th: ['Projekt', 'Ort', 'Zeitraum', 'Art', 'Unsere Leistungen'], contact: 'Kontakt', facts: 'Unternehmen', factRows: (s) => [['Firma', s.name], ['Sitz', `${s.street}, ${s.zip} ${s.city}`], ['UID', s.uid], ['Tätigkeitsgebiet', 'Zentralschweiz, Aargau, Zürich, Bern'], ['Schwerpunkte', 'Industrie- und Gewerbebauten, Arealentwicklung, Wohnbau, Sanierung']], stand: 'Stand', page: 'Seite', count: (n) => `${n} Projekte` },
   en: { file: 'DH-Baumanagement-Company-Profile.pdf', title: 'Company profile', sub: 'with reference list', about: 'About us', strengths: 'What defines us', person: 'Your contact', role: 'Project manager and owner, dipl. Techniker HF Hochbau', services: 'Services', segments: 'Who we build for', refs: 'References', selected: 'Selected projects', th: ['Project', 'Location', 'Period', 'Type', 'Our services'], contact: 'Contact', facts: 'Company', factRows: (s) => [['Company', s.name], ['Registered office', `${s.street}, ${s.zip} ${s.city}, Switzerland`], ['Company ID (UID)', s.uid], ['Area of activity', 'Central Switzerland, Aargau, Zurich, Bern'], ['Focus', 'Industrial and commercial buildings, site development, residential, refurbishment']], stand: 'As of', page: 'Page', count: (n) => `${n} projects` },
@@ -62,7 +62,8 @@ export function buildProfile({ lang, outDir, root, SITE, T, CATS, TYPES, project
 
   /* Leistungen */
   h1(x.services);
-  p(t.leistungen.lead); doc.moveDown(0.8);
+  p(t.leistungen.lead); doc.moveDown(0.6);
+  const gL = local(`images/grafiken/leistungen-${lang}.png`); if (gL) { doc.image(gL, M, doc.y, { width: CW }); doc.y += CW * 430 / 1200 + 14; }
   for (const s of t.services) {
     need(120);
     doc.font('Helvetica-Bold').fontSize(12.5).fillColor(INK).text(s.t, M, doc.y); doc.moveDown(0.25);
@@ -70,7 +71,8 @@ export function buildProfile({ lang, outDir, root, SITE, T, CATS, TYPES, project
     for (const li of s.li) { const y = doc.y; doc.rect(M + 2, y + 4, 4, 4).fill(ACC); doc.font('Helvetica').fontSize(10).fillColor(INK).text(li, M + 14, y, { width: CW - 14, lineGap: 2 }); doc.y += 2; }
     doc.moveDown(0.9);
   }
-  h2(x.segments);
+  need(330); h2(x.segments);
+  const gS = local(`images/grafiken/marktsegmente-${lang}.png`); if (gS) { doc.image(gS, M, doc.y, { width: CW }); doc.y += CW * 330 / 1200 + 18; }
   for (const [a, b] of t.segments.items) item(a, b);
 
   /* Ausgewählte Projekte mit Bild (nur lokal vorhandene Bilder) */

@@ -115,7 +115,7 @@
       var doc = new a[0]({ unit: 'mm', format: 'a4' }), lg = a[1], W = 210, M = 18, y;
       var _text = doc.text.bind(doc); // Standardschrift kennt keine Hochzahlen
       doc.text = function (t) { var args = [].slice.call(arguments); args[0] = typeof t === 'string' ? t.replace(/²/g, '2').replace(/³/g, '3') : t.map(function (x) { return x.replace(/²/g, '2').replace(/³/g, '3'); }); return _text.apply(null, args); };
-      var INK = [14, 47, 71], ACC = [231, 201, 132], GOLD = [154, 123, 46], SOFT = [77, 97, 114], ALT = [245, 243, 238], LINE = [223, 221, 215];
+      var INK = [14, 47, 71], ACC = [231, 201, 132], GOLD = [138, 109, 36], SOFT = [77, 97, 114], ALT = [245, 243, 238], LINE = [223, 221, 215];
       doc.setFillColor.apply(doc, INK); doc.rect(0, 0, W, 30, 'F');
       doc.setFillColor.apply(doc, ACC); doc.rect(0, 30, W, 1.4, 'F');
       if (lg) { var lh = 21, lw = lh * lg.r; doc.addImage(lg.data, 'PNG', M, 4.5, lw, lh, 'logo', 'FAST'); }
