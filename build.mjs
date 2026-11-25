@@ -232,7 +232,7 @@ function projectCard(p, lang) {
     <div class="card-body"><p class="tag">${CATS[p.kategorie][lang]} · ${TYPES[p.projektart][lang]}</p><h3>${esc(p.t[lang])}</h3><p class="meta">${esc(p.ort)}${p.kanton ? ' ' + p.kanton : ''} · ${p.zeit}${p.vol ? ' · ' + esc(p.vol) : ''}</p><p class="meta leist">${p.leist[lang].map(esc).join(', ')}</p></div>
   </a></article>`;
 }
-const articleCard = (a, lang) => `<article class="card"><a href="${a.url}"><div class="card-body"><p class="tag">${esc(a.category)}</p><h3>${esc(a.title)}</h3><p>${esc(a.description)}</p><p class="meta">${a.min} ${T[lang].wissen.min}</p></div></a></article>`;
+const articleCard = (a, lang) => `<article class="card"><a href="${a.url}"><div class="card-body"><p class="tag">${esc(a.category)}</p><h3>${esc(a.title)}</h3><p>${esc(a.description)}</p><p class="meta more">${a.date.split('-').reverse().join('.')} · ${a.min} ${T[lang].wissen.min}</p></div></a></article>`;
 const toolCard = (tl, lang) => `<article class="card"><a href="${u(lang, `/tools/${tl.slug[lang]}/`)}"><div class="card-body">${icon(tl.icon)}<h3>${tl.title[lang]}</h3><p>${tl.kurz[lang]}</p><p class="more">${T[lang].tools.open} →</p></div></a></article>`;
 
 /* ---------- Seiten ---------- */
@@ -326,7 +326,8 @@ function buildWissen(lang) {
   const crumbs = [[t.crumbHome, u(lang, '/')], [t.nav.wissen, paths[lang]]];
   const cats = [...new Set(list.map((a) => a.category))];
   const body = `${pageHead(tw.h1, tw.lead, crumbs)}
-${cats.map((c, i) => `<section${i % 2 ? ' class="alt"' : ''}><div class="wrap"><h2>${esc(c)}</h2><div class="grid3">${list.filter((a) => a.category === c).map((a) => articleCard(a, lang)).join('')}</div></div></section>`).join('\n')}
+<section class="topics"><div class="wrap"><nav class="filter" aria-label="${lang === 'de' ? 'Themen' : 'Topics'}">${cats.map((c, i) => `<a class="chip" href="#thema-${i + 1}">${esc(c)} <span>${list.filter((a) => a.category === c).length}</span></a>`).join('')}</nav></div></section>
+${cats.map((c, i) => `<section id="thema-${i + 1}"${i % 2 ? ' class="alt"' : ''}><div class="wrap"><h2>${esc(c)}</h2><div class="grid3">${list.filter((a) => a.category === c).sort((x, y) => y.date.localeCompare(x.date)).map((a) => articleCard(a, lang)).join('')}</div></div></section>`).join('\n')}
 ${cta(lang)}`;
   write(paths[lang], layout({ lang, title: tw.title, desc: tw.desc, paths, body, active: 'wissen', crumbs, ld: [{ '@context': 'https://schema.org', '@type': 'Blog', name: tw.h1, url: abs(paths[lang]), publisher: { '@id': SITE.domain + '/#organisation' } }] }));
 
