@@ -306,3 +306,9 @@ nav .lang a { padding: 7px 10px; display: inline-block; }
 .chip span { color: var(--accent-dark); font-weight: 700; margin-left: 4px; } .chip:hover span { color: var(--accent); }
 section[id^="thema-"] { scroll-margin-top: 90px; }
 .card .meta.more { color: var(--ink-soft); font-weight: 400; }
+
+/* Formularprüfung */
+.form-err { display: block; color: #b3261e; font-size: .85rem; font-weight: 600; margin-top: 4px; }
+p.form-err.top { margin: 0 0 12px; }
+.field .bad, input.bad, textarea.bad { border-color: #b3261e !important; outline-color: #b3261e; }
+.check-q input { max-width: 110px; }

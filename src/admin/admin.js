@@ -85,10 +85,11 @@
     renderPhotos(); mark(); show('v-edit');
   }
   function renderPhotos() {
-    var slug = cur ? cur.slug : '';
-    $('photos').innerHTML = fotos.map(function (f, i) { return '<div class="a-photo' + (f.del ? ' del' : '') + '"><img src="/images/projekte/' + slug + '/' + f.name + '" alt="" loading="lazy" onerror="this.style.visibility=\'hidden\'"><span>' + esc(f.name) + '</span><button type="button" data-old="' + i + '" title="Foto entfernen / behalten">×</button></div>'; }).join('')
+    var slug = cur ? encodeURIComponent(cur.slug) : '';
+    $('photos').innerHTML = fotos.map(function (f, i) { return '<div class="a-photo' + (f.del ? ' del' : '') + '"><img src="/images/projekte/' + slug + '/' + encodeURIComponent(f.name) + '" alt="" loading="lazy"><span>' + esc(f.name) + '</span><button type="button" data-old="' + i + '" title="Foto entfernen / behalten">×</button></div>'; }).join('')
       + neue.map(function (f, i) { return '<div class="a-photo neu"><img src="' + f.url + '" alt=""><span>neu</span><button type="button" data-new="' + i + '" title="Nicht hochladen">×</button></div>'; }).join('');
   }
+  $('photos').addEventListener('error', function (e) { if (e.target.tagName === 'IMG') e.target.style.visibility = 'hidden'; }, true);
   $('photos').addEventListener('click', function (e) {
     var b = e.target.closest('button'); if (!b) return;
     if (b.dataset.old) fotos[+b.dataset.old].del = !fotos[+b.dataset.old].del; else neue.splice(+b.dataset.new, 1);

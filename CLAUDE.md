@@ -91,6 +91,14 @@ Steht in `data/projekte.csv` in der Spalte `bilder` ein Eintrag `wix:…` oder i
 - Blöcke bleiben zusammen: Eine Kategorie der Referenzliste, ein Leistungsblock oder eine Projektkarte wird nicht über einen Seitenumbruch getrennt; keine einzelnen Zeilen allein auf einer neuen Seite.
 - Nach jeder Änderung an PDF-Layouts beide Sprachen und beide Varianten rendern (`pdftoppm`) und ansehen, bevor veröffentlicht wird.
 
+## Sicherheit
+
+- Sicherheits-Header stehen in `netlify.toml` (Content-Security-Policy, HSTS, Permissions-Policy, nosniff, Frame-Schutz). Die CSP erlaubt nur eigene Skripte; `api.github.com` ist einzig für den Admin-Bereich freigegeben. Neue externe Quellen nur nach Rücksprache und mit CSP-Anpassung.
+- Keine Inline-Skripte und keine Inline-Event-Handler (`onclick=`, `onsubmit=` …) im HTML; die CSP blockiert sie. Ereignisse immer in den JS-Dateien binden.
+- Formulare: Honeypot-Feld `website`, Sicherheitsfrage, Mindestzeit und Feldprüfung in `src/assets/js/main.js`. Diese Prüfungen laufen im Browser; den serverseitigen Spamfilter stellt Netlify Forms.
+- Das Repository ist öffentlich: keine Zugangsdaten, Tokens oder vertraulichen Projektangaben committen. Ausgeblendete Projekte (`versteckt`) erscheinen nicht auf der Website, sind im Repository aber einsehbar.
+- Nach Änderungen an Skripten oder Headern die Seite mit gesetzter CSP testen (Rechner inkl. PDF, Kontaktformular, Admin-Bereich).
+
 ## Rechner und Formulare
 
 - Kennwerte (CHF/m², CHF/m³, Faktoren, Zuschläge, Phasendauern) stehen in `src/tools.mjs` unter `CONFIG`.

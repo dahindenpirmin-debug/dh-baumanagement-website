@@ -279,7 +279,7 @@ function buildProjekte(lang) {
   const body = `${pageHead(tp.h1, tp.lead, crumbs)}
 <section><div class="wrap">
   <div class="refmap">${mapSvg(lang)}<p class="meta">${F.map}</p></div>
-  <form class="reffilter" id="p-filter" onsubmit="return false">
+  <form class="reffilter" id="p-filter">
     <input type="search" id="f-q" placeholder="${F.q}" aria-label="${F.q}">
     <select id="f-cat" aria-label="${F.cat}"><option value="">${F.cat}</option>${opts(CATS, 'kategorie')}</select>
     <select id="f-type" aria-label="${F.type}"><option value="">${F.type}</option>${opts(TYPES, 'projektart')}</select>
@@ -364,7 +364,7 @@ function buildTools(lang) {
     const cr = [...crumbs, [tool.title[lang], tp[lang]]];
     const body = `${pageHead(tool.title[lang], tool.intro[lang], cr)}
 <section><div class="wrap split top tool" data-tool="${tool.id}" data-lang="${lang}">
-  <form class="tool-form" onsubmit="return false">${toolForm(tool, lang)}<button class="btn" type="submit">${l.calc}</button></form>
+  <form class="tool-form">${toolForm(tool, lang)}<button class="btn" type="submit">${l.calc}</button></form>
   ${toolResult(tool, lang, tt.note, u(lang, '/impressum-datenschutz/'), t.footer.legal)}
 </div></section>
 <script type="application/json" id="tool-config">${JSON.stringify({ c: CONFIG, l, s: { name: SITE.name, addr: `${SITE.street}, ${SITE.zip} ${SITE.city}`, phone: SITE.phone, email: SITE.email, web: SITE.domain.replace('https://', ''), claim: t.home.h1 } })}</script>
@@ -497,7 +497,7 @@ fs.copyFileSync(path.join(ROOT, 'node_modules/jspdf/dist/jspdf.umd.min.js'), pat
 fs.mkdirSync(path.join(OUT, 'admin'), { recursive: true });
 for (const f of fs.readdirSync(path.join(ROOT, 'src/admin'))) fs.copyFileSync(path.join(ROOT, 'src/admin', f), path.join(OUT, 'admin', f));
 fs.writeFileSync(path.join(OUT, 'admin/config.json'), JSON.stringify({ repo: SITE.repo, branch: SITE.branch, cats: Object.fromEntries(Object.entries(CATS).map(([k, v]) => [k, v.de])), types: Object.fromEntries(Object.entries(TYPES).map(([k, v]) => [k, v.de])), kantone: KT, karte: { ...KARTE, kantone: undefined } }));
-fs.writeFileSync(path.join(OUT, 'admin/projekte.json'), JSON.stringify(ALLROWS.map((r) => ({ ...r, bilder: undefined, fotos: (projects.find((p) => p.slug === r.slug) || { bilder: [] }).bilder.length }))));
+fs.writeFileSync(path.join(OUT, 'admin/projekte.json'), JSON.stringify(ALLROWS.filter((r) => !r.versteckt).map((r) => ({ ...r, bilder: undefined, fotos: (projects.find((p) => p.slug === r.slug) || { bilder: [] }).bilder.length }))));
 for (const lang of LANGS) for (const variant of ['liste', 'portfolio']) await buildProfile({ variant, lang, outDir: path.join(OUT, 'downloads'), root: ROOT, SITE, T, CATS, TYPES, projects });
 for (const lang of LANGS) { buildHome(lang); buildLeistungen(lang); buildProjekte(lang); buildWissen(lang); buildTools(lang); buildRegionen(lang); buildKontakt(lang); buildLegal(lang); }
 buildMeta();

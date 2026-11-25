@@ -105,6 +105,47 @@
     apply(); if (f.kt.value) zoomKt();
   }
 
+  // Formulare ohne Seitenwechsel (Rechner, Filter) nicht absenden
+  document.querySelectorAll('form.tool-form, form.reffilter').forEach(function (fm) { fm.addEventListener('submit', function (e) { e.preventDefault(); }); });
+
+  // Prüfung der Formulareingaben (Kontakt und Rechner-Anfrage): Pflichtfelder, E-Mail, Telefon,
+  // Sicherheitsfrage und Mindestzeit gegen automatische Einsendungen. Ohne externe Dienste.
+  var de = (document.documentElement.lang || 'de').slice(0, 2) === 'de';
+  var TX = de ? { q: 'Sicherheitsfrage: Wie viel ist ', req: 'Bitte dieses Feld ausfüllen.', mail: 'Bitte eine gültige E-Mail-Adresse eingeben (z. B. name@firma.ch).', tel: 'Bitte eine gültige Telefonnummer eingeben.', msg: 'Bitte beschreiben Sie Ihr Vorhaben in mindestens zwei, drei Sätzen.', sum: 'Die Antwort auf die Sicherheitsfrage stimmt nicht.', fast: 'Das ging sehr schnell. Bitte prüfen Sie Ihre Angaben und senden Sie noch einmal.', top: 'Bitte die markierten Felder prüfen.' }
+    : { q: 'Security question: what is ', req: 'Please fill in this field.', mail: 'Please enter a valid email address (e.g. name@company.com).', tel: 'Please enter a valid phone number.', msg: 'Please describe your project in at least two or three sentences.', sum: 'The answer to the security question is not correct.', fast: 'That was very quick. Please check your details and send again.', top: 'Please check the highlighted fields.' };
+  document.querySelectorAll('form.contact, form.tool-lead').forEach(function (fm) {
+    var t0 = Date.now(), a = 2 + Math.floor(Math.random() * 7), b = 1 + Math.floor(Math.random() * 8), btn = fm.querySelector('button[type=submit]');
+    fm.setAttribute('novalidate', '');
+    var wrap = document.createElement('label'); wrap.className = 'field check-q';
+    wrap.innerHTML = '<span></span><input name="pruefung" inputmode="numeric" autocomplete="off" required maxlength="3">';
+    wrap.firstChild.textContent = TX.q + a + ' + ' + b + '? *';
+    var top = document.createElement('p'); top.className = 'form-err top'; top.hidden = true; top.setAttribute('role', 'alert');
+    if (btn) { btn.parentNode.insertBefore(wrap, btn.previousElementSibling && btn.previousElementSibling.className === 'disclaimer' ? btn.previousElementSibling : btn); btn.parentNode.insertBefore(top, btn); }
+    var mark = function (el, msg) {
+      var box = el.closest('label') || el.parentNode, m = box.querySelector('.form-err');
+      el.classList.toggle('bad', !!msg); el.setAttribute('aria-invalid', msg ? 'true' : 'false');
+      if (msg && !m) { m = document.createElement('small'); m.className = 'form-err'; box.appendChild(m); }
+      if (m) { m.textContent = msg || ''; m.hidden = !msg; }
+      return !msg;
+    };
+    var check = function (el) {
+      var v = el.value.trim(), n = el.name;
+      if (el.required && !v) return mark(el, TX.req);
+      if (n === 'email' && !/^[^\s@]+@[^\s@]+\.[a-z]{2,}$/i.test(v)) return mark(el, TX.mail);
+      if (n === 'telefon' && v && (v.replace(/[^\d]/g, '').length < 9 || /[^\d\s+()\/.-]/.test(v))) return mark(el, TX.tel);
+      if (n === 'nachricht' && el.required && v.length < 20) return mark(el, TX.msg);
+      if (n === 'pruefung' && parseInt(v, 10) !== a + b) return mark(el, TX.sum);
+      return mark(el, '');
+    };
+    var fields = function () { return [].slice.call(fm.querySelectorAll('input:not([type=hidden]):not([type=file]), textarea')).filter(function (el) { return el.name && el.name !== 'website'; }); };
+    fm.addEventListener('blur', function (e) { if (e.target.name && e.target.classList.contains('bad')) check(e.target); }, true);
+    fm.addEventListener('submit', function (e) {
+      var bad = fields().filter(function (el) { return !check(el); }), fast = Date.now() - t0 < 4000;
+      top.hidden = !bad.length && !fast; top.textContent = bad.length ? TX.top : fast ? TX.fast : '';
+      if (bad.length || fast) { e.preventDefault(); e.stopImmediatePropagation(); if (bad[0]) bad[0].focus(); }
+    }, true);
+  });
+
   // Resultat eines Rechners ins Kontaktformular übernehmen
   var msg = document.querySelector('form.contact textarea');
   if (msg) {

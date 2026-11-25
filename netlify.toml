@@ -25,3 +25,13 @@
     X-Content-Type-Options = "nosniff"
     Referrer-Policy = "strict-origin-when-cross-origin"
     X-Frame-Options = "SAMEORIGIN"
+    Strict-Transport-Security = "max-age=31536000"
+    Permissions-Policy = "camera=(), microphone=(), geolocation=(), payment=(), usb=()"
+    # Nur eigene Skripte; keine fremden Quellen. api.github.com braucht einzig der Admin-Bereich zum Speichern.
+    Content-Security-Policy = "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https://static.wixstatic.com; font-src 'self'; connect-src 'self' https://api.github.com; form-action 'self'; frame-ancestors 'self'; base-uri 'self'; object-src 'none'"
+
+[[headers]]
+  for = "/admin/*"
+  [headers.values]
+    X-Robots-Tag = "noindex, nofollow"
+    Cache-Control = "no-cache"
