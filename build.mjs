@@ -5,6 +5,7 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { marked } from 'marked';
 import matter from 'gray-matter';
+import crypto from 'node:crypto';
 import { SITE, CATS, TYPES, T } from './src/texts.mjs';
 import { TOOLS, CONFIG, toolForm, toolResult, toolLabels } from './src/tools.mjs';
 import { buildProfile, profileFile } from './src/profil.mjs';
@@ -18,6 +19,8 @@ const u = (lang, p) => (lang === 'de' ? p : '/en' + p);
 const abs = (p) => SITE.domain + p;
 const exists = (p) => fs.existsSync(path.join(ROOT, p));
 const pages = []; // für Sitemap: {de, en}
+// Versionskennung für CSS/JS: ändert sich bei jeder Änderung, damit Browser keine alten Dateien aus dem Cache verwenden
+const VER = crypto.createHash('md5').update(['src/assets/css/style.css', 'src/assets/js/main.js', 'src/assets/js/tools.js', 'src/tools.mjs'].map((f) => fs.readFileSync(path.join(path.dirname(fileURLToPath(import.meta.url)), f))).join('')).digest('hex').slice(0, 8);
 
 /* ---------- Helfer ---------- */
 function write(urlPath, html) {
@@ -129,7 +132,7 @@ ${noindex ? '<meta name="robots" content="noindex">' : `<link rel="canonical" hr
 <link rel="icon" href="/favicon.svg" type="image/svg+xml">
 <link rel="apple-touch-icon" href="/apple-touch-icon.png">
 <link rel="manifest" href="/site.webmanifest">
-<link rel="stylesheet" href="/assets/css/style.css">
+<link rel="stylesheet" href="/assets/css/style.css?v=${VER}">
 ${lds.map((l) => `<script type="application/ld+json">${JSON.stringify(l).replace(/</g, '\\u003c')}</script>`).join('\n')}
 </head>
 <body>
@@ -155,7 +158,7 @@ ${body}
     <div><a href="${profileUrl(lang)}" download>${t.profil.b}</a><br><a href="${u(lang, '/impressum-datenschutz/')}">${t.footer.legal}</a><br>${SITE.uid}<br>© ${new Date().getFullYear()} ${SITE.name}</div>
   </div>
 </footer>
-<script src="/assets/js/main.js" defer></script>
+<script src="/assets/js/main.js?v=${VER}" defer></script>
 </body>
 </html>`;
 }
@@ -293,7 +296,7 @@ function buildTools(lang) {
   ${toolResult(tool, lang, tt.note, u(lang, '/impressum-datenschutz/'), t.footer.legal)}
 </div></section>
 <script type="application/json" id="tool-config">${JSON.stringify({ c: CONFIG, l, s: { name: SITE.name, addr: `${SITE.street}, ${SITE.zip} ${SITE.city}`, phone: SITE.phone, email: SITE.email, web: SITE.domain.replace('https://', ''), claim: t.home.h1 } })}</script>
-<script src="/assets/js/tools.js" defer></script>
+<script src="/assets/js/tools.js?v=${VER}" defer></script>
 <section class="alt"><div class="wrap grid3">${TOOLS.filter((x) => x.id !== tool.id).map((x) => toolCard(x, lang)).join('')}</div></section>`;
     const ld = [{ '@context': 'https://schema.org', '@type': 'WebApplication', name: tool.title[lang], description: tool.desc[lang], url: abs(tp[lang]), applicationCategory: 'BusinessApplication', operatingSystem: 'All', offers: { '@type': 'Offer', price: '0', priceCurrency: 'CHF' }, provider: { '@id': SITE.domain + '/#organisation' } }];
     write(tp[lang], layout({ lang, title: tool.title[lang], desc: tool.desc[lang], paths: tp, body, ld, active: 'tools', crumbs: cr }));
