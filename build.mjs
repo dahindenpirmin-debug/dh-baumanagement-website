@@ -6,7 +6,7 @@ import { fileURLToPath } from 'node:url';
 import { marked } from 'marked';
 import matter from 'gray-matter';
 import crypto from 'node:crypto';
-import { SITE, CATS, TYPES, T } from './src/texts.mjs';
+import { SITE, CATS, TYPES, T, LEISTUNGEN } from './src/texts.mjs';
 import { TOOLS, CONFIG, toolForm, toolResult, toolLabels } from './src/tools.mjs';
 import { buildProfile, profileFile } from './src/profil.mjs';
 import { REGIONEN, RT } from './src/regionen.mjs';
@@ -70,6 +70,13 @@ const HEROP = SITE.heroProjekt && exists('src/images/projekte/' + SITE.heroProje
 const LOGO = brand('logo', 'logo.png'), HERO = brand('hero', 'hero.jpg'), PORTRAIT = brand('portrait', 'martin-dahinden.jpg');
 
 /* ---------- Daten laden ---------- */
+// Dienstleistungen: Englisch kommt aus der vordefinierten Liste (LEISTUNGEN); eine abweichende Angabe in der CSV hat Vorrang.
+const LMAP = Object.fromEntries(LEISTUNGEN.flatMap((g) => g.items));
+const leistOf = (r) => {
+  const de = r.leistungen_de.split('|').map((s) => s.trim()).filter(Boolean), enIn = (r.leistungen_en || '').split('|').map((s) => s.trim()).filter(Boolean);
+  for (const d of de) if (!LMAP[d]) console.warn(`Hinweis: Leistung «${d}» (${r.slug}) steht nicht in der vordefinierten Liste (src/texts.mjs, LEISTUNGEN).`);
+  return { de, en: de.map((d, i) => (enIn.length === de.length ? enIn[i] : LMAP[d] || d)) };
+};
 const CSVCOLS = ['slug', 'titel_de', 'titel_en', 'kategorie', 'projektart', 'ort', 'kanton', 'jahr_von', 'jahr_bis', 'leistungen_de', 'leistungen_en', 'bauherr', 'beschreibung_de', 'beschreibung_en', 'kennzahlen_de', 'kennzahlen_en', 'bilder', 'dokument', 'featured', 'bauvolumen_mchf', 'lat', 'lng'];
 let ALLROWS = [];
 function loadProjects() {
@@ -99,7 +106,7 @@ function loadProjects() {
     const zeit = (l) => (!r.jahr_bis || r.jahr_bis === r.jahr_von ? r.jahr_von : `${r.jahr_von}–${r.jahr_bis}`);
     return { ...r, bilder, zeit: zeit(), featured: /^(ja|yes|x|1)$/i.test(r.featured), order: i,
       t: { de: r.titel_de, en: r.titel_en || r.titel_de },
-      leist: { de: r.leistungen_de.split('|').map((s) => s.trim()).filter(Boolean), en: (r.leistungen_en || r.leistungen_de).split('|').map((s) => s.trim()).filter(Boolean) },
+      leist: leistOf(r),
       lat: parseFloat(r.lat) || null, lng: parseFloat(r.lng) || null,
       vol: r.bauvolumen_mchf ? (/[a-z]/i.test(r.bauvolumen_mchf) ? r.bauvolumen_mchf.trim() : r.bauvolumen_mchf.trim() + ' MCHF') : '',
       beschr: { de: r.beschreibung_de, en: r.beschreibung_en || '' }, kenn: { de: r.kennzahlen_de, en: r.kennzahlen_en || '' } };
@@ -497,7 +504,7 @@ fs.copyFileSync(path.join(ROOT, 'node_modules/jspdf/dist/jspdf.umd.min.js'), pat
 /* Admin-Bereich: statische Seite + Daten für Liste, Auswahlfelder und Karte */
 fs.mkdirSync(path.join(OUT, 'admin'), { recursive: true });
 for (const f of fs.readdirSync(path.join(ROOT, 'src/admin'))) fs.copyFileSync(path.join(ROOT, 'src/admin', f), path.join(OUT, 'admin', f));
-fs.writeFileSync(path.join(OUT, 'admin/config.json'), JSON.stringify({ repo: SITE.repo, branch: SITE.branch, cats: Object.fromEntries(Object.entries(CATS).map(([k, v]) => [k, v.de])), types: Object.fromEntries(Object.entries(TYPES).map(([k, v]) => [k, v.de])), kantone: KT, karte: { ...KARTE, kantone: undefined } }));
+fs.writeFileSync(path.join(OUT, 'admin/config.json'), JSON.stringify({ repo: SITE.repo, branch: SITE.branch, cats: Object.fromEntries(Object.entries(CATS).map(([k, v]) => [k, v.de])), types: Object.fromEntries(Object.entries(TYPES).map(([k, v]) => [k, v.de])), leistungen: LEISTUNGEN, kantone: KT, karte: { ...KARTE, kantone: undefined } }));
 fs.writeFileSync(path.join(OUT, 'admin/projekte.json'), JSON.stringify(ALLROWS.filter((r) => !r.versteckt).map((r) => ({ ...r, bilder: undefined, fotos: (projects.find((p) => p.slug === r.slug) || { bilder: [] }).bilder.length }))));
 /* Referenzblatt pro Projekt (DE und EN), gleicher Aufbau für alle Projekte */
 for (const p of projects) for (const lang of LANGS) {

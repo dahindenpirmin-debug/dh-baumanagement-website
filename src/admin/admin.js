@@ -74,7 +74,7 @@
     $('e-title').textContent = p ? p.titel_de : 'Neues Projekt';
     if (p) {
       ['titel_de', 'titel_en', 'kategorie', 'projektart', 'ort', 'kanton', 'jahr_von', 'jahr_bis', 'bauvolumen_mchf', 'bauherr', 'lat', 'lng'].forEach(function (k) { F[k].value = p[k] || ''; });
-      ['leistungen_de', 'leistungen_en', 'kennzahlen_de', 'kennzahlen_en'].forEach(function (k) { F[k].value = lines(p[k]).join('\n'); });
+      ['kennzahlen_de', 'kennzahlen_en'].forEach(function (k) { F[k].value = lines(p[k]).join('\n'); });
       ['beschreibung_de', 'beschreibung_en'].forEach(function (k) { F[k].value = String(p[k] || '').replace(/\\n/g, '\n'); });
       F.featured.checked = !!p.featured; F.versteckt.checked = !!p.versteckt;
       gh(repo() + '/contents/src/images/projekte/' + p.slug + '?ref=' + cfg.branch, { optional: true }).then(function (files) {
@@ -82,6 +82,7 @@
         renderPhotos();
       }).catch(function (err) { status('Fotos konnten nicht geladen werden: ' + err.message, 'err'); });
     }
+    drawLeist(p ? lines(p.leistungen_de) : []);
     renderPhotos(); mark(); show('v-edit');
   }
   function renderPhotos() {
@@ -116,6 +117,18 @@
       .then(function () { renderPhotos(); status(''); }).catch(function (err) { renderPhotos(); status(err.message, 'err'); });
   });
 
+  /* ---------- Dienstleistungen: feste Auswahl ---------- */
+  var lmap = {};
+  function drawLeist(sel) {
+    var known = {}, h = '';
+    cfg.leistungen.forEach(function (g) {
+      h += '<fieldset class="a-grp"><legend>' + esc(g.gruppe) + '</legend>' + g.items.map(function (it) { known[it[0]] = 1; lmap[it[0]] = it[1]; return '<label class="check"><input type="checkbox" value="' + esc(it[0]) + '"' + (sel.indexOf(it[0]) >= 0 ? ' checked' : '') + '> ' + esc(it[0]) + '</label>'; }).join('') + '</fieldset>';
+    });
+    var alt = sel.filter(function (x) { return !known[x]; });
+    if (alt.length) h += '<fieldset class="a-grp alt"><legend>Nicht in der Liste (bisherige Angabe)</legend>' + alt.map(function (x) { return '<label class="check"><input type="checkbox" value="' + esc(x) + '" checked> ' + esc(x) + '</label>'; }).join('') + '</fieldset>';
+    $('leist').innerHTML = h; $('leist').classList.remove('bad');
+  }
+
   /* ---------- Karte ---------- */
   function drawMap() {
     var k = cfg.karte;
@@ -144,8 +157,10 @@
   form.addEventListener('submit', function (e) {
     e.preventDefault();
     var bad = [];
-    ['titel_de', 'kategorie', 'projektart', 'ort', 'jahr_von', 'leistungen_de'].forEach(function (k) { var ok = String(F[k].value).trim() !== ''; F[k].classList.toggle('bad', !ok); if (!ok) bad.push(k); });
-    if (bad.length) { status('Bitte die markierten Pflichtfelder ausfüllen.', 'err'); return; }
+    ['titel_de', 'kategorie', 'projektart', 'ort', 'jahr_von'].forEach(function (k) { var ok = String(F[k].value).trim() !== ''; F[k].classList.toggle('bad', !ok); if (!ok) bad.push(k); });
+    var gew = [].slice.call(document.querySelectorAll('#leist input:checked')).map(function (c) { return c.value; });
+    $('leist').classList.toggle('bad', !gew.length); if (!gew.length) bad.push('leist');
+    if (bad.length) { status('Bitte die markierten Pflichtfelder ausfüllen' + (gew.length ? '.' : ' und mindestens eine Dienstleistung ankreuzen.'), 'err'); return; }
     var slug = cur ? cur.slug : slugify(F.titel_de.value + ' ' + F.ort.value);
     if (!cur && projekte.some(function (p) { return p.slug === slug; })) { status('Ein Projekt mit diesem Titel und Ort existiert bereits. Bitte das bestehende bearbeiten oder den Titel anpassen.', 'err'); return; }
     var num = function (v) { return String(v || '').trim().replace(',', '.'); };
@@ -153,7 +168,7 @@
       slug: slug, titel_de: F.titel_de.value.trim(), titel_en: F.titel_en.value.trim(), kategorie: F.kategorie.value, projektart: F.projektart.value,
       ort: F.ort.value.trim(), kanton: F.kanton.value, jahr_von: String(F.jahr_von.value), jahr_bis: String(F.jahr_bis.value || ''),
       bauvolumen_mchf: num(F.bauvolumen_mchf.value), bauherr: F.bauherr.value.trim(),
-      leistungen_de: lines(F.leistungen_de.value), leistungen_en: lines(F.leistungen_en.value),
+      leistungen_de: gew, leistungen_en: gew.map(function (d) { return lmap[d] || d; }),
       beschreibung_de: F.beschreibung_de.value.trim(), beschreibung_en: F.beschreibung_en.value.trim(),
       kennzahlen_de: lines(F.kennzahlen_de.value), kennzahlen_en: lines(F.kennzahlen_en.value),
       lat: num(F.lat.value), lng: num(F.lng.value), featured: F.featured.checked, versteckt: F.versteckt.checked,

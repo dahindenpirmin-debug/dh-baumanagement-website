@@ -64,8 +64,7 @@
         <label>Bauherrschaft <span class="opt">(nur mit Einverständnis; sonst «Privat» oder leer)</span><input name="bauherr"></label>
       </fieldset>
       <fieldset><legend>Dienstleistungen und Beschrieb</legend>
-        <label>Dienstleistungen * <span class="opt">(eine pro Zeile)</span><textarea name="leistungen_de" rows="4" required placeholder="Baumanagement&#10;Bauleitung&#10;Kostenplanung"></textarea></label>
-        <label>Dienstleistungen Englisch <span class="opt">(eine pro Zeile; leer = deutsch)</span><textarea name="leistungen_en" rows="4"></textarea></label>
+        <div class="w2"><span class="a-lab">Dienstleistungen * <span class="opt">(zutreffende ankreuzen; Englisch wird automatisch zugeordnet)</span></span><div id="leist" class="a-leist"></div></div>
         <label>Beschrieb <span class="opt">(2–4 Sätze: Aufgabe, Besonderheit, Ergebnis)</span><textarea name="beschreibung_de" rows="5"></textarea></label>
         <label>Beschrieb Englisch <span class="opt">(leer = automatischer Kurztext)</span><textarea name="beschreibung_en" rows="5"></textarea></label>
         <label>Kennzahlen <span class="opt">(eine pro Zeile, z. B. Geschossfläche 2'400 m²)</span><textarea name="kennzahlen_de" rows="3"></textarea></label>

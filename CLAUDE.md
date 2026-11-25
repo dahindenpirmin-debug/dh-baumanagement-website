@@ -19,6 +19,7 @@ Das Netlify-Konto läuft im Free-Plan mit 300 Credits pro Monat; jeder Produktio
 | **Projekte / Referenzen** | `data/projekte.csv` (eine Zeile pro Projekt, Trennzeichen `;`) |
 | Projektbilder | `src/images/projekte/<slug>/01.jpg, 02.jpg, …` |
 | Kategorien und Projektarten | `src/texts.mjs` (`CATS`, `TYPES`) |
+| Vordefinierte Dienstleistungen für Referenzen | `src/texts.mjs` (`LEISTUNGEN`, je Gruppe Paare Deutsch/Englisch). Im Admin-Bereich als Häkchen-Auswahl; Englisch wird automatisch zugeordnet. In CSV und JSON nur diese Bezeichnungen verwenden – der Build meldet Abweichungen als Hinweis |
 | Firmenangaben, Seitentexte DE/EN | `src/texts.mjs` |
 | Wissensbeiträge | `content/wissen/de/NN-slug.md` und `content/wissen/en/NN-slug.md` |
 | Online-Rechner (Richtwerte, Texte) | `src/tools.mjs`, Logik in `src/assets/js/tools.js` |
@@ -58,7 +59,7 @@ Der Benutzer liefert im Chat: Titel, Ort, Zeitraum, Leistungen, Kategorie, evtl.
    - `ort`, `kanton` (Kürzel, z. B. LU)
    - `jahr_von`, `jahr_bis` (bei laufenden Projekten das geplante Endjahr)
    - `bauvolumen_mchf` (letzte Spalte, optional): Bauvolumen in Mio. CHF als Zahl, z. B. `4.2`; erscheint als «4.2 MCHF» auf Karte, Projektseite, Referenzliste und im Portfolio. Nur vom Benutzer genannte Werte.
-   - `leistungen_de`, `leistungen_en`: mehrere Einträge mit `|` trennen
+   - `leistungen_de`: Bezeichnungen aus der Liste `LEISTUNGEN`, mehrere mit `|` trennen; `leistungen_en` kann leer bleiben (wird zugeordnet)
    - `bauherr` (optional; nur mit Einverständnis der Bauherrschaft nennen)
    - `beschreibung_de`, `beschreibung_en` (optional; leer = automatisch erzeugter Kurztext). Absätze mit `\n\n` trennen. Enthält der Text einen Strichpunkt, das Feld in "Anführungszeichen" setzen.
    - `kennzahlen_de`, `kennzahlen_en` (optional, mit `|` getrennt, z. B. `Bausumme CHF 4.2 Mio.|Geschossfläche 2'400 m²`)

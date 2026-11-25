@@ -40,3 +40,11 @@ body.admin { background: #fff; }
 .a-form label.check input, .a-save label.check input { width: auto; flex: none; margin: 0; }
 .a-save label.check { display: flex; align-items: center; gap: 10px; font-weight: 600; font-size: .9rem; }
 .a-save .opt { font-weight: 400; color: var(--ink-soft); }
+.a-lab { display: block; font-size: .9rem; font-weight: 600; color: var(--ink); margin-bottom: 8px; }
+.a-leist { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 12px; }
+.a-form fieldset.a-grp label.check { padding: 2px 0; }
+.a-leist.bad { outline: 2px solid #b3261e; outline-offset: 4px; border-radius: var(--radius); }
+.a-form fieldset.a-grp { display: block; padding: 10px 14px 12px; background: var(--bg-alt); border: 0; }
+.a-form fieldset.a-grp legend { font-size: .78rem; text-transform: uppercase; letter-spacing: .04em; color: var(--accent-dark); padding: 0; float: left; width: 100%; margin-bottom: 6px; }
+.a-form fieldset.a-grp label.check { display: flex; padding: 3px 0; font-size: .92rem; clear: both; }
+.a-form fieldset.a-grp.alt { background: #fbeceb; }

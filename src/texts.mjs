@@ -25,6 +25,17 @@ export const CATS = {
   wohnen: { de: 'Ein- und Mehrfamilienhäuser', en: 'Single- and multi-family homes' },
   gewerbe: { de: 'Industrie- und Gewerbebauten', en: 'Industrial and commercial buildings' },
 };
+// Vordefinierte Dienstleistungen für Referenzen. Im Admin-Bereich als Auswahl (Häkchen); die englische
+// Bezeichnung wird automatisch zugeordnet. Neue Leistung = neue Zeile [Deutsch, Englisch] in der passenden Gruppe.
+// Bestehende Bezeichnungen nicht umbenennen, ohne die Projekte anzupassen.
+export const LEISTUNGEN = [
+  { gruppe: 'Leitung und Vertretung', items: [['Gesamtdienstleistung', 'Full service'], ['Gesamtprojektleitung', 'Overall project management'], ['Projektleitung', 'Project management'], ['Bauherrenvertretung', 'Owner’s representation'], ['Baumanagement', 'Construction management'], ['Bauleitung', 'Site management']] },
+  { gruppe: 'Planung und Bewilligung', items: [['Planung', 'Design'], ['Planungskoordination', 'Design coordination'], ['Fachplaner-Koordination', 'Specialist coordination'], ['Baueingabe', 'Permit application'], ['Terminplanung', 'Scheduling']] },
+  { gruppe: 'Kosten und Vergabe', items: [['Kostenplanung', 'Cost planning'], ['Kostenkontrolle', 'Cost control'], ['Devisierung', 'Tender documents'], ['Ausschreibung', 'Tendering'], ['Vergaben', 'Contract award'], ['Werkverträge', 'Works contracts']] },
+  { gruppe: 'Abschluss und Betrieb', items: [['Abnahme', 'Acceptance'], ['Mängelmanagement', 'Defects management'], ['Schlussabrechnung', 'Final account'], ['Nachbetreuung', 'Aftercare']] },
+  { gruppe: 'Beratung und Entwicklung', items: [['Machbarkeitsstudie', 'Feasibility study'], ['Zustandsanalyse', 'Condition survey'], ['Bewertung', 'Valuation'], ['Arealentwicklung', 'Site development'], ['Vermarktung', 'Marketing']] },
+];
+
 export const TYPES = {
   neubau: { de: 'Neubau', en: 'New build' },
   umbau: { de: 'Umbau & Erweiterung', en: 'Conversion & extension' },
