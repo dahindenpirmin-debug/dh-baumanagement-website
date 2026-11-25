@@ -11,7 +11,7 @@ const TX = {
 };
 export const profileFile = (lang, variant) => (variant === 'portfolio' ? TX[lang].file2 : TX[lang].file);
 
-export function buildProfile({ variant = 'liste', lang, outDir, root, SITE, T, CATS, TYPES, projects }) {
+export function buildProfile({ TEAM = [], variant = 'liste', lang, outDir, root, SITE, T, CATS, TYPES, projects }) {
   const t = T[lang], x = TX[lang], M = 50, W = 595.28, H = 841.89, CW = W - 2 * M;
   const doc = new PDFDocument({ size: 'A4', margins: { top: 70, bottom: 60, left: M, right: M }, bufferPages: true, info: { Title: `${SITE.name} – ${x.title}`, Author: SITE.name, Subject: x.title } });
   fs.mkdirSync(outDir, { recursive: true });
@@ -59,6 +59,12 @@ export function buildProfile({ variant = 'liste', lang, outDir, root, SITE, T, C
   doc.font('Helvetica').fontSize(10).fillColor(SOFT).text(t.home.about, tx, doc.y, { width: tw, lineGap: 2.5 }); doc.moveDown(0.5);
   doc.font('Helvetica-Oblique').fontSize(10.5).fillColor(INK).text(t.home.quote, tx, doc.y, { width: tw });
   if (portrait && doc.y < py + 136) doc.y = py + 136;
+  // Team: Name und Funktion, als Block zusammengehalten
+  if (TEAM.length > 1) {
+    need(30 + TEAM.length * 18); doc.y += 12;
+    doc.font('Helvetica-Bold').fontSize(8).fillColor(DARKGOLD).text((lang === 'de' ? 'Unser Team' : 'Our team').toUpperCase(), M, doc.y, { characterSpacing: 1 }); doc.y += 5;
+    for (const m of TEAM) { const y = doc.y; doc.font('Helvetica-Bold').fontSize(10).fillColor(INK).text(m.name, M, y, { width: 150 }); doc.font('Helvetica').fillColor(SOFT).text(m.rolle[lang], M + 160, y, { width: CW - 160 }); doc.moveTo(M, doc.y + 3).lineTo(W - M, doc.y + 3).lineWidth(0.5).strokeColor(LINE).stroke(); doc.y += 8; }
+  }
 
   /* Leistungen */
   h1(x.services);

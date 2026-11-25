@@ -312,3 +312,12 @@ section[id^="thema-"] { scroll-margin-top: 90px; }
 p.form-err.top { margin: 0 0 12px; }
 .field .bad, input.bad, textarea.bad { border-color: #b3261e !important; outline-color: #b3261e; }
 .check-q input { max-width: 110px; }
+
+/* Team */
+.team { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 28px; margin-top: 30px; max-width: 860px; }
+.member { text-align: center; }
+.member img, .member .avatar { width: 150px; height: 150px; border-radius: 50%; object-fit: cover; margin: 0 auto 16px; display: block; border: 3px solid var(--accent); }
+.member .avatar { display: flex; align-items: center; justify-content: center; background: var(--bg-alt); color: var(--ink); font-size: 2.6rem; font-weight: 800; letter-spacing: .02em; }
+.member h3 { margin: 0 0 4px; } .member h3::after { display: none; }
+.member p { margin: 0; color: var(--ink-soft); }
+.about .btns, p.btns { display: flex; gap: 12px; flex-wrap: wrap; }

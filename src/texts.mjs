@@ -25,6 +25,14 @@ export const CATS = {
   wohnen: { de: 'Ein- und Mehrfamilienhäuser', en: 'Single- and multi-family homes' },
   gewerbe: { de: 'Industrie- und Gewerbebauten', en: 'Industrial and commercial buildings' },
 };
+// Team. Reihenfolge = Anzeige. `bild` (optional) liegt unter src/images/team/ oder src/images/; ohne Bild erscheinen die Initialen.
+// Nur Angaben aufnehmen, die der Benutzer genannt hat (keine erfundenen Lebensläufe).
+export const TEAM = [
+  { name: 'Martin Dahinden', rolle: { de: 'Inhaber und Projektleiter', en: 'Owner and project manager' }, bild: 'martin-dahinden.jpg' },
+  { name: 'Manuel Unternährer', rolle: { de: 'Junior Bauleiter', en: 'Junior site manager' } },
+  { name: 'Pirmin Dahinden', rolle: { de: 'Finanzen und Administration', en: 'Finance and administration' } },
+];
+
 // Vordefinierte Dienstleistungen für Referenzen. Im Admin-Bereich als Auswahl (Häkchen); die englische
 // Bezeichnung wird automatisch zugeordnet. Neue Leistung = neue Zeile [Deutsch, Englisch] in der passenden Gruppe.
 // Bestehende Bezeichnungen nicht umbenennen, ohne die Projekte anzupassen.
@@ -45,7 +53,8 @@ export const TYPES = {
 
 export const T = {
   de: {
-    nav: { home: 'Home', leistungen: 'Leistungen', projekte: 'Projekte', wissen: 'Wissen', tools: 'Tools', kontakt: 'Kontakt' },
+    nav: { home: 'Home', leistungen: 'Leistungen', projekte: 'Projekte', wissen: 'Wissen', tools: 'Tools', ueber: 'Über uns', kontakt: 'Kontakt' },
+    ueber: { title: 'Über uns: Team der DH Baumanagement AG', desc: 'Das Team der DH Baumanagement AG in Grosswangen: Martin Dahinden, Inhaber und Projektleiter, Manuel Unternährer, Junior Bauleiter, und Pirmin Dahinden, Finanzen und Administration.', h1: 'Über uns', lead: 'Ein kleines Team, das Ihr Projekt persönlich kennt. Bei uns sprechen Sie mit den Menschen, die Ihr Bauvorhaben tatsächlich führen.', teamH: 'Unser Team', teamP: 'Wir bleiben bewusst überschaubar. So wissen wir bei jedem Projekt, worum es geht, und Sie haben einen festen Ansprechpartner.', link: 'Unser Team kennenlernen' },
     skip: 'Zum Inhalt springen', menu: 'Menü',
     home: {
       title: 'Baumanagement Zürich & Zentralschweiz',
@@ -95,7 +104,8 @@ export const T = {
     crumbHome: 'Home',
   },
   en: {
-    nav: { home: 'Home', leistungen: 'Services', projekte: 'Projects', wissen: 'Insights', tools: 'Tools', kontakt: 'Contact' },
+    nav: { home: 'Home', leistungen: 'Services', projekte: 'Projects', wissen: 'Insights', tools: 'Tools', ueber: 'About', kontakt: 'Contact' },
+    ueber: { title: 'About us: the DH Baumanagement AG team', desc: 'The DH Baumanagement AG team in Grosswangen: Martin Dahinden, owner and project manager, Manuel Unternährer, junior site manager, and Pirmin Dahinden, finance and administration.', h1: 'About us', lead: 'A small team that knows your project personally. With us you talk to the people who actually run your construction project.', teamH: 'Our team', teamP: 'We deliberately stay a manageable size. That way we know what every project is about, and you have one fixed contact.', link: 'Meet our team' },
     skip: 'Skip to content', menu: 'Menu',
     home: {
       title: 'Construction management Zurich & Lucerne',

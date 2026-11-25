@@ -6,7 +6,7 @@ import { fileURLToPath } from 'node:url';
 import { marked } from 'marked';
 import matter from 'gray-matter';
 import crypto from 'node:crypto';
-import { SITE, CATS, TYPES, T, LEISTUNGEN } from './src/texts.mjs';
+import { SITE, CATS, TYPES, T, LEISTUNGEN, TEAM } from './src/texts.mjs';
 import { TOOLS, CONFIG, toolForm, toolResult, toolLabels } from './src/tools.mjs';
 import { buildProfile, profileFile } from './src/profil.mjs';
 import { REGIONEN, RT } from './src/regionen.mjs';
@@ -140,7 +140,7 @@ const crumbLd = (items) => ({ '@context': 'https://schema.org', '@type': 'Breadc
 function layout({ lang, title, desc, paths, body, ld = [], ogImage, active = '', noindex = false, crumbs }) {
   const t = T[lang], other = lang === 'de' ? 'en' : 'de', self = paths[lang];
   if (!noindex) pages.push(paths);
-  const nav = [['leistungen', '/leistungen/'], ['projekte', '/projekte/'], ['wissen', '/wissen/'], ['tools', '/tools/'], ['kontakt', '/kontakt/']];
+  const nav = [['leistungen', '/leistungen/'], ['projekte', '/projekte/'], ['wissen', '/wissen/'], ['tools', '/tools/'], ['ueber', '/ueber-uns/'], ['kontakt', '/kontakt/']];
   const lds = [orgLd, ...(crumbs ? [crumbLd(crumbs)] : []), ...ld];
   const og = ogImage ? (ogImage.startsWith('/') ? abs(ogImage) : ogImage) : abs('/og-image.jpg');
   return `<!doctype html>
@@ -254,7 +254,7 @@ function buildHome(lang) {
 <section class="alt"><div class="wrap"><h2>${t.segments.h}</h2><div class="grid4">${t.segments.items.map(([a, b, l, ic, k]) => `<article class="card"><a href="${u(lang, l)}"><div class="card-body">${icon(ic)}<h3>${a}</h3><p>${k}</p></div></a></article>`).join('')}</div></div></section>
 <section><div class="wrap"><div class="h-row"><h2>${h.projectsH}</h2><a href="${u(lang, '/projekte/')}">${h.projectsAll} →</a></div><div class="grid3">${projects.filter((p) => p.featured).slice(0, 6).map((p) => projectCard(p, lang)).join('')}</div></div></section>
 <section class="alt about"><div class="wrap split"><img src="${img(PORTRAIT, 600, 720)}" alt="Martin Dahinden, ${lang === 'de' ? 'Projektleiter und Inhaber' : 'project manager and owner'}" loading="lazy" width="600" height="720">
-  <div><h2>${h.aboutH}</h2><p class="quote">${h.quote}</p><p>${h.about}</p><p class="claim">${h.claim}</p><p><a class="btn ghost" href="${profileUrl(lang)}" download>${t.profil.b}</a></p></div></div></section>
+  <div><h2>${h.aboutH}</h2><p class="quote">${h.quote}</p><p>${h.about}</p><p class="claim">${h.claim}</p><p class="btns"><a class="btn" href="${u(lang, '/ueber-uns/')}">${t.ueber.link}</a><a class="btn ghost" href="${profileUrl(lang)}" download>${t.profil.b}</a></p></div></div></section>
 <section><div class="wrap"><div class="h-row"><h2>${RT[lang].h1}</h2><a href="${u(lang, '/regionen/')}">${RT[lang].nav} →</a></div><div class="grid4">${REGIONEN.map((r) => `<article class="card"><a href="${regUrl(r, lang)}"><div class="card-body"><h3>${r.name[lang]}</h3><p>${RT[lang].anzahl(regRefs(r).length)}</p><p class="more">${RT[lang].mehr} →</p></div></a></article>`).join('')}</div></div></section>
 <section class="alt"><div class="wrap"><div class="h-row"><h2>${h.knowH}</h2><a href="${u(lang, '/wissen/')}">${h.knowAll} →</a></div><div class="grid3">${articles[lang].filter((a) => a.featured).slice(0, 3).map((a) => articleCard(a, lang)).join('')}</div></div></section>
 <section><div class="wrap"><h2>${h.toolsH}</h2><p class="lead">${h.toolsLead}</p><div class="grid3">${TOOLS.map((tl) => toolCard(tl, lang)).join('')}</div></div></section>
@@ -405,6 +405,23 @@ ${cta(lang)}`;
   }
 }
 
+const teamImg = (m) => (m.bild ? ['team/' + m.bild, m.bild].find((f) => exists('src/images/' + f)) : null);
+const teamCards = (lang) => `<div class="team">${TEAM.map((m) => { const f = teamImg(m); return `<article class="member">${f ? `<img src="${img('/images/' + f, 440, 440)}" alt="${esc(m.name)}, ${esc(m.rolle[lang])}" loading="lazy" width="220" height="220">` : `<div class="avatar" aria-hidden="true">${m.name.split(' ').map((w) => w[0]).join('')}</div>`}<h3>${esc(m.name)}</h3><p>${esc(m.rolle[lang])}</p></article>`; }).join('')}</div>`;
+function buildUeber(lang) {
+  const t = T[lang], k = t.ueber, h = t.home, paths = { de: '/ueber-uns/', en: '/en/ueber-uns/' };
+  const crumbs = [[t.crumbHome, u(lang, '/')], [t.nav.ueber, paths[lang]]];
+  const body = `${pageHead(k.h1, k.lead, crumbs)}
+<section><div class="wrap"><h2>${k.teamH}</h2><p class="lead">${k.teamP}</p>${teamCards(lang)}</div></section>
+<section class="alt about"><div class="wrap split"><img src="${img(PORTRAIT, 600, 720)}" alt="Martin Dahinden, ${TEAM[0].rolle[lang]}" loading="lazy" width="600" height="720">
+  <div><h2>Martin Dahinden</h2><p class="tag">${TEAM[0].rolle[lang]}</p><p class="quote">${h.quote}</p><p>${h.about}</p><p class="btns"><a class="btn" href="${u(lang, '/kontakt/')}">${t.nav.kontakt}</a><a class="btn ghost" href="tel:${SITE.phoneIntl}">${SITE.phone}</a></p></div></div></section>
+<section><div class="wrap"><h2>${t.leistungen.whatH}</h2><div class="grid3">${t.strengths.map(([a, b]) => `<article class="card"><div class="card-body"><h3>${a}</h3><p>${b}</p></div></article>`).join('')}</div></div></section>
+${profileBox(lang)}
+${cta(lang)}`;
+  const ld = [{ '@context': 'https://schema.org', '@type': 'AboutPage', name: k.title, url: abs(paths[lang]), about: { '@id': SITE.domain + '/#organisation' } },
+    ...TEAM.map((m) => ({ '@context': 'https://schema.org', '@type': 'Person', name: m.name, jobTitle: m.rolle[lang], worksFor: { '@id': SITE.domain + '/#organisation' } }))];
+  write(paths[lang], layout({ lang, title: k.title, desc: k.desc, paths, body, ld, crumbs, active: 'ueber' }));
+}
+
 function buildKontakt(lang) {
   const t = T[lang], k = t.kontakt, f = k.f, paths = { de: '/kontakt/', en: '/en/kontakt/' }, thanks = { de: '/danke/', en: '/en/danke/' };
   const crumbs = [[t.crumbHome, u(lang, '/')], [t.nav.kontakt, paths[lang]]];
@@ -511,8 +528,8 @@ for (const p of projects) for (const lang of LANGS) {
   const tp = T[lang].projekte, text = p.beschr[lang] || tp.auto({ typ: TYPES[p.projektart][lang], ort: p.ort, kanton: p.kanton, zeit: p.zeit, leist: p.leist[lang].join(', ') });
   await buildRefSheet({ p, lang, outDir: path.join(OUT, 'downloads/referenzen'), root: ROOT, SITE, CATS, TYPES, text });
 }
-for (const lang of LANGS) for (const variant of ['liste', 'portfolio']) await buildProfile({ variant, lang, outDir: path.join(OUT, 'downloads'), root: ROOT, SITE, T, CATS, TYPES, projects });
-for (const lang of LANGS) { buildHome(lang); buildLeistungen(lang); buildProjekte(lang); buildWissen(lang); buildTools(lang); buildRegionen(lang); buildKontakt(lang); buildLegal(lang); }
+for (const lang of LANGS) for (const variant of ['liste', 'portfolio']) await buildProfile({ TEAM, variant, lang, outDir: path.join(OUT, 'downloads'), root: ROOT, SITE, T, CATS, TYPES, projects });
+for (const lang of LANGS) { buildHome(lang); buildLeistungen(lang); buildProjekte(lang); buildWissen(lang); buildTools(lang); buildRegionen(lang); buildUeber(lang); buildKontakt(lang); buildLegal(lang); }
 buildMeta();
 const unpaired = articles.de.filter((a) => !articles.en.some((b) => b.id === a.id)).map((a) => a.id);
 if (unpaired.length) console.warn('Hinweis: keine englische Fassung für', unpaired.join(', '));
