@@ -10,6 +10,7 @@ import { SITE, CATS, TYPES, T } from './src/texts.mjs';
 import { TOOLS, CONFIG, toolForm, toolResult, toolLabels } from './src/tools.mjs';
 import { buildProfile, profileFile } from './src/profil.mjs';
 import { REGIONEN, RT } from './src/regionen.mjs';
+import { KARTE } from './src/karte.mjs';
 
 const ROOT = path.dirname(fileURLToPath(import.meta.url));
 const OUT = path.join(ROOT, 'dist');
@@ -65,8 +66,25 @@ const HEROP = SITE.heroProjekt && exists('src/images/projekte/' + SITE.heroProje
 const LOGO = brand('logo', 'logo.png'), HERO = brand('hero', 'hero.jpg'), PORTRAIT = brand('portrait', 'martin-dahinden.jpg');
 
 /* ---------- Daten laden ---------- */
+const CSVCOLS = ['slug', 'titel_de', 'titel_en', 'kategorie', 'projektart', 'ort', 'kanton', 'jahr_von', 'jahr_bis', 'leistungen_de', 'leistungen_en', 'bauherr', 'beschreibung_de', 'beschreibung_en', 'kennzahlen_de', 'kennzahlen_en', 'bilder', 'dokument', 'featured', 'bauvolumen_mchf', 'lat', 'lng'];
+let ALLROWS = [];
 function loadProjects() {
-  const rows = parseCSV(fs.readFileSync(path.join(ROOT, 'data/projekte.csv'), 'utf8'));
+  let rows = parseCSV(fs.readFileSync(path.join(ROOT, 'data/projekte.csv'), 'utf8'));
+  // Projekte aus dem Admin-Bereich: eine JSON-Datei pro Projekt in data/projekte/. Sie ergänzen die CSV
+  // und überschreiben eine CSV-Zeile mit demselben Slug.
+  const jdir = path.join(ROOT, 'data/projekte');
+  const neu = [];
+  if (fs.existsSync(jdir)) for (const f of fs.readdirSync(jdir).filter((x) => x.endsWith('.json'))) {
+    const j = JSON.parse(fs.readFileSync(path.join(jdir, f), 'utf8')), r = {};
+    for (const [k, v] of Object.entries(j)) r[k] = Array.isArray(v) ? v.join('|') : v === true ? 'ja' : v === false || v == null ? '' : String(v);
+    r.slug = r.slug || f.replace(/\.json$/, '');
+    const i = rows.findIndex((x) => x.slug === r.slug);
+    if (i >= 0) rows[i] = { ...rows[i], ...r }; else neu.push(r);
+  }
+  neu.sort((a, b) => (b.erfasst || '').localeCompare(a.erfasst || ''));
+  rows = [...neu, ...rows].map((r) => ({ ...Object.fromEntries(CSVCOLS.map((k) => [k, ''])), ...r }));
+  ALLROWS = rows;
+  rows = rows.filter((r) => !r.versteckt);
   return rows.map((r, i) => {
     if (!r.slug) throw new Error(`projekte.csv Zeile ${i + 2}: slug fehlt`);
     if (!CATS[r.kategorie]) throw new Error(`projekte.csv «${r.slug}»: unbekannte kategorie «${r.kategorie}» (erlaubt: ${Object.keys(CATS).join(', ')})`);
@@ -78,6 +96,7 @@ function loadProjects() {
     return { ...r, bilder, zeit: zeit(), featured: /^(ja|yes|x|1)$/i.test(r.featured), order: i,
       t: { de: r.titel_de, en: r.titel_en || r.titel_de },
       leist: { de: r.leistungen_de.split('|').map((s) => s.trim()).filter(Boolean), en: (r.leistungen_en || r.leistungen_de).split('|').map((s) => s.trim()).filter(Boolean) },
+      lat: parseFloat(r.lat) || null, lng: parseFloat(r.lng) || null,
       vol: r.bauvolumen_mchf ? (/[a-z]/i.test(r.bauvolumen_mchf) ? r.bauvolumen_mchf.trim() : r.bauvolumen_mchf.trim() + ' MCHF') : '',
       beschr: { de: r.beschreibung_de, en: r.beschreibung_en || '' }, kenn: { de: r.kennzahlen_de, en: r.kennzahlen_en || '' } };
   });
@@ -179,9 +198,21 @@ const profileBox = (lang) => `<section class="alt"><div class="wrap download"><d
 const pageHead = (h1, lead, crumbs) => `<section class="page-head"><div class="wrap">${crumbs ? `<nav class="crumbs" aria-label="Breadcrumb">${crumbs.map(([n, p], i) => (i < crumbs.length - 1 ? `<a href="${p}">${esc(n)}</a>` : `<span>${esc(n)}</span>`)).join(' › ')}</nav>` : ''}<h1>${esc(h1)}</h1>${lead ? `<p class="lead">${esc(lead)}</p>` : ''}</div></section>`;
 
 /* ---------- Bausteine ---------- */
+const KT = { ZH: 'Zürich', BE: 'Bern', LU: 'Luzern', UR: 'Uri', SZ: 'Schwyz', OW: 'Obwalden', NW: 'Nidwalden', GL: 'Glarus', ZG: 'Zug', FR: 'Freiburg', SO: 'Solothurn', BS: 'Basel-Stadt', BL: 'Basel-Landschaft', SH: 'Schaffhausen', AR: 'Appenzell Ausserrhoden', AI: 'Appenzell Innerrhoden', SG: 'St. Gallen', GR: 'Graubünden', AG: 'Aargau', TG: 'Thurgau', TI: 'Tessin', VD: 'Waadt', VS: 'Wallis', NE: 'Neuenburg', GE: 'Genf', JU: 'Jura' };
+const pdata = (p, lang) => `data-slug="${p.slug}" data-cat="${p.kategorie}" data-type="${p.projektart}" data-kt="${p.kanton || ''}" data-von="${p.jahr_von}" data-bis="${p.jahr_bis || p.jahr_von}" data-q="${esc([p.t[lang], p.ort, KT[p.kanton] || '', CATS[p.kategorie][lang], TYPES[p.projektart][lang], p.leist[lang].join(' '), p.bauherr || ''].join(' ').toLowerCase())}"`;
+const mapXY = (lat, lng) => [(lng - KARTE.LNG0) * KARTE.COS * KARTE.K, (KARTE.LAT1 - lat) * KARTE.K];
+function mapSvg(lang) {
+  const cl = [];
+  for (const p of projects.filter((x) => x.lat && x.lng)) {
+    const [x, y] = mapXY(p.lat, p.lng), c = cl.find((k) => Math.hypot(k.x - x, k.y - y) < 20);
+    if (c) { c.items.push(p); c.x = (c.x * (c.items.length - 1) + x) / c.items.length; c.y = (c.y * (c.items.length - 1) + y) / c.items.length; } else cl.push({ x, y, items: [p] });
+  }
+  const ref = (n) => (lang === 'de' ? (n === 1 ? '1 Referenz' : `${n} Referenzen`) : n === 1 ? '1 reference' : `${n} references`);
+  return `<svg viewBox="0 0 ${KARTE.W} ${KARTE.H}" role="group" aria-label="${lang === 'de' ? 'Karte der Schweiz mit unseren Referenzen' : 'Map of Switzerland with our references'}"><path class="land" d="${KARTE.land}"/><path class="grenzen" d="${KARTE.grenzen}"/><path class="seen" d="${KARTE.seen}"/>${cl.sort((a, b) => a.y - b.y).map((c) => { const orte = [...new Set(c.items.map((p) => p.ort))].join(', '), n = c.items.length; return `<g class="pin" tabindex="0" role="button" data-slugs="${c.items.map((p) => p.slug).join(',')}" aria-label="${esc(orte)}: ${ref(n)}"><title>${esc(orte)}: ${ref(n)}</title><circle cx="${c.x.toFixed(1)}" cy="${c.y.toFixed(1)}" r="${n > 1 ? 13 : 9}"/>${n > 1 ? `<text x="${c.x.toFixed(1)}" y="${(c.y + 4.5).toFixed(1)}">${n}</text>` : ''}</g>`; }).join('')}</svg>`;
+}
 function projectCard(p, lang) {
   const pic = p.bilder[0];
-  return `<article class="card project" data-cat="${p.kategorie}" data-type="${p.projektart}">
+  return `<article class="card project" ${pdata(p, lang)}>
   <a href="${u(lang, `/projekte/${p.slug}/`)}">
     <div class="thumb">${pic ? `<img src="${img(pic, 640, 480)}" alt="${esc(p.t[lang])}, ${esc(p.ort)}" loading="lazy" width="640" height="480">` : `<div class="ph" aria-hidden="true">${ILLUS[p.kategorie === 'wohnen' ? 'wohnbau' : 'gewerbe'] || ''}</div>`}</div>
     <div class="card-body"><p class="tag">${CATS[p.kategorie][lang]} · ${TYPES[p.projektart][lang]}</p><h3>${esc(p.t[lang])}</h3><p class="meta">${esc(p.ort)}${p.kanton ? ' ' + p.kanton : ''} · ${p.zeit}${p.vol ? ' · ' + esc(p.vol) : ''}</p><p class="meta leist">${p.leist[lang].map(esc).join(', ')}</p></div>
@@ -227,13 +258,27 @@ ${cta(lang)}`;
 function buildProjekte(lang) {
   const t = T[lang], tp = t.projekte, paths = { de: '/projekte/', en: '/en/projekte/' };
   const crumbs = [[t.crumbHome, u(lang, '/')], [t.nav.projekte, paths[lang]]];
+  const F = lang === 'de' ? { map: 'Punkt anklicken, um die Referenzen an diesem Ort zu zeigen.', q: 'Suche (Projekt, Ort, Leistung)', cat: 'Kategorie', type: 'Projektart', kt: 'Kanton', von: 'Jahr ab', bis: 'Jahr bis', one: 'Referenz', many: 'Referenzen', reset: 'Zurücksetzen', empty: 'Keine Referenz entspricht dieser Auswahl.' } : { map: 'Click a point to show the references at that location.', q: 'Search (project, location, service)', cat: 'Category', type: 'Project type', kt: 'Canton', von: 'Year from', bis: 'Year to', one: 'reference', many: 'references', reset: 'Reset', empty: 'No reference matches this selection.' };
+  const opts = (obj, field) => Object.entries(obj).filter(([k]) => projects.some((p) => p[field] === k)).map(([k, v]) => `<option value="${k}">${v[lang]}</option>`).join('');
+  const ys = projects.flatMap((p) => [+p.jahr_von, +(p.jahr_bis || p.jahr_von)]).filter(Boolean), years = []; for (let y = Math.max(...ys); y >= Math.min(...ys); y--) years.push(y);
   const btns = (group, obj) => `<div class="filter" role="group" data-group="${group}"><button class="on" data-val="">${tp.all}</button>${Object.entries(obj).filter(([k]) => projects.some((p) => p[group === 'cat' ? 'kategorie' : 'projektart'] === k)).map(([k, v]) => `<button data-val="${k}">${v[lang]}</button>`).join('')}</div>`;
   const body = `${pageHead(tp.h1, tp.lead, crumbs)}
 <section><div class="wrap">
-  <div class="filters">${btns('cat', CATS)}${btns('type', TYPES)}<div class="filter view" role="group"><button class="on" data-view="grid">${tp.grid}</button><button data-view="table">${tp.table}</button></div></div>
+  <div class="refmap">${mapSvg(lang)}<p class="meta">${F.map}</p></div>
+  <form class="reffilter" id="p-filter" onsubmit="return false">
+    <input type="search" id="f-q" placeholder="${F.q}" aria-label="${F.q}">
+    <select id="f-cat" aria-label="${F.cat}"><option value="">${F.cat}</option>${opts(CATS, 'kategorie')}</select>
+    <select id="f-type" aria-label="${F.type}"><option value="">${F.type}</option>${opts(TYPES, 'projektart')}</select>
+    <select id="f-kt" aria-label="${F.kt}"><option value="">${F.kt}</option>${[...new Set(projects.map((p) => p.kanton).filter(Boolean))].sort((x, y) => (KT[x] || x).localeCompare(KT[y] || y)).map((k) => `<option value="${k}">${KT[k] || k}</option>`).join('')}</select>
+    <select id="f-von" aria-label="${F.von}"><option value="">${F.von}</option>${years.map((y) => `<option>${y}</option>`).join('')}</select>
+    <select id="f-bis" aria-label="${F.bis}"><option value="">${F.bis}</option>${years.map((y) => `<option>${y}</option>`).join('')}</select>
+  </form>
+  <div class="refbar"><strong id="p-count" data-one="${F.one}" data-many="${F.many}">${projects.length} ${F.many}</strong>
+    <div class="filter view" role="group"><button class="on" data-view="grid">${tp.grid}</button><button data-view="table">${tp.table}</button><button type="button" id="f-reset">${F.reset}</button></div></div>
+  <p id="p-empty" class="lead" hidden>${F.empty}</p>
   <div class="grid3" id="p-grid">${projects.map((p) => projectCard(p, lang)).join('')}</div>
   <div class="table-wrap" id="p-table" hidden><table><thead><tr>${[...tp.th.slice(0, 5), ...(anyVol() ? [t.profil.vol] : []), tp.th[5]].map((h) => `<th>${h}</th>`).join('')}</tr></thead><tbody>
-  ${projects.map((p) => `<tr data-cat="${p.kategorie}" data-type="${p.projektart}"><td><a href="${u(lang, `/projekte/${p.slug}/`)}">${esc(p.t[lang])}</a></td><td>${CATS[p.kategorie][lang]}</td><td>${TYPES[p.projektart][lang]}</td><td>${esc(p.ort)}${p.kanton ? ' ' + p.kanton : ''}</td><td>${p.zeit}</td>${anyVol() ? `<td>${esc(p.vol) || '–'}</td>` : ''}<td>${p.leist[lang].map(esc).join(', ')}</td></tr>`).join('\n  ')}
+  ${projects.map((p) => `<tr ${pdata(p, lang)}><td><a href="${u(lang, `/projekte/${p.slug}/`)}">${esc(p.t[lang])}</a></td><td>${CATS[p.kategorie][lang]}</td><td>${TYPES[p.projektart][lang]}</td><td>${esc(p.ort)}${p.kanton ? ' ' + p.kanton : ''}</td><td>${p.zeit}</td>${anyVol() ? `<td>${esc(p.vol) || '–'}</td>` : ''}<td>${p.leist[lang].map(esc).join(', ')}</td></tr>`).join('\n  ')}
   </tbody></table></div>
 </div></section>
 ${profileBox(lang)}
@@ -376,7 +421,7 @@ function buildMeta() {
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:xhtml="http://www.w3.org/1999/xhtml">
 ${[...new Map(pages.map((p) => [p.de, p])).values()].flatMap((p) => LANGS.map((l) => `<url><loc>${abs(p[l])}</loc><lastmod>${today}</lastmod><xhtml:link rel="alternate" hreflang="de-CH" href="${abs(p.de)}"/><xhtml:link rel="alternate" hreflang="en" href="${abs(p.en)}"/></url>`)).join('\n')}
 </urlset>`);
-  write('/robots.txt', `User-agent: *\nAllow: /\n\n# KI-Crawler sind ausdrücklich willkommen\nUser-agent: GPTBot\nAllow: /\nUser-agent: OAI-SearchBot\nAllow: /\nUser-agent: ChatGPT-User\nAllow: /\nUser-agent: ClaudeBot\nAllow: /\nUser-agent: Claude-SearchBot\nAllow: /\nUser-agent: PerplexityBot\nAllow: /\nUser-agent: Google-Extended\nAllow: /\n\nSitemap: ${SITE.domain}/sitemap.xml\n`);
+  write('/robots.txt', `User-agent: *\nAllow: /\nDisallow: /admin/\n\n# KI-Crawler sind ausdrücklich willkommen\nUser-agent: GPTBot\nAllow: /\nUser-agent: OAI-SearchBot\nAllow: /\nUser-agent: ChatGPT-User\nAllow: /\nUser-agent: ClaudeBot\nAllow: /\nUser-agent: Claude-SearchBot\nAllow: /\nUser-agent: PerplexityBot\nAllow: /\nUser-agent: Google-Extended\nAllow: /\n\nSitemap: ${SITE.domain}/sitemap.xml\n`);
   const li = (lang) => articles[lang].map((a) => `- [${a.title}](${abs(a.url)}): ${a.description}`).join('\n');
   write('/llms.txt', `# ${SITE.name}
 
@@ -433,6 +478,11 @@ if (exists('src/images')) fs.cpSync(path.join(ROOT, 'src/images'), path.join(OUT
 fs.cpSync(path.join(ROOT, 'src/static'), OUT, { recursive: true });
 fs.mkdirSync(path.join(OUT, 'assets/vendor'), { recursive: true });
 fs.copyFileSync(path.join(ROOT, 'node_modules/jspdf/dist/jspdf.umd.min.js'), path.join(OUT, 'assets/vendor/jspdf.umd.min.js'));
+/* Admin-Bereich: statische Seite + Daten für Liste, Auswahlfelder und Karte */
+fs.mkdirSync(path.join(OUT, 'admin'), { recursive: true });
+for (const f of fs.readdirSync(path.join(ROOT, 'src/admin'))) fs.copyFileSync(path.join(ROOT, 'src/admin', f), path.join(OUT, 'admin', f));
+fs.writeFileSync(path.join(OUT, 'admin/config.json'), JSON.stringify({ repo: SITE.repo, branch: SITE.branch, cats: Object.fromEntries(Object.entries(CATS).map(([k, v]) => [k, v.de])), types: Object.fromEntries(Object.entries(TYPES).map(([k, v]) => [k, v.de])), kantone: KT, karte: KARTE }));
+fs.writeFileSync(path.join(OUT, 'admin/projekte.json'), JSON.stringify(ALLROWS.map((r) => ({ ...r, bilder: undefined, fotos: (projects.find((p) => p.slug === r.slug) || { bilder: [] }).bilder.length }))));
 for (const lang of LANGS) for (const variant of ['liste', 'portfolio']) await buildProfile({ variant, lang, outDir: path.join(OUT, 'downloads'), root: ROOT, SITE, T, CATS, TYPES, projects });
 for (const lang of LANGS) { buildHome(lang); buildLeistungen(lang); buildProjekte(lang); buildWissen(lang); buildTools(lang); buildRegionen(lang); buildKontakt(lang); buildLegal(lang); }
 buildMeta();

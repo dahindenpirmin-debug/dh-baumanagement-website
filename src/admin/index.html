@@ -1,0 +1,96 @@
+<!doctype html>
+<html lang="de-CH">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<title>Referenzen verwalten | DH Baumanagement AG</title>
+<link rel="icon" href="/favicon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="/assets/css/style.css">
+<link rel="stylesheet" href="/admin/admin.css">
+</head>
+<body class="admin">
+<header class="a-head"><div class="wrap">
+  <a href="/"><img src="/images/logo-quer-hell.svg" alt="DH Baumanagement AG" width="220" height="40"></a>
+  <span class="a-title">Referenzen verwalten</span>
+  <button type="button" id="logout" class="btn ghost small" hidden>Abmelden</button>
+</div></header>
+
+<main class="wrap">
+  <p id="status" class="a-status" role="status" hidden></p>
+
+  <!-- Anmeldung -->
+  <section id="v-login" hidden>
+    <h1>Anmelden</h1>
+    <p class="lead">Die Referenzen liegen im GitHub-Repository der Website. Zum Speichern braucht dieser Bereich einen persönlichen Zugriffsschlüssel (Token), der nur in diesem Browser gespeichert wird.</p>
+    <form id="login" class="a-form narrow">
+      <label>GitHub-Token<input type="password" id="token" autocomplete="off" required placeholder="github_pat_…"></label>
+      <button class="btn" type="submit">Anmelden</button>
+    </form>
+    <details class="a-help"><summary>So erstellen Sie den Token (einmalig, 2 Minuten)</summary>
+      <ol>
+        <li>Auf github.com anmelden, oben rechts auf das Profilbild, dann <strong>Settings</strong>.</li>
+        <li>Ganz unten links <strong>Developer settings</strong>, dann <strong>Personal access tokens → Fine-grained tokens → Generate new token</strong>.</li>
+        <li>Name z. B. «DH Website Admin», Ablauf nach Wunsch (z. B. 1 Jahr).</li>
+        <li><strong>Repository access:</strong> «Only select repositories» und nur <code id="repo-name">das Website-Repository</code> wählen.</li>
+        <li><strong>Permissions → Repository permissions → Contents:</strong> «Read and write». Sonst nichts.</li>
+        <li><strong>Generate token</strong>, den Schlüssel kopieren und hier einfügen.</li>
+      </ol>
+      <p>Der Token gibt nur Zugriff auf die Dateien dieser Website. Auf einem fremden Gerät nach der Arbeit auf «Abmelden» klicken.</p>
+    </details>
+  </section>
+
+  <!-- Liste -->
+  <section id="v-list" hidden>
+    <div class="h-row"><h1>Referenzen</h1><div class="a-actions"><button type="button" class="btn ghost" id="publish" title="Veröffentlicht alle gespeicherten, noch nicht veröffentlichten Änderungen">Website jetzt aktualisieren</button><button type="button" class="btn" id="new">+ Neues Projekt</button></div></div>
+    <p class="meta">Projekt anklicken zum Bearbeiten. Änderungen erscheinen ein bis zwei Minuten nach dem Veröffentlichen auf der Website.</p>
+    <div class="table-wrap"><table id="list"><thead><tr><th>Projekt</th><th>Ort</th><th>Zeitraum</th><th>Kategorie</th><th>Art</th><th>MCHF</th><th>Fotos</th><th>Status</th></tr></thead><tbody></tbody></table></div>
+  </section>
+
+  <!-- Eingabemaske -->
+  <section id="v-edit" hidden>
+    <div class="h-row"><h1 id="e-title">Neues Projekt</h1><button type="button" class="btn ghost" id="back">← Zur Liste</button></div>
+    <form id="edit" class="a-form" novalidate>
+      <fieldset><legend>Projekt</legend>
+        <label class="w2">Bauprojekt (Titel) *<input name="titel_de" required maxlength="90" placeholder="z. B. Neubau Lagerhalle"></label>
+        <label class="w2">Titel Englisch <span class="opt">(leer = deutscher Titel)</span><input name="titel_en" maxlength="90"></label>
+        <label>Kategorie *<select name="kategorie" required></select></label>
+        <label>Typ / Projektart *<select name="projektart" required></select></label>
+        <label>Ort *<input name="ort" required placeholder="z. B. Sursee"></label>
+        <label>Kanton<select name="kanton"><option value="">–</option></select></label>
+        <label>Jahr von *<input name="jahr_von" type="number" min="1990" max="2100" required></label>
+        <label>Jahr bis <span class="opt">(bei laufenden Projekten das geplante Endjahr)</span><input name="jahr_bis" type="number" min="1990" max="2100"></label>
+        <label>Bauvolumen in MCHF <span class="opt">(z. B. 4.2)</span><input name="bauvolumen_mchf" inputmode="decimal" placeholder="4.2"></label>
+        <label>Bauherrschaft <span class="opt">(nur mit Einverständnis; sonst «Privat» oder leer)</span><input name="bauherr"></label>
+      </fieldset>
+      <fieldset><legend>Dienstleistungen und Beschrieb</legend>
+        <label>Dienstleistungen * <span class="opt">(eine pro Zeile)</span><textarea name="leistungen_de" rows="4" required placeholder="Baumanagement&#10;Bauleitung&#10;Kostenplanung"></textarea></label>
+        <label>Dienstleistungen Englisch <span class="opt">(eine pro Zeile; leer = deutsch)</span><textarea name="leistungen_en" rows="4"></textarea></label>
+        <label>Beschrieb <span class="opt">(2–4 Sätze: Aufgabe, Besonderheit, Ergebnis)</span><textarea name="beschreibung_de" rows="5"></textarea></label>
+        <label>Beschrieb Englisch <span class="opt">(leer = automatischer Kurztext)</span><textarea name="beschreibung_en" rows="5"></textarea></label>
+        <label>Kennzahlen <span class="opt">(eine pro Zeile, z. B. Geschossfläche 2'400 m²)</span><textarea name="kennzahlen_de" rows="3"></textarea></label>
+        <label>Kennzahlen Englisch<textarea name="kennzahlen_en" rows="3"></textarea></label>
+      </fieldset>
+      <fieldset><legend>Standort auf der Karte</legend>
+        <div class="w2 a-map"><div id="map"></div><p class="meta">In die Karte klicken, um den Punkt zu setzen. Ohne Punkt erscheint das Projekt in Liste und Kacheln, aber nicht auf der Karte.</p>
+          <div class="a-coords"><label>Breite<input name="lat" inputmode="decimal" placeholder="47.17"></label><label>Länge<input name="lng" inputmode="decimal" placeholder="8.11"></label><button type="button" class="btn ghost small" id="nopin">Punkt entfernen</button></div></div>
+      </fieldset>
+      <fieldset><legend>Fotos</legend>
+        <div class="w2"><div id="photos" class="a-photos"></div>
+          <label class="a-upload">Fotos hinzufügen <span class="opt">(mehrere möglich; werden automatisch verkleinert. Das erste Foto ist das Titelbild.)</span><input type="file" id="files" accept="image/jpeg,image/png,image/webp" multiple></label>
+          <p class="meta">Keine Personen oder Autokennzeichen ohne Einwilligung.</p></div>
+      </fieldset>
+      <fieldset><legend>Anzeige</legend>
+        <label class="check"><input type="checkbox" name="featured"> Auf der Startseite zeigen (höchstens 6 Projekte)</label>
+        <label class="check"><input type="checkbox" name="versteckt"> Projekt ausblenden (bleibt gespeichert, erscheint nicht auf der Website)</label>
+      </fieldset>
+      <div class="a-save">
+        <label class="check"><input type="checkbox" id="pub" checked> Sofort veröffentlichen <span class="opt">(ein Netlify-Deploy = 15 Credits; ohne Haken wird nur gespeichert)</span></label>
+        <button class="btn" type="submit" id="save">Speichern</button>
+      </div>
+    </form>
+  </section>
+</main>
+<script src="/admin/admin.js"></script>
+</body>
+</html>

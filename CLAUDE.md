@@ -34,6 +34,16 @@ Das Netlify-Konto läuft im Free-Plan mit 300 Credits pro Monat; jeder Produktio
 | Favicons, App-Icons, Social-Bild | `src/static/` (`favicon.ico`, `favicon.svg`, `apple-touch-icon.png`, `icon-192/512.png`, `og-image.jpg`) |
 | Weiterleitungen, Sitemap, robots, llms.txt | werden in `build.mjs` erzeugt |
 
+## Admin-Bereich für Referenzen (`/admin/`)
+
+Der Benutzer kann Referenzen selbst erfassen: `https://<domain>/admin/` (Liste, Eingabemaske, Foto-Upload, Karte zum Setzen des Standorts). Die Seite ist statisch (`src/admin/`), nicht verlinkt, für Suchmaschinen gesperrt und speichert über die GitHub-API mit einem persönlichen Fine-grained Token (nur dieses Repository, Contents: Read and write), der im Browser des Benutzers bleibt.
+
+- Jedes gespeicherte Projekt ist eine Datei `data/projekte/<slug>.json` mit denselben Feldnamen wie die CSV-Spalten (Listen als Arrays, dazu `lat`, `lng`, `versteckt`, `erfasst`). Fotos landen verkleinert in `src/images/projekte/<slug>/NN.jpg`.
+- Der Build führt CSV und JSON zusammen: Eine JSON-Datei überschreibt die CSV-Zeile mit demselben Slug; neue JSON-Projekte erscheinen zuoberst. `versteckt: true` blendet ein Projekt aus.
+- Ein Speichern mit Haken «Sofort veröffentlichen» ist ein Commit auf `main` und damit ein Netlify-Deploy; ohne Haken trägt der Commit `[skip netlify]`.
+- Englische Felder dürfen leer bleiben (dann erscheint der deutsche Text). Auf Wunsch übersetzt Claude nachträglich direkt in der JSON-Datei.
+- Karte der Referenzseite und des Admin-Bereichs: `src/karte.mjs` (Umriss, Kantonsgrenzen, Seen; keine externen Kartendienste). Pins entstehen aus `lat`/`lng`.
+
 ## Neues Projekt hinzufügen (Standardablauf)
 
 Der Benutzer liefert im Chat: Titel, Ort, Zeitraum, Leistungen, Kategorie, evtl. Beschreibung, Kennzahlen und Bilder.

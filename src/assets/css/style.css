@@ -245,3 +245,23 @@ address { font-style: normal; margin-bottom: 1em; }
 .download .btns { display: flex; gap: 12px; flex-wrap: wrap; }
 .region-hint { background: var(--bg-alt); border-radius: var(--radius); padding: 18px 22px; margin: 32px 0 0; }
 .region-hint p { margin: 6px 0 0; }
+
+/* Referenzseite: Karte, Suche, Filter */
+.refmap { max-width: 640px; margin: 0 auto 26px; text-align: center; }
+.refmap svg { width: 100%; height: auto; display: block; }
+.refmap .land { fill: var(--bg-alt); stroke: #cfd3d6; stroke-width: 1; }
+.refmap .grenzen { fill: none; stroke: #d9d6cf; stroke-width: .8; }
+.refmap .seen { fill: #dbe4ea; }
+.refmap .pin { cursor: pointer; outline: none; }
+.refmap .pin circle { fill: #e7c984; stroke: #0e2f47; stroke-width: 2; transition: r .15s; }
+.refmap .pin text { font: 800 12px/1 inherit; fill: #0e2f47; text-anchor: middle; pointer-events: none; }
+.refmap .pin:hover circle, .refmap .pin:focus circle, .refmap .pin.sel circle { fill: #0e2f47; stroke: #e7c984; }
+.refmap .pin:hover text, .refmap .pin:focus text, .refmap .pin.sel text { fill: #fff; }
+.refmap .pin.off { opacity: .25; }
+.refmap .meta { margin: 6px 0 0; }
+.reffilter { display: grid; grid-template-columns: 2fr repeat(5, 1fr); gap: 10px; margin-bottom: 16px; }
+.reffilter input, .reffilter select { font: inherit; font-size: .92rem; padding: 10px 12px; border: 1px solid var(--line); border-radius: var(--radius); background: #fff; color: var(--ink); min-width: 0; width: 100%; }
+.reffilter input:focus, .reffilter select:focus { outline: 2px solid var(--accent); outline-offset: 1px; }
+.refbar { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; margin-bottom: 22px; }
+.refbar strong { font-size: 1.1rem; }
+@media (max-width: 900px) { .reffilter { grid-template-columns: 1fr 1fr; } .reffilter input { grid-column: 1 / -1; } }
