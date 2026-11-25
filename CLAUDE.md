@@ -3,6 +3,15 @@
 Statische, zweisprachige Website (DE unter `/`, EN unter `/en/`). Kein CMS, keine Datenbank.
 `npm run build` erzeugt aus Daten und Texten den Ordner `dist/`. Netlify baut und veröffentlicht automatisch bei jedem Push auf den Branch `main`.
 
+## Veröffentlichen sparsam (Netlify-Credits)
+
+Das Netlify-Konto läuft im Free-Plan mit 300 Credits pro Monat; jeder Produktions-Deploy (Push auf `main`) kostet 15 Credits, also höchstens rund 20 pro Monat für alle Projekte des Kontos zusammen.
+
+- Laufende Arbeit auf dem Branch `entwurf` committen und pushen. Das löst keinen Produktions-Deploy aus.
+- Vorschau bei Bedarf über einen Pull Request `entwurf` → `main` (Deploy Preview, kostenlos).
+- Erst nach Freigabe durch den Benutzer `entwurf` in `main` mergen: ein Deploy pro Arbeitspaket, nicht pro Änderung.
+- Wenn ein Push auf `main` die Bild-Action auslöst (Einträge `wix:` oder `https://` in der CSV), die eigene Commit-Nachricht mit `[skip netlify]` versehen; der Commit der Action löst dann den einzigen Deploy aus.
+
 ## Wo liegt was?
 
 | Inhalt | Datei |
@@ -46,7 +55,7 @@ Der Benutzer liefert im Chat: Titel, Ort, Zeitraum, Leistungen, Kategorie, evtl.
    - `dokument` (optional, Link zu einem PDF), `featured` (`ja` = erscheint auf der Startseite, maximal 6)
 3. **Bilder ablegen** unter `src/images/projekte/<slug>/`, benannt `01.jpg`, `02.jpg` … (das erste ist das Titelbild). Vorher auf maximal 2400 px Breite verkleinern, JPG-Qualität ca. 82. Keine Personen oder Autokennzeichen ohne Einwilligung.
 4. **Prüfen:** `npm run build` muss ohne Fehler durchlaufen. Der Build bricht mit klarer Meldung ab, wenn Kategorie oder Projektart unbekannt sind.
-5. **Veröffentlichen:** committen und auf `main` pushen (`Projekt hinzugefügt: <Titel>`). Netlify deployt in ein bis zwei Minuten.
+5. **Veröffentlichen:** auf `entwurf` committen; nach Freigabe in `main` mergen und pushen (`Projekt hinzugefügt: <Titel>`), siehe «Veröffentlichen sparsam». Netlify deployt in ein bis zwei Minuten.
 6. **Rückmeldung** an den Benutzer mit der URL des neuen Projekts (DE und EN).
 
 Keine Fakten erfinden: Bausumme, Flächen, Bauherrschaft und Beschreibung nur aus den Angaben des Benutzers übernehmen. Fehlt etwas, das Feld leer lassen oder nachfragen.
