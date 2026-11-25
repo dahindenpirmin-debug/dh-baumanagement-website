@@ -20,6 +20,7 @@ Das Netlify-Konto läuft im Free-Plan mit 300 Credits pro Monat; jeder Produktio
 | Projektbilder | `src/images/projekte/<slug>/01.jpg, 02.jpg, …` |
 | Kategorien und Projektarten | `src/texts.mjs` (`CATS`, `TYPES`) |
 | Team (Seite «Über uns», Unternehmensprofil) | `src/texts.mjs` (`TEAM`: Name, Funktion DE/EN, optional `bild`). Fotos unter `src/images/team/`; ohne Foto erscheinen die Initialen. Nur vom Benutzer genannte Angaben |
+| Unsere Werte (Seite «Über uns», Unternehmensprofil) | `src/texts.mjs` (`werte.items`, je Sprache Paare Titel/Text). Formulierungen sind mit dem Benutzer abgestimmte Zusagen – nicht eigenmächtig ändern |
 | Vordefinierte Dienstleistungen für Referenzen | `src/texts.mjs` (`LEISTUNGEN`, je Gruppe Paare Deutsch/Englisch). Im Admin-Bereich als Häkchen-Auswahl; Englisch wird automatisch zugeordnet. In CSV und JSON nur diese Bezeichnungen verwenden – der Build meldet Abweichungen als Hinweis |
 | Firmenangaben, Seitentexte DE/EN | `src/texts.mjs` |
 | Wissensbeiträge | `content/wissen/de/NN-slug.md` und `content/wissen/en/NN-slug.md` |

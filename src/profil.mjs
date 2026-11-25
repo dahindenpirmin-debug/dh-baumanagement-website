@@ -48,8 +48,6 @@ export function buildProfile({ TEAM = [], variant = 'liste', lang, outDir, root,
   p(t.home.lead);
   h2(x.facts);
   for (const [k, v] of x.factRows(SITE)) { const y = doc.y; doc.font('Helvetica').fontSize(10).fillColor(SOFT).text(k, M, y, { width: 130 }); doc.font('Helvetica-Bold').fillColor(INK).text(v, M + 140, y, { width: CW - 140 }); doc.moveTo(M, doc.y + 3).lineTo(W - M, doc.y + 3).lineWidth(0.5).strokeColor(LINE).stroke(); doc.y += 9; }
-  h2(x.strengths);
-  for (const [a, b] of t.strengths) item(a, b);
   h2(x.person);
   need(150);
   const py = doc.y, tx = portrait ? M + 125 : M, tw = portrait ? CW - 125 : CW;
@@ -67,21 +65,31 @@ export function buildProfile({ TEAM = [], variant = 'liste', lang, outDir, root,
   }
 
   /* Leistungen */
-  /* Leitbild: eigene Seite, drei Grundsätze im gleichen Aufbau */
-  if (t.leitbild) {
-    h1(t.leitbild.h);
-    p(t.leitbild.lead); doc.y += 16;
-    const sy = doc.y; doc.font('Helvetica-Oblique').fontSize(17).fillColor(INK).text(t.leitbild.satz, M + 18, sy + 2, { width: CW - 18, lineGap: 3 });
-    doc.rect(M, sy, 4, doc.y - sy + 2).fill(ACC); doc.y += 30;
-    t.leitbild.werte.forEach((w, i) => {
-      const tx = M + 62, tw = CW - 62, y0 = doc.y;
-      doc.font('Helvetica-Bold').fontSize(30).fillColor(ACC).text(`0${i + 1}`, M, y0 - 4, { width: 56, lineBreak: false });
-      doc.font('Helvetica-Bold').fontSize(13.5).fillColor(INK).text(w.t, tx, y0, { width: tw }); doc.y += 5;
-      doc.font('Helvetica').fontSize(10.5).fillColor(SOFT).text(w.p, tx, doc.y, { width: tw, lineGap: 3 }); doc.y += 9;
-      for (const li of w.li) { const y = doc.y; doc.rect(tx + 2, y + 4.5, 4, 4).fill(ACC); doc.font('Helvetica').fontSize(10).fillColor(INK).text(li, tx + 14, y, { width: tw - 14, lineGap: 2.5 }); doc.y += 4; }
-      doc.y += 14;
-      if (i < t.leitbild.werte.length - 1) { doc.moveTo(M, doc.y).lineTo(W - M, doc.y).lineWidth(0.5).strokeColor(LINE).stroke(); doc.y += 22; }
-    });
+  /* Unsere Werte: eigene Seite, zwei Spalten, alle Werte im gleichen Aufbau */
+  if (t.werte) {
+    h1(t.werte.h);
+    p(t.werte.lead); doc.y += 22;
+    const gap = 30, cw = (CW - gap) / 2, tx = 44;
+    const hOf = ([a, b]) => doc.font('Helvetica-Bold').fontSize(12.5).heightOfString(a, { width: cw - tx }) + 6 + doc.font('Helvetica').fontSize(10).heightOfString(b, { width: cw - tx, lineGap: 3 });
+    for (let i = 0; i < t.werte.items.length; i += 2) {
+      const pair = t.werte.items.slice(i, i + 2), rh = Math.max(...pair.map(hOf)), y0 = doc.y;
+      pair.forEach(([a, b], j) => {
+        const x0 = M + j * (cw + gap);
+        doc.font('Helvetica-Bold').fontSize(24).fillColor(ACC).text(`0${i + j + 1}`, x0, y0 - 3, { width: tx, lineBreak: false });
+        doc.font('Helvetica-Bold').fontSize(12.5).fillColor(INK).text(a, x0 + tx, y0, { width: cw - tx });
+        doc.font('Helvetica').fontSize(10).fillColor(SOFT).text(b, x0 + tx, doc.y + 6, { width: cw - tx, lineGap: 3 });
+      });
+      doc.y = y0 + rh + 16;
+      if (i + 2 < t.werte.items.length) { doc.moveTo(M, doc.y).lineTo(W - M, doc.y).lineWidth(0.5).strokeColor(LINE).stroke(); doc.y += 18; }
+    }
+  }
+
+  { // Stärken unter den Werten; der ganze Block bleibt auf der Seite zusammen
+    const st = t.strengths.filter((q) => !q[2]); // der Verweis auf die Werte entfällt hier: sie stehen direkt darüber
+    const sh = st.reduce((n, [, b]) => n + 22 + doc.font('Helvetica').fontSize(10).heightOfString(b, { width: CW, lineGap: 3 }) + 10, 40);
+    if (doc.y + sh > H - 70) doc.addPage(), (doc.y = 78); else doc.y += 6;
+    h2(x.strengths);
+    for (const [a, b] of st) { doc.font('Helvetica-Bold').fontSize(11.5).fillColor(INK).text(a, M, doc.y); doc.y += 3; doc.font('Helvetica').fontSize(10).fillColor(SOFT).text(b, M, doc.y, { width: CW, lineGap: 3 }); doc.y += 10; }
   }
 
   h1(x.services);

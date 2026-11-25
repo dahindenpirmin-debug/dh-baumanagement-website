@@ -54,12 +54,15 @@ export const TYPES = {
 export const T = {
   de: {
     nav: { home: 'Home', leistungen: 'Leistungen', projekte: 'Projekte', wissen: 'Wissen', tools: 'Tools', ueber: 'Über uns', kontakt: 'Kontakt' },
-    leitbild: { h: 'Leitbild', lead: 'Drei Grundsätze bestimmen, wie wir arbeiten und entscheiden.', satz: 'Ihr Projekt führen wir so, als wäre es unser eigenes.', werte: [
-      { t: 'Der Kunde steht im Zentrum', p: 'Jedes Bauvorhaben beginnt mit den Zielen der Bauherrschaft. Wir hören zu, bevor wir planen.', li: ['Wir vertreten Ihre Interessen gegenüber Planern, Unternehmern und Behörden.', 'Sie haben einen festen Ansprechpartner, der Ihr Projekt persönlich kennt.', 'Wir informieren offen über Kosten, Termine und Risiken, auch wenn es unbequem ist.'] },
-      { t: 'Die technisch und wirtschaftlich beste Lösung', p: 'Wir suchen nicht die einfachste und nicht die teuerste Lösung, sondern die richtige.', li: ['Wir prüfen Varianten und legen Kosten, Nutzen und Risiken nachvollziehbar dar.', 'Wir denken über die Bauzeit hinaus: Betrieb, Unterhalt und Werterhalt zählen mit.', 'Wir empfehlen unabhängig, ohne Bindung an Planer, Unternehmer oder Produkte.'] },
-      { t: 'Flexibel und auf den Kunden abgestimmt', p: 'Jeder Kunde und jedes Projekt ist anders. Wir passen unsere Arbeitsweise an, nicht umgekehrt.', li: ['Wir übernehmen so viel, wie Sie brauchen: vom einzelnen Mandat bis zur Gesamtdienstleistung.', 'Wir richten uns nach Ihrem Betrieb, Ihren Abläufen und Ihrem Zeitplan.', 'Wir reagieren rasch, wenn sich die Rahmenbedingungen ändern.'] },
+    werte: { h: 'Unsere Werte', lead: 'Was uns wichtig ist und woran Sie uns messen können.', items: [
+      ['Wir sind professionell', 'Saubere Planung, klare Abläufe und fundiertes Fachwissen: Wir arbeiten strukturiert, dokumentieren nachvollziehbar und stehen für die Qualität unserer Arbeit ein.'],
+      ['Wir sind Partner unserer Kunden', 'Wir vertreten Ihre Interessen gegenüber Planern, Unternehmern und Behörden und begegnen Ihnen auf Augenhöhe. Wir bleiben bewusst überschaubar, damit wir Sie und Ihr Projekt persönlich kennen.'],
+      ['Wir bauen, als wäre es unser eigenes Projekt', 'Mit Ihrem Geld, Ihrer Zeit und Ihrer Liegenschaft gehen wir so sorgfältig um wie mit unseren eigenen. Das heisst auch: hinschauen, nachfragen und Verantwortung übernehmen.'],
+      ['Wir passen uns an und suchen nach Lösungen', 'Jeder Kunde und jedes Projekt ist anders. Wir richten uns nach Ihren Abläufen und suchen die technisch und wirtschaftlich beste Lösung, statt Probleme weiterzureichen.'],
+      ['Wir sind ehrlich und transparent', 'Wir informieren offen über Kosten, Termine und Risiken, auch wenn es unbequem ist. So können Sie rechtzeitig entscheiden.'],
+      ['Wir halten, was wir versprechen', 'Verlässlichkeit ist die Basis jeder Zusammenarbeit. Zusagen zu Terminen und Kosten nehmen wir ernst und stehen dafür ein.'],
     ] },
-    ueber: { title: 'Über uns: Team und Leitbild der DH Baumanagement AG', desc: 'Team und Leitbild der DH Baumanagement AG in Grosswangen: Martin Dahinden, Inhaber und Projektleiter, Manuel Unternährer, Junior Bauleiter, und Pirmin Dahinden, Finanzen und Administration.', h1: 'Über uns', lead: 'Ein kleines Team, das Ihr Projekt persönlich kennt. Bei uns sprechen Sie mit den Menschen, die Ihr Bauvorhaben tatsächlich führen.', teamH: 'Unser Team', teamP: 'Wir bleiben bewusst überschaubar. So wissen wir bei jedem Projekt, worum es geht, und Sie haben einen festen Ansprechpartner.', link: 'Unser Team kennenlernen' },
+    ueber: { title: 'Über uns: Team und Werte der DH Baumanagement AG', desc: 'Team und Werte der DH Baumanagement AG in Grosswangen: Martin Dahinden, Inhaber und Projektleiter, Manuel Unternährer, Junior Bauleiter, und Pirmin Dahinden, Finanzen und Administration.', h1: 'Über uns', lead: 'Ein kleines Team, das Ihr Projekt persönlich kennt. Bei uns sprechen Sie mit den Menschen, die Ihr Bauvorhaben tatsächlich führen.', teamH: 'Unser Team', teamP: 'Wir bleiben bewusst überschaubar. So wissen wir bei jedem Projekt, worum es geht, und Sie haben einen festen Ansprechpartner.', link: 'Unser Team kennenlernen' },
     skip: 'Zum Inhalt springen', menu: 'Menü',
     home: {
       title: 'Baumanagement Zürich & Zentralschweiz',
@@ -78,8 +81,8 @@ export const T = {
     },
     strengths: [
       ['Alles aus einer Hand', 'Sie haben über den ganzen Lebenszyklus Ihrer Liegenschaft einen einzigen Ansprechpartner. Wir koordinieren im Hintergrund Planer, Behörden und Unternehmer – und tragen die Verantwortung für Kosten, Termine und Qualität.'],
-      ['Persönlich und partnerschaftlich', 'Verlässlichkeit, Vertrauen und Ehrlichkeit sind die Basis unserer Zusammenarbeit. Wir bleiben bewusst überschaubar, damit wir unsere Kundinnen und Kunden und ihre Projekte persönlich kennen.'],
       ['Erfahren', 'Wir bieten nur an, was zu unseren Kernkompetenzen gehört. Handwerkliche Herkunft verbunden mit Know-how in Entwicklung, Planung und Realisierung – gestützt auf über 15 Jahre Erfahrung in Bau und Immobilien.'],
+      ['Klare Werte', 'Professionell, partnerschaftlich, ehrlich und verlässlich: Wir bauen so, als wäre es unser eigenes Projekt.', '/ueber-uns/#werte'],
     ],
     services: [
       { id: 'beratung', k: 'Zustand, Potenzial und Kostenrahmen klären, bevor geplant wird.', icon: 'beratung', t: 'Beratung & Bewertung', p: 'Bevor Geld in Pläne fliesst, klären wir, was sich lohnt: Zustand, Potenzial und Wert der Liegenschaft sowie ein belastbarer Kostenrahmen.', li: ['Zustandsanalyse und Massnahmenplanung', 'Machbarkeitsstudien und Variantenvergleich', 'Grobkostenschätzung und Investitionsrechnung', 'Technische Due Diligence beim Kauf', 'Liegenschaftsbewertung'] },
@@ -110,12 +113,15 @@ export const T = {
   },
   en: {
     nav: { home: 'Home', leistungen: 'Services', projekte: 'Projects', wissen: 'Insights', tools: 'Tools', ueber: 'About', kontakt: 'Contact' },
-    leitbild: { h: 'Our principles', lead: 'Three principles determine how we work and decide.', satz: 'We run your project as if it were our own.', werte: [
-      { t: 'The client comes first', p: 'Every construction project starts with the owner’s goals. We listen before we plan.', li: ['We represent your interests towards designers, contractors and authorities.', 'You have one fixed contact who knows your project personally.', 'We report openly on cost, schedule and risk, even when it is uncomfortable.'] },
-      { t: 'The best technical and economic solution', p: 'We look neither for the simplest nor for the most expensive solution, but for the right one.', li: ['We examine options and set out cost, benefit and risk transparently.', 'We think beyond construction: operation, maintenance and value retention count too.', 'We advise independently, with no ties to designers, contractors or products.'] },
-      { t: 'Flexible and tailored to the client', p: 'Every client and every project is different. We adapt the way we work, not the other way round.', li: ['We take on as much as you need: from a single mandate to full service.', 'We work around your operations, your processes and your schedule.', 'We respond quickly when circumstances change.'] },
+    werte: { h: 'Our values', lead: 'What matters to us and what you can measure us by.', items: [
+      ['We are professional', 'Careful planning, clear processes and sound expertise: we work in a structured way, document transparently and stand behind the quality of our work.'],
+      ['We are a partner to our clients', 'We represent your interests towards designers, contractors and authorities and meet you as equals. We deliberately stay a manageable size so that we know you and your project personally.'],
+      ['We build as if the project were our own', 'We treat your money, your time and your property as carefully as our own. That also means looking closely, asking questions and taking responsibility.'],
+      ['We adapt and look for solutions', 'Every client and every project is different. We work around your processes and look for the best technical and economic solution instead of passing problems on.'],
+      ['We are honest and transparent', 'We report openly on cost, schedule and risk, even when it is uncomfortable. That allows you to decide in good time.'],
+      ['We keep our promises', 'Reliability is the basis of any collaboration. We take commitments on schedule and cost seriously and stand by them.'],
     ] },
-    ueber: { title: 'About us: team and principles of DH Baumanagement AG', desc: 'Team and principles of DH Baumanagement AG in Grosswangen: Martin Dahinden, owner and project manager, Manuel Unternährer, junior site manager, and Pirmin Dahinden, finance and administration.', h1: 'About us', lead: 'A small team that knows your project personally. With us you talk to the people who actually run your construction project.', teamH: 'Our team', teamP: 'We deliberately stay a manageable size. That way we know what every project is about, and you have one fixed contact.', link: 'Meet our team' },
+    ueber: { title: 'About us: team and values of DH Baumanagement AG', desc: 'Team and values of DH Baumanagement AG in Grosswangen: Martin Dahinden, owner and project manager, Manuel Unternährer, junior site manager, and Pirmin Dahinden, finance and administration.', h1: 'About us', lead: 'A small team that knows your project personally. With us you talk to the people who actually run your construction project.', teamH: 'Our team', teamP: 'We deliberately stay a manageable size. That way we know what every project is about, and you have one fixed contact.', link: 'Meet our team' },
     skip: 'Skip to content', menu: 'Menu',
     home: {
       title: 'Construction management Zurich & Lucerne',
@@ -134,8 +140,8 @@ export const T = {
     },
     strengths: [
       ['Everything from a single source', 'You have one point of contact across the entire life cycle of your property. We coordinate designers, authorities and contractors in the background – and take responsibility for cost, schedule and quality.'],
-      ['Personal and collaborative', 'Reliability, trust and honesty are the basis of how we work. We deliberately stay a manageable size so that we know our clients and their projects personally.'],
       ['Experienced', 'We only offer what belongs to our core competencies: a background in the trades combined with know-how in development, design and delivery – built on more than 15 years in construction and real estate.'],
+      ['Clear values', 'Professional, collaborative, honest and reliable: we build as if the project were our own.', '/ueber-uns/#werte'],
     ],
     services: [
       { id: 'beratung', k: 'Clarify condition, potential and budget before design starts.', icon: 'beratung', t: 'Consulting & valuation', p: 'Before money goes into drawings, we clarify what is worth doing: condition, potential and value of the property, and a robust cost framework.', li: ['Condition surveys and action planning', 'Feasibility studies and option appraisal', 'Rough cost estimates and investment appraisal', 'Technical due diligence for acquisitions', 'Property valuation'] },

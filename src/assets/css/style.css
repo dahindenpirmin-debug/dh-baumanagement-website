@@ -328,5 +328,7 @@ p.form-err.top { margin: 0 0 12px; }
 .wert .wp { color: var(--ink-soft); }
 .wert .check { margin: 6px 0 0; padding: 0; list-style: none; font-size: .95rem; }
 .wert .check li:last-child { border-bottom: 0; }
-section[id="leitbild"] { scroll-margin-top: 80px; }
+section[id="werte"] { scroll-margin-top: 80px; }
+.werte { margin-top: 30px; }
+.wert .wp { margin-bottom: 0; }
 .member img { object-position: center 18%; filter: grayscale(1); }
