@@ -105,7 +105,7 @@ export function buildProfile({ variant = 'liste', lang, outDir, root, SITE, T, C
       const f = pr.bilder[0] && local(pr.bilder[0]);
       doc.save(); doc.rect(cx, cy, cw, ih).clip();
       if (f) doc.image(f, cx, cy, { cover: [cw, ih], align: 'center', valign: 'center' });
-      else { doc.rect(cx, cy, cw, ih).fill(INK); if (logo) doc.opacity(0.35).image(logo, cx + cw / 2 - 45, cy + ih / 2 - 28, { fit: [90, 56], align: 'center', valign: 'center' }); }
+      else { doc.rect(cx, cy, cw, ih).fill(ALT); const pi = il(pr.kategorie === 'wohnen' ? 'wohnbau' : 'gewerbe'); if (pi) doc.image(pi, cx + cw / 2 - 45, cy + ih / 2 - 35, { fit: [90, 70], align: 'center', valign: 'center' }); }
       doc.restore();
       doc.rect(cx, cy, cw, ih).lineWidth(0.5).strokeColor(LINE).stroke(); doc.rect(cx, cy + ih, cw, 2).fill(ACC);
       doc.font('Helvetica-Bold').fontSize(7).fillColor(DARKGOLD).text(`${CATS[pr.kategorie][lang]} · ${TYPES[pr.projektart][lang]}`.toUpperCase(), cx, cy + ih + 11, { width: cw, height: 9, ellipsis: true, characterSpacing: 0.6 });

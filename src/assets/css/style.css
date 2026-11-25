@@ -271,3 +271,4 @@ address { font-style: normal; margin-bottom: 1em; }
 .alt .art, .card .art { --art-bg: #f5f3ee; }
 .alt .card .art { --art-bg: #f5f3ee; }
 .service .art { width: 104px; height: 104px; } .service .art svg { width: 78px; }
+.ph { --art-bg: #f5f3ee; background: var(--art-bg); }

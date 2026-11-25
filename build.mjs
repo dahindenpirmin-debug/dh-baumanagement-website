@@ -217,7 +217,7 @@ function projectCard(p, lang) {
   const pic = p.bilder[0];
   return `<article class="card project" ${pdata(p, lang)}>
   <a href="${u(lang, `/projekte/${p.slug}/`)}">
-    <div class="thumb">${pic ? `<img src="${img(pic, 640, 480)}" alt="${esc(p.t[lang])}, ${esc(p.ort)}" loading="lazy" width="640" height="480">` : `<div class="ph" aria-hidden="true">${ILLUS[p.kategorie === 'wohnen' ? 'wohnbau' : 'gewerbe'] || ''}</div>`}</div>
+    <div class="thumb">${pic ? `<img src="${img(pic, 640, 480)}" alt="${esc(p.t[lang])}, ${esc(p.ort)}" loading="lazy" width="640" height="480">` : `<div class="ph" aria-hidden="true">${hell(ILLUS[p.kategorie === 'wohnen' ? 'wohnbau' : 'gewerbe'] || '')}</div>`}</div>
     <div class="card-body"><p class="tag">${CATS[p.kategorie][lang]} · ${TYPES[p.projektart][lang]}</p><h3>${esc(p.t[lang])}</h3><p class="meta">${esc(p.ort)}${p.kanton ? ' ' + p.kanton : ''} · ${p.zeit}${p.vol ? ' · ' + esc(p.vol) : ''}</p><p class="meta leist">${p.leist[lang].map(esc).join(', ')}</p></div>
   </a></article>`;
 }
