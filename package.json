@@ -14,7 +14,8 @@
     "gray-matter": "^4.0.3",
     "jspdf": "^4.2.1",
     "marked": "^18.3.0",
-    "pdfkit": "^0.21.0"
+    "pdfkit": "^0.21.0",
+    "sharp": "^0.35.5"
   },
   "private": true,
   "type": "module"

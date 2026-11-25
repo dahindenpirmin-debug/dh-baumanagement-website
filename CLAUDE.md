@@ -23,6 +23,7 @@ Das Netlify-Konto läuft im Free-Plan mit 300 Credits pro Monat; jeder Produktio
 | Wissensbeiträge | `content/wissen/de/NN-slug.md` und `content/wissen/en/NN-slug.md` |
 | Online-Rechner (Richtwerte, Texte) | `src/tools.mjs`, Logik in `src/assets/js/tools.js` |
 | Unternehmensprofil (PDF, DE/EN, je zwei Varianten: mit Referenzliste / Portfolio mit Bildern) | `src/profil.mjs` – wird bei jedem Build aus Texten und Projektliste neu erzeugt (`/downloads/…`) |
+| Referenzblatt pro Projekt (PDF, DE/EN) | `src/referenzblatt.mjs` – wird bei jedem Build für jedes Projekt erzeugt (`/downloads/referenzen/Referenz_<slug>.pdf`), Knopf auf der Projektseite. Gleicher Aufbau für alle: Titelbild, Beschrieb, Leistungen, Kennzahlen, Eckdaten, Kontakt, Seite 2 mit bis zu sechs weiteren Bildern |
 | Regionenseiten (Zürich, Zentralschweiz, Aargau, Bern) | `src/regionen.mjs` – Text je Region; Referenzen werden über die Spalte `kanton` der CSV automatisch zugeordnet. Neue Region nur mit echten Referenzen |
 | Titelbild Startseite | `SITE.heroProjekt` in `src/texts.mjs` (Foto eines eigenen Projekts) |
 | Impressum & Datenschutz | `content/seiten/` |

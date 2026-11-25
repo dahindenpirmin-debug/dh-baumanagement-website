@@ -11,6 +11,7 @@ import { TOOLS, CONFIG, toolForm, toolResult, toolLabels } from './src/tools.mjs
 import { buildProfile, profileFile } from './src/profil.mjs';
 import { REGIONEN, RT } from './src/regionen.mjs';
 import { KARTE } from './src/karte.mjs';
+import { buildRefSheet, refFile } from './src/referenzblatt.mjs';
 
 const ROOT = path.dirname(fileURLToPath(import.meta.url));
 const OUT = path.join(ROOT, 'dist');
@@ -310,7 +311,7 @@ ${cta(lang)}`;
     const pbody = `${pageHead(p.t[lang], '', cr)}
 <section><div class="wrap split top">
   <div>${text.split(/\n{2,}|\\n\\n/).map((x) => `<p>${esc(x)}</p>`).join('')}${p.kenn[lang] ? `<ul class="check">${p.kenn[lang].split('|').map((k) => `<li>${esc(k.trim())}</li>`).join('')}</ul>` : ''}
-  ${p.dokument ? `<p><a class="btn ghost" href="${esc(p.dokument)}">${f.doc}</a></p>` : ''}</div>
+  <p><a class="btn ghost" href="/downloads/referenzen/${refFile(p, lang)}" download>${lang === 'de' ? 'Referenzblatt (PDF)' : 'Reference sheet (PDF)'}</a></p></div>
   <dl class="facts-list"><dt>${f.cat}</dt><dd>${CATS[p.kategorie][lang]}</dd><dt>${f.type}</dt><dd>${typ}</dd><dt>${f.loc}</dt><dd>${esc(p.ort)}${p.kanton ? ' ' + p.kanton : ''}</dd><dt>${f.time}</dt><dd>${p.zeit}</dd>${p.vol ? `<dt>${t.profil.vol}</dt><dd>${esc(p.vol)}</dd>` : ''}${p.bauherr ? `<dt>${f.client}</dt><dd>${esc(p.bauherr)}</dd>` : ''}<dt>${f.serv}</dt><dd>${p.leist[lang].map(esc).join('<br>')}</dd></dl>
 </div></section>
 ${p.bilder.length ? `<section class="alt"><div class="wrap gallery">${p.bilder.map((b, i) => `<a href="${img(b, 1800)}"><img src="${img(b, 900, 675)}" alt="${esc(p.t[lang])}, ${esc(p.ort)} – ${lang === 'de' ? 'Bild' : 'image'} ${i + 1}" loading="${i ? 'lazy' : 'eager'}" width="900" height="675"></a>`).join('')}</div></section>` : ''}
@@ -498,6 +499,11 @@ fs.mkdirSync(path.join(OUT, 'admin'), { recursive: true });
 for (const f of fs.readdirSync(path.join(ROOT, 'src/admin'))) fs.copyFileSync(path.join(ROOT, 'src/admin', f), path.join(OUT, 'admin', f));
 fs.writeFileSync(path.join(OUT, 'admin/config.json'), JSON.stringify({ repo: SITE.repo, branch: SITE.branch, cats: Object.fromEntries(Object.entries(CATS).map(([k, v]) => [k, v.de])), types: Object.fromEntries(Object.entries(TYPES).map(([k, v]) => [k, v.de])), kantone: KT, karte: { ...KARTE, kantone: undefined } }));
 fs.writeFileSync(path.join(OUT, 'admin/projekte.json'), JSON.stringify(ALLROWS.filter((r) => !r.versteckt).map((r) => ({ ...r, bilder: undefined, fotos: (projects.find((p) => p.slug === r.slug) || { bilder: [] }).bilder.length }))));
+/* Referenzblatt pro Projekt (DE und EN), gleicher Aufbau für alle Projekte */
+for (const p of projects) for (const lang of LANGS) {
+  const tp = T[lang].projekte, text = p.beschr[lang] || tp.auto({ typ: TYPES[p.projektart][lang], ort: p.ort, kanton: p.kanton, zeit: p.zeit, leist: p.leist[lang].join(', ') });
+  await buildRefSheet({ p, lang, outDir: path.join(OUT, 'downloads/referenzen'), root: ROOT, SITE, CATS, TYPES, text });
+}
 for (const lang of LANGS) for (const variant of ['liste', 'portfolio']) await buildProfile({ variant, lang, outDir: path.join(OUT, 'downloads'), root: ROOT, SITE, T, CATS, TYPES, projects });
 for (const lang of LANGS) { buildHome(lang); buildLeistungen(lang); buildProjekte(lang); buildWissen(lang); buildTools(lang); buildRegionen(lang); buildKontakt(lang); buildLegal(lang); }
 buildMeta();
