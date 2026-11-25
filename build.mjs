@@ -73,7 +73,7 @@ function loadProjects() {
     if (!TYPES[r.projektart]) throw new Error(`projekte.csv «${r.slug}»: unbekannte projektart «${r.projektart}» (erlaubt: ${Object.keys(TYPES).join(', ')})`);
     let bilder = r.bilder ? r.bilder.split('|').map((b) => b.trim()).filter(Boolean).map((b) => (b.startsWith('wix:') ? WIX + b.slice(4) : /^https?:/.test(b) ? b : `/images/projekte/${r.slug}/${b}`)) : [];
     const dir = path.join(ROOT, 'src/images/projekte', r.slug);
-    if (!bilder.length && fs.existsSync(dir)) bilder = fs.readdirSync(dir).filter((f) => /\.(jpe?g|png|webp|avif)$/i.test(f)).sort().map((f) => `/images/projekte/${r.slug}/${f}`);
+    if (fs.existsSync(dir)) bilder = [...fs.readdirSync(dir).filter((f) => /\.(jpe?g|png|webp|avif)$/i.test(f)).sort().map((f) => `/images/projekte/${r.slug}/${f}`), ...bilder.filter((b) => /^https?:/.test(b))];
     const zeit = (l) => (!r.jahr_bis || r.jahr_bis === r.jahr_von ? r.jahr_von : `${r.jahr_von}–${r.jahr_bis}`);
     return { ...r, bilder, zeit: zeit(), featured: /^(ja|yes|x|1)$/i.test(r.featured), order: i,
       t: { de: r.titel_de, en: r.titel_en || r.titel_de },

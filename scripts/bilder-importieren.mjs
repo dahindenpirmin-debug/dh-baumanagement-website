@@ -40,11 +40,14 @@ for (let n = 1; n < lines.length; n++) {
   const remote = cells[iBild].split('|').map((b) => b.trim()).filter((b) => b.startsWith('wix:') || /^https?:/.test(b));
   if (!remote.length) continue;
   let ok = true;
+  // Neue Bilder werden hinten angehängt: Nummerierung beginnt nach den bereits vorhandenen Dateien
+  const pdir = path.join(ROOT, 'src/images/projekte', cells[iSlug]);
+  const start = fs.existsSync(pdir) ? fs.readdirSync(pdir).filter((f) => /\.(jpe?g|png|webp)$/i.test(f)).length : 0;
   for (const [i, b] of remote.entries()) {
     const raw = b.startsWith('wix:') ? WIX + b.slice(4) : b;
     // Wix liefert auf Wunsch eine verkleinerte Fassung (max. 2400 px) – spart Speicher im Repository
     const url = raw.startsWith(WIX) ? `${raw}/v1/fit/w_2400,h_2400,q_88/bild${ext(raw)}` : raw;
-    const file = path.join(ROOT, 'src/images/projekte', cells[iSlug], String(i + 1).padStart(2, '0') + ext(raw));
+    const file = path.join(ROOT, 'src/images/projekte', cells[iSlug], String(start + i + 1).padStart(2, '0') + ext(raw));
     await load(url, file).catch((e) => { ok = false; console.warn('Fehler:', e.message); });
   }
   if (ok) { cells[iBild] = ''; lines[n] = cells.join(';'); }
