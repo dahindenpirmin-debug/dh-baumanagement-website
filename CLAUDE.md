@@ -13,6 +13,7 @@ Statische, zweisprachige Website (DE unter `/`, EN unter `/en/`). Kein CMS, kein
 | Firmenangaben, Seitentexte DE/EN | `src/texts.mjs` |
 | Wissensbeiträge | `content/wissen/de/NN-slug.md` und `content/wissen/en/NN-slug.md` |
 | Online-Rechner (Richtwerte, Texte) | `src/tools.mjs`, Logik in `src/assets/js/tools.js` |
+| Unternehmensprofil (PDF, DE/EN) | `src/profil.mjs` – wird bei jedem Build aus Texten und Projektliste neu erzeugt (`/downloads/…`) |
 | Impressum & Datenschutz | `content/seiten/` |
 | Design (Farben, Schrift) | `src/assets/css/style.css`, Block `:root` |
 | Weiterleitungen, Sitemap, robots, llms.txt | werden in `build.mjs` erzeugt |
@@ -51,6 +52,12 @@ In `src/texts.mjs` bei `CATS` bzw. `TYPES` einen Eintrag mit deutschem und engli
 Je eine Datei in `content/wissen/de/` und `content/wissen/en/` mit derselben `id` im Kopfbereich (damit die Sprachversionen verknüpft werden). Pflichtfelder: `id`, `title`, `description` (max. ca. 155 Zeichen), `category`, `summary` (2–3 Sätze, beantwortet die Kernfrage direkt), `date`. Optional: `faq` (Liste mit `q` und `a`), `tool` (`kosten`, `areal` oder `dauer`), `featured: true`. Der Dateiname ohne Nummer wird zur URL.
 
 Schreibregeln: Schweizer Rechtschreibung (kein ß), konkrete Zahlen mit Einordnung, Normen und Gesetze nur nennen, wenn sie geprüft sind; Beitrag mit einer direkten Antwort beginnen, mindestens eine Tabelle oder Liste, drei FAQ.
+
+## Rechner und Formulare
+
+- Kennwerte (CHF/m², CHF/m³, Faktoren, Zuschläge, Phasendauern) stehen in `src/tools.mjs` unter `CONFIG`.
+- Das Resultat-PDF entsteht im Browser (jsPDF, lokal ausgeliefert unter `/assets/vendor/`). Liegt `src/images/logo.png` vor, erscheint das Logo im PDF, sonst der Schriftzug.
+- Netlify-Formulare: `kontakt` (Kontaktseite) und `rechner-anfrage` (Rechner, mit PDF-Anhang im Feld `resultat`). Für beide in Netlify eine E-Mail-Benachrichtigung einrichten.
 
 ## Nicht tun
 

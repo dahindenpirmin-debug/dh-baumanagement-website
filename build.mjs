@@ -6,7 +6,8 @@ import { fileURLToPath } from 'node:url';
 import { marked } from 'marked';
 import matter from 'gray-matter';
 import { SITE, CATS, TYPES, T } from './src/texts.mjs';
-import { TOOLS, CONFIG, toolForm, toolLabels } from './src/tools.mjs';
+import { TOOLS, CONFIG, toolForm, toolResult, toolLabels } from './src/tools.mjs';
+import { buildProfile, profileFile } from './src/profil.mjs';
 
 const ROOT = path.dirname(fileURLToPath(import.meta.url));
 const OUT = path.join(ROOT, 'dist');
@@ -145,7 +146,7 @@ ${body}
     <div><strong>${SITE.name}</strong><br>${SITE.street}<br>${SITE.zip} ${SITE.city}</div>
     <div><a href="tel:${SITE.phoneIntl}">${SITE.phone}</a><br><a href="mailto:${SITE.email}">${SITE.email}</a><br><a href="${SITE.linkedin}" rel="noopener">LinkedIn</a></div>
     <div>${nav.map(([k, p]) => `<a href="${u(lang, p)}">${t.nav[k]}</a>`).join('<br>')}</div>
-    <div><a href="${u(lang, '/impressum-datenschutz/')}">${t.footer.legal}</a><br>${SITE.uid}<br>© ${new Date().getFullYear()} ${SITE.name}</div>
+    <div><a href="${profileUrl(lang)}" download>${t.profil.b}</a><br><a href="${u(lang, '/impressum-datenschutz/')}">${t.footer.legal}</a><br>${SITE.uid}<br>© ${new Date().getFullYear()} ${SITE.name}</div>
   </div>
 </footer>
 <script src="/assets/js/main.js" defer></script>
@@ -153,6 +154,8 @@ ${body}
 </html>`;
 }
 const cta = (lang) => `<section class="cta"><div class="wrap"><h2>${T[lang].cta.h}</h2><p>${T[lang].cta.p}</p><p><a class="btn" href="${u(lang, '/kontakt/')}">${T[lang].cta.b}</a> <a class="btn ghost" href="tel:${SITE.phoneIntl}">${SITE.phone}</a></p></div></section>`;
+const profileUrl = (lang) => '/downloads/' + profileFile(lang);
+const profileBox = (lang) => `<section class="alt"><div class="wrap download"><div><h2>${T[lang].profil.h}</h2><p>${T[lang].profil.p}</p></div><a class="btn" href="${profileUrl(lang)}" download>${T[lang].profil.b}</a></div></section>`;
 const pageHead = (h1, lead, crumbs) => `<section class="page-head"><div class="wrap">${crumbs ? `<nav class="crumbs" aria-label="Breadcrumb">${crumbs.map(([n, p], i) => (i < crumbs.length - 1 ? `<a href="${p}">${esc(n)}</a>` : `<span>${esc(n)}</span>`)).join(' › ')}</nav>` : ''}<h1>${esc(h1)}</h1>${lead ? `<p class="lead">${esc(lead)}</p>` : ''}</div></section>`;
 
 /* ---------- Bausteine ---------- */
@@ -178,7 +181,7 @@ function buildHome(lang) {
 <section class="alt"><div class="wrap"><h2>${t.segments.h}</h2><div class="grid4">${t.segments.items.map(([a, b, l]) => `<article class="card"><a href="${u(lang, l)}"><div class="card-body"><h3>${a}</h3><p>${b}</p></div></a></article>`).join('')}</div></div></section>
 <section><div class="wrap"><div class="h-row"><h2>${h.projectsH}</h2><a href="${u(lang, '/projekte/')}">${h.projectsAll} →</a></div><div class="grid3">${projects.filter((p) => p.featured).slice(0, 6).map((p) => projectCard(p, lang)).join('')}</div></div></section>
 <section class="alt about"><div class="wrap split"><img src="${img(PORTRAIT, 600, 720)}" alt="Martin Dahinden, ${lang === 'de' ? 'Projektleiter und Inhaber' : 'project manager and owner'}" loading="lazy" width="600" height="720">
-  <div><h2>${h.aboutH}</h2><p class="quote">${h.quote}</p><p>${h.about}</p><p class="claim">${h.claim}</p></div></div></section>
+  <div><h2>${h.aboutH}</h2><p class="quote">${h.quote}</p><p>${h.about}</p><p class="claim">${h.claim}</p><p><a class="btn ghost" href="${profileUrl(lang)}" download>${t.profil.b}</a></p></div></div></section>
 <section><div class="wrap"><div class="h-row"><h2>${h.knowH}</h2><a href="${u(lang, '/wissen/')}">${h.knowAll} →</a></div><div class="grid3">${articles[lang].filter((a) => a.featured).slice(0, 3).map((a) => articleCard(a, lang)).join('')}</div></div></section>
 <section class="alt"><div class="wrap"><h2>${h.toolsH}</h2><p class="lead">${h.toolsLead}</p><div class="grid3">${TOOLS.map((tl) => toolCard(tl, lang)).join('')}</div></div></section>
 ${cta(lang)}`;
@@ -193,6 +196,7 @@ function buildLeistungen(lang) {
 <section><div class="wrap">${t.services.map((s) => `<article class="service" id="${s.id}"><div><h2>${s.t}</h2><p>${s.p}</p></div><ul class="check">${s.li.map((x) => `<li>${x}</li>`).join('')}</ul></article>`).join('')}</div></section>
 <section class="alt"><div class="wrap"><h2>${t.leistungen.whatH}</h2><div class="grid3">${t.strengths.map(([a, b]) => `<div class="card"><div class="card-body"><h3>${a}</h3><p>${b}</p></div></div>`).join('')}</div></div></section>
 <section><div class="wrap"><h2>${t.segments.h}</h2><div class="grid4">${t.segments.items.map(([a, b, l]) => `<article class="card"><a href="${u(lang, l)}"><div class="card-body"><h3>${a}</h3><p>${b}</p></div></a></article>`).join('')}</div></div></section>
+${profileBox(lang)}
 ${cta(lang)}`;
   const ld = t.services.map((s) => ({ '@context': 'https://schema.org', '@type': 'Service', name: s.t, description: s.p, provider: { '@id': SITE.domain + '/#organisation' }, areaServed: 'CH' }));
   write(paths[lang], layout({ lang, title: t.leistungen.title, desc: t.leistungen.desc, paths, body, ld, active: 'leistungen', crumbs }));
@@ -210,6 +214,7 @@ function buildProjekte(lang) {
   ${projects.map((p) => `<tr data-cat="${p.kategorie}" data-type="${p.projektart}"><td><a href="${u(lang, `/projekte/${p.slug}/`)}">${esc(p.t[lang])}</a></td><td>${CATS[p.kategorie][lang]}</td><td>${TYPES[p.projektart][lang]}</td><td>${esc(p.ort)}${p.kanton ? ' ' + p.kanton : ''}</td><td>${p.zeit}</td><td>${p.leist[lang].map(esc).join(', ')}</td></tr>`).join('\n  ')}
   </tbody></table></div>
 </div></section>
+${profileBox(lang)}
 ${cta(lang)}`;
   const ld = [{ '@context': 'https://schema.org', '@type': 'ItemList', itemListElement: projects.map((p, i) => ({ '@type': 'ListItem', position: i + 1, name: p.t[lang], url: abs(u(lang, `/projekte/${p.slug}/`)) })) }];
   write(paths[lang], layout({ lang, title: tp.title, desc: tp.desc, paths, body, ld, active: 'projekte', crumbs }));
@@ -277,9 +282,9 @@ function buildTools(lang) {
     const body = `${pageHead(tool.title[lang], tool.intro[lang], cr)}
 <section><div class="wrap split top tool" data-tool="${tool.id}" data-lang="${lang}">
   <form class="tool-form" onsubmit="return false">${toolForm(tool, lang)}<button class="btn" type="submit">${l.calc}</button></form>
-  <div class="tool-result" aria-live="polite"><h2>${l.res}</h2><div class="out"></div><p class="disclaimer">${tt.note}</p><p><a class="btn" data-discuss href="${u(lang, '/kontakt/')}">${tt.discuss}</a></p></div>
+  ${toolResult(tool, lang, tt.note, u(lang, '/impressum-datenschutz/'), t.footer.legal)}
 </div></section>
-<script type="application/json" id="tool-config">${JSON.stringify({ c: CONFIG, l })}</script>
+<script type="application/json" id="tool-config">${JSON.stringify({ c: CONFIG, l, s: { name: SITE.name, addr: `${SITE.street}, ${SITE.zip} ${SITE.city}`, phone: SITE.phone, email: SITE.email, web: SITE.domain.replace('https://', ''), claim: t.home.h1 } })}</script>
 <script src="/assets/js/tools.js" defer></script>
 <section class="alt"><div class="wrap grid3">${TOOLS.filter((x) => x.id !== tool.id).map((x) => toolCard(x, lang)).join('')}</div></section>`;
     const ld = [{ '@context': 'https://schema.org', '@type': 'WebApplication', name: tool.title[lang], description: tool.desc[lang], url: abs(tp[lang]), applicationCategory: 'BusinessApplication', operatingSystem: 'All', offers: { '@type': 'Offer', price: '0', priceCurrency: 'CHF' }, provider: { '@id': SITE.domain + '/#organisation' } }];
@@ -349,6 +354,10 @@ ${li('en')}
 ## Online-Rechner
 ${TOOLS.map((x) => `- [${x.title.de}](${abs(`/tools/${x.slug.de}/`)}): ${x.desc.de}`).join('\n')}
 
+## Downloads
+- [Unternehmensprofil mit Referenzliste (PDF)](${SITE.domain}${profileUrl('de')})
+- [Company profile with reference list (PDF)](${SITE.domain}${profileUrl('en')})
+
 ## Optional
 - [Alle Wissensbeiträge im Volltext](${SITE.domain}/llms-full.txt)
 `);
@@ -371,6 +380,9 @@ fs.mkdirSync(OUT, { recursive: true });
 fs.cpSync(path.join(ROOT, 'src/assets'), path.join(OUT, 'assets'), { recursive: true });
 if (exists('src/images')) fs.cpSync(path.join(ROOT, 'src/images'), path.join(OUT, 'images'), { recursive: true });
 fs.cpSync(path.join(ROOT, 'src/static'), OUT, { recursive: true });
+fs.mkdirSync(path.join(OUT, 'assets/vendor'), { recursive: true });
+fs.copyFileSync(path.join(ROOT, 'node_modules/jspdf/dist/jspdf.umd.min.js'), path.join(OUT, 'assets/vendor/jspdf.umd.min.js'));
+for (const lang of LANGS) await buildProfile({ lang, outDir: path.join(OUT, 'downloads'), root: ROOT, SITE, T, CATS, TYPES, projects });
 for (const lang of LANGS) { buildHome(lang); buildLeistungen(lang); buildProjekte(lang); buildWissen(lang); buildTools(lang); buildKontakt(lang); buildLegal(lang); }
 buildMeta();
 const unpaired = articles.de.filter((a) => !articles.en.some((b) => b.id === a.id)).map((a) => a.id);
