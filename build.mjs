@@ -205,13 +205,21 @@ const KT = { ZH: 'Zürich', BE: 'Bern', LU: 'Luzern', UR: 'Uri', SZ: 'Schwyz', O
 const pdata = (p, lang) => `data-slug="${p.slug}" data-cat="${p.kategorie}" data-type="${p.projektart}" data-kt="${p.kanton || ''}" data-von="${p.jahr_von}" data-bis="${p.jahr_bis || p.jahr_von}" data-q="${esc([p.t[lang], p.ort, KT[p.kanton] || '', CATS[p.kategorie][lang], TYPES[p.projektart][lang], p.leist[lang].join(' '), p.bauherr || ''].join(' ').toLowerCase())}"`;
 const mapXY = (lat, lng) => [(lng - KARTE.LNG0) * KARTE.COS * KARTE.K, (KARTE.LAT1 - lat) * KARTE.K];
 function mapSvg(lang) {
-  const cl = [];
-  for (const p of projects.filter((x) => x.lat && x.lng)) {
-    const [x, y] = mapXY(p.lat, p.lng), c = cl.find((k) => Math.hypot(k.x - x, k.y - y) < 20);
+  const pts = projects.filter((x) => x.lat && x.lng).map((p) => ({ p, xy: mapXY(p.lat, p.lng) })), cl = [];
+  for (const { p, xy: [x, y] } of pts) {
+    const c = cl.find((k) => Math.hypot(k.x - x, k.y - y) < 20);
     if (c) { c.items.push(p); c.x = (c.x * (c.items.length - 1) + x) / c.items.length; c.y = (c.y * (c.items.length - 1) + y) / c.items.length; } else cl.push({ x, y, items: [p] });
   }
   const ref = (n) => (lang === 'de' ? (n === 1 ? '1 Referenz' : `${n} Referenzen`) : n === 1 ? '1 reference' : `${n} references`);
-  return `<svg viewBox="0 0 ${KARTE.W} ${KARTE.H}" role="group" aria-label="${lang === 'de' ? 'Karte der Schweiz mit unseren Referenzen' : 'Map of Switzerland with our references'}"><path class="land" d="${KARTE.land}"/><path class="grenzen" d="${KARTE.grenzen}"/><path class="seen" d="${KARTE.seen}"/>${cl.sort((a, b) => a.y - b.y).map((c) => { const orte = [...new Set(c.items.map((p) => p.ort))].join(', '), n = c.items.length; return `<g class="pin" tabindex="0" role="button" data-slugs="${c.items.map((p) => p.slug).join(',')}" aria-label="${esc(orte)}: ${ref(n)}"><title>${esc(orte)}: ${ref(n)}</title><circle cx="${c.x.toFixed(1)}" cy="${c.y.toFixed(1)}" r="${n > 1 ? 13 : 9}"/>${n > 1 ? `<text x="${c.x.toFixed(1)}" y="${(c.y + 4.5).toFixed(1)}">${n}</text>` : ''}</g>`; }).join('')}</svg>`;
+  const pin = (x, y, items) => { const orte = [...new Set(items.map((p) => p.ort))].join(', '), n = items.length, lab = n === 1 && items.length === 1 ? `${items[0].t[lang]}, ${orte}` : `${orte}: ${ref(n)}`; return `<g class="pin" tabindex="0" role="button" data-slugs="${items.map((p) => p.slug).join(',')}" aria-label="${esc(lab)}" transform="translate(${x.toFixed(1)} ${y.toFixed(1)})"><title>${esc(lab)}</title><g class="s"><circle r="${n > 1 ? 13 : 9}"/>${n > 1 ? `<text y="4.5">${n}</text>` : ''}</g></g>`; };
+  const cnt = (k) => projects.filter((p) => p.kanton === k).length;
+  const L = lang === 'de' ? { aria: 'Karte der Schweiz mit unseren Referenzen', in: 'Vergrössern', out: 'Verkleinern', all: 'Ganze Schweiz' } : { aria: 'Map of Switzerland with our references', in: 'Zoom in', out: 'Zoom out', all: 'All of Switzerland' };
+  return `<div class="mapbox"><svg id="refmap" viewBox="0 0 ${KARTE.W} ${KARTE.H}" data-w="${KARTE.W}" data-h="${KARTE.H}" role="group" aria-label="${L.aria}">
+<g class="kt">${Object.entries(KARTE.kantone).map(([k, d]) => (cnt(k) ? `<path class="has" data-kt="${k}" tabindex="0" role="button" aria-label="${KT[k]}: ${ref(cnt(k))}" d="${d}"><title>${KT[k]}: ${ref(cnt(k))}</title></path>` : `<path d="${d}"><title>${KT[k]}</title></path>`)).join('')}</g>
+<path class="seen" d="${KARTE.seen}"/>
+<g class="pins cl">${cl.sort((a, b) => a.y - b.y).map((c) => pin(c.x, c.y, c.items)).join('')}</g>
+<g class="pins si">${pts.sort((a, b) => a.xy[1] - b.xy[1]).map(({ p, xy }) => pin(xy[0], xy[1], [p])).join('')}</g>
+</svg><div class="mapctl"><button type="button" id="z-in" aria-label="${L.in}" title="${L.in}">+</button><button type="button" id="z-out" aria-label="${L.out}" title="${L.out}">−</button><button type="button" id="z-all" aria-label="${L.all}" title="${L.all}">⤢</button></div></div>`;
 }
 function projectCard(p, lang) {
   const pic = p.bilder[0];
@@ -261,7 +269,7 @@ ${cta(lang)}`;
 function buildProjekte(lang) {
   const t = T[lang], tp = t.projekte, paths = { de: '/projekte/', en: '/en/projekte/' };
   const crumbs = [[t.crumbHome, u(lang, '/')], [t.nav.projekte, paths[lang]]];
-  const F = lang === 'de' ? { map: 'Punkt anklicken, um die Referenzen an diesem Ort zu zeigen.', q: 'Suche (Projekt, Ort, Leistung)', cat: 'Kategorie', type: 'Projektart', kt: 'Kanton', von: 'Jahr ab', bis: 'Jahr bis', one: 'Referenz', many: 'Referenzen', reset: 'Zurücksetzen', empty: 'Keine Referenz entspricht dieser Auswahl.' } : { map: 'Click a point to show the references at that location.', q: 'Search (project, location, service)', cat: 'Category', type: 'Project type', kt: 'Canton', von: 'Year from', bis: 'Year to', one: 'reference', many: 'references', reset: 'Reset', empty: 'No reference matches this selection.' };
+  const F = lang === 'de' ? { map: 'Kanton oder Punkt anklicken, um die Referenzen dort zu zeigen. Mit + und − zoomen, bei vergrösserter Karte ziehen zum Verschieben.', q: 'Suche (Projekt, Ort, Leistung)', cat: 'Kategorie', type: 'Projektart', kt: 'Kanton', von: 'Jahr ab', bis: 'Jahr bis', one: 'Referenz', many: 'Referenzen', reset: 'Zurücksetzen', empty: 'Keine Referenz entspricht dieser Auswahl.' } : { map: 'Click a canton or a point to show the references there. Zoom with + and −, drag to move when zoomed in.', q: 'Search (project, location, service)', cat: 'Category', type: 'Project type', kt: 'Canton', von: 'Year from', bis: 'Year to', one: 'reference', many: 'references', reset: 'Reset', empty: 'No reference matches this selection.' };
   const opts = (obj, field) => Object.entries(obj).filter(([k]) => projects.some((p) => p[field] === k)).map(([k, v]) => `<option value="${k}">${v[lang]}</option>`).join('');
   const ys = projects.flatMap((p) => [+p.jahr_von, +(p.jahr_bis || p.jahr_von)]).filter(Boolean), years = []; for (let y = Math.max(...ys); y >= Math.min(...ys); y--) years.push(y);
   const btns = (group, obj) => `<div class="filter" role="group" data-group="${group}"><button class="on" data-val="">${tp.all}</button>${Object.entries(obj).filter(([k]) => projects.some((p) => p[group === 'cat' ? 'kategorie' : 'projektart'] === k)).map(([k, v]) => `<button data-val="${k}">${v[lang]}</button>`).join('')}</div>`;
@@ -484,7 +492,7 @@ fs.copyFileSync(path.join(ROOT, 'node_modules/jspdf/dist/jspdf.umd.min.js'), pat
 /* Admin-Bereich: statische Seite + Daten für Liste, Auswahlfelder und Karte */
 fs.mkdirSync(path.join(OUT, 'admin'), { recursive: true });
 for (const f of fs.readdirSync(path.join(ROOT, 'src/admin'))) fs.copyFileSync(path.join(ROOT, 'src/admin', f), path.join(OUT, 'admin', f));
-fs.writeFileSync(path.join(OUT, 'admin/config.json'), JSON.stringify({ repo: SITE.repo, branch: SITE.branch, cats: Object.fromEntries(Object.entries(CATS).map(([k, v]) => [k, v.de])), types: Object.fromEntries(Object.entries(TYPES).map(([k, v]) => [k, v.de])), kantone: KT, karte: KARTE }));
+fs.writeFileSync(path.join(OUT, 'admin/config.json'), JSON.stringify({ repo: SITE.repo, branch: SITE.branch, cats: Object.fromEntries(Object.entries(CATS).map(([k, v]) => [k, v.de])), types: Object.fromEntries(Object.entries(TYPES).map(([k, v]) => [k, v.de])), kantone: KT, karte: { ...KARTE, kantone: undefined } }));
 fs.writeFileSync(path.join(OUT, 'admin/projekte.json'), JSON.stringify(ALLROWS.map((r) => ({ ...r, bilder: undefined, fotos: (projects.find((p) => p.slug === r.slug) || { bilder: [] }).bilder.length }))));
 for (const lang of LANGS) for (const variant of ['liste', 'portfolio']) await buildProfile({ variant, lang, outDir: path.join(OUT, 'downloads'), root: ROOT, SITE, T, CATS, TYPES, projects });
 for (const lang of LANGS) { buildHome(lang); buildLeistungen(lang); buildProjekte(lang); buildWissen(lang); buildTools(lang); buildRegionen(lang); buildKontakt(lang); buildLegal(lang); }

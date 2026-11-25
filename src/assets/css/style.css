@@ -272,3 +272,20 @@ address { font-style: normal; margin-bottom: 1em; }
 .alt .card .art { --art-bg: #f5f3ee; }
 .service .art { width: 104px; height: 104px; } .service .art svg { width: 78px; }
 .ph { --art-bg: #f5f3ee; background: var(--art-bg); }
+
+/* Karte: Kantone anklickbar, Zoom */
+.mapbox { position: relative; border: 1px solid var(--line); border-radius: var(--radius); overflow: hidden; background: #fff; }
+.refmap svg { touch-action: pan-y; user-select: none; }
+.refmap svg.pan { cursor: grab; touch-action: none; }
+.refmap .kt path { fill: var(--bg-alt); stroke: #cfd3d6; stroke-width: 1; vector-effect: non-scaling-stroke; }
+.refmap .kt path.has { fill: #efe3c2; cursor: pointer; outline: none; transition: fill .15s; }
+.refmap .kt path.has:hover, .refmap .kt path.has:focus-visible { fill: #e7c984; }
+.refmap .kt path.sel { fill: #e7c984; stroke: #0e2f47; stroke-width: 2; }
+.refmap .pin circle { vector-effect: non-scaling-stroke; }
+.refmap .pins.si { display: none; } .refmap svg.zoomed .pins.si { display: block; } .refmap svg.zoomed .pins.cl { display: none; }
+.refmap .pin circle { fill: #0e2f47; stroke: #fff; stroke-width: 2; }
+.refmap .pin text { fill: #fff; }
+.refmap .pin:hover circle, .refmap .pin:focus circle, .refmap .pin.sel circle { fill: #8a6d24; stroke: #fff; }
+.mapctl { position: absolute; top: 10px; right: 10px; display: grid; gap: 6px; }
+.mapctl button { width: 34px; height: 34px; border: 1px solid var(--line); border-radius: 6px; background: #fff; color: var(--ink); font: 700 18px/1 inherit; cursor: pointer; }
+.mapctl button:hover { background: var(--ink); color: #fff; }

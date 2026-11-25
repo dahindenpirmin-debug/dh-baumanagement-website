@@ -33,7 +33,6 @@ export function buildProfile({ variant = 'liste', lang, outDir, root, SITE, T, C
   doc.fillColor('#ffffff').font('Helvetica-Bold').fontSize(40).text(x.title, M, 330);
   doc.font('Helvetica').fontSize(20).fillColor(GOLD).text(PF ? x.sub2 : x.sub, M, 380);
   doc.fontSize(13).fillColor('#e7eaec').text(t.home.h1, M, 440, { width: CW });
-  doc.fontSize(10).fillColor('#cfd6da').text(t.home.claim, M, 470, { width: CW });
   doc.fontSize(10).fillColor('#ffffff').text(`${SITE.name}  ·  ${SITE.street}  ·  ${SITE.zip} ${SITE.city}`, M, H - 110).text(`${SITE.phone}  ·  ${SITE.email}  ·  ${SITE.domain.replace('https://', '')}`, M, H - 94);
   doc.fillColor(GOLD).fontSize(9).text(`${x.stand} ${date}`, M, H - 70);
 
