@@ -15,7 +15,10 @@ Statische, zweisprachige Website (DE unter `/`, EN unter `/en/`). Kein CMS, kein
 | Online-Rechner (Richtwerte, Texte) | `src/tools.mjs`, Logik in `src/assets/js/tools.js` |
 | Unternehmensprofil (PDF, DE/EN) | `src/profil.mjs` – wird bei jedem Build aus Texten und Projektliste neu erzeugt (`/downloads/…`) |
 | Impressum & Datenschutz | `content/seiten/` |
-| Design (Farben, Schrift) | `src/assets/css/style.css`, Block `:root` |
+| Design (Farben, Schrift) | `src/assets/css/style.css`, Block `:root`. CI: Blau `#0e2f47`, Gold `#e7c984`, Schrift Avenir (Lauftext Book, Titel Black) |
+| Logo, Bildmarke, Wasserzeichen | `src/images/logo.png`, `logo-mark.png`, `wasserzeichen.png`, `hintergrund-navy.jpg` |
+| CI-Icons (10 Stück, SVG, einfärbbar) | `src/assets/icons/*.svg` – Zuordnung über das Feld `icon` in `src/texts.mjs` und `src/tools.mjs` |
+| Favicons, App-Icons, Social-Bild | `src/static/` (`favicon.ico`, `favicon.svg`, `apple-touch-icon.png`, `icon-192/512.png`, `og-image.jpg`) |
 | Weiterleitungen, Sitemap, robots, llms.txt | werden in `build.mjs` erzeugt |
 
 ## Neues Projekt hinzufügen (Standardablauf)

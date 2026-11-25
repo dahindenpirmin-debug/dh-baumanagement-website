@@ -1,15 +1,15 @@
 /* DH Baumanagement AG – Design-Tokens. Farben und Schrift hier zentral anpassen. */
 :root {
-  --ink: #1d262b;        /* Anthrazit: Text, Footer, Hero-Overlay */
-  --ink-soft: #55626a;
-  --accent: #b98a2e;     /* Akzentfarbe: Buttons, Links, Linien -> an Logofarbe angleichen */
-  --accent-dark: #96701f;
+  --ink: #0e2f47;        /* CI-Blau (C100 M76 Y44 K45): Text, Header, Footer */
+  --ink-soft: #4d6172;
+  --accent: #e7c984;     /* CI-Gold (C11 M20 Y55 K1): Flächen, Linien, Buttons */
+  --accent-dark: #9a7b2e;
   --bg: #ffffff;
-  --bg-alt: #f4f3f0;
+  --bg-alt: #f5f3ee;
   --line: #dfddd7;
   --radius: 4px;
   --wrap: 1180px;
-  --font: "Helvetica Neue", Helvetica, Arial, "Segoe UI", system-ui, sans-serif;
+  --font: "Avenir Next", Avenir, "Segoe UI", "Helvetica Neue", Helvetica, Arial, system-ui, sans-serif; /* CI-Schrift Avenir: Lauftext Book, Titel Black. Wird verwendet, wo sie installiert ist (Apple-Geräte); Webfont-Lizenz nötig, um sie überall auszuliefern */
 }
 *, *::before, *::after { box-sizing: border-box; }
 [hidden] { display: none !important; }
@@ -18,8 +18,8 @@ body { margin: 0; font-family: var(--font); color: var(--ink); background: var(-
 img { max-width: 100%; height: auto; display: block; }
 a { color: var(--accent-dark); text-underline-offset: 3px; }
 a:hover { color: var(--ink); }
-h1, h2, h3 { line-height: 1.2; margin: 0 0 .6em; font-weight: 600; letter-spacing: -.01em; }
-h1 { font-size: clamp(1.7rem, 4.5vw, 3.2rem); overflow-wrap: break-word; hyphens: auto; }
+h1, h2, h3 { line-height: 1.2; margin: 0 0 .6em; font-weight: 800; letter-spacing: -.005em; }
+h1 { font-size: clamp(1.7rem, 4.5vw, 3.2rem); overflow-wrap: break-word; }
 h2 { font-size: clamp(1.4rem, 2.6vw, 2rem); }
 h3 { font-size: 1.15rem; }
 p { margin: 0 0 1em; }
@@ -32,13 +32,13 @@ section.alt { background: var(--bg-alt); }
 :focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
 
 /* Header (dunkel) */
-.site-header { position: sticky; top: 0; z-index: 20; background: rgba(29,38,43,.97); backdrop-filter: blur(6px); border-bottom: 2px solid var(--accent); }
+.site-header { position: sticky; top: 0; z-index: 20; background: rgba(14,47,71,.97); backdrop-filter: blur(6px); border-bottom: 2px solid var(--accent); }
 .bar { display: flex; align-items: center; justify-content: space-between; min-height: 76px; gap: 24px; }
-.logo { display: block; background: #fff; padding: 6px 12px; border-radius: var(--radius); color: var(--ink); font-weight: 700; } /* weisse Plakette, damit das Logo auf Dunkel lesbar bleibt */
-.logo img { height: 44px; width: auto; }
+.logo { display: flex; align-items: center; gap: 12px; text-decoration: none; color: var(--accent); font-weight: 500; font-size: 1.12rem; letter-spacing: .045em; white-space: nowrap; }
+.logo img { height: 46px; width: auto; }
 nav ul { list-style: none; display: flex; gap: 28px; margin: 0; padding: 0; align-items: center; }
 nav a { color: #fff; text-decoration: none; font-size: .95rem; text-transform: uppercase; letter-spacing: .08em; padding: 6px 0; border-bottom: 2px solid transparent; }
-nav a:hover { color: #d9c08a; }
+nav a:hover { color: #e7c984; }
 nav a:hover, nav a[aria-current] { border-color: var(--accent); }
 nav .lang a { border: 1px solid rgba(255,255,255,.35); padding: 4px 10px; border-radius: var(--radius); }
 .burger { display: none; background: none; border: 0; padding: 10px; cursor: pointer; }
@@ -54,17 +54,17 @@ nav .lang a { border: 1px solid rgba(255,255,255,.35); padding: 4px 10px; border
 
 /* Hero */
 .hero { background-color: var(--ink); background-size: cover; background-position: center; color: #fff; padding: clamp(90px, 16vw, 190px) 0 clamp(70px, 12vw, 150px); }
-.hero h1 { max-width: 16ch; }
+.hero h1 { max-width: 24ch; }
 .hero .lead { color: #e7eaec; }
-.eyebrow { text-transform: uppercase; letter-spacing: .16em; font-size: .8rem; color: #d9c08a; margin-bottom: 1.2em; }
-.page-head { background: var(--ink); color: #fff; padding: 56px 0 44px; }
+.eyebrow { text-transform: uppercase; letter-spacing: .16em; font-size: .8rem; color: #e7c984; margin-bottom: 1.2em; }
+.page-head { background: var(--ink) url(/images/wasserzeichen.png) no-repeat right -40px top 10px / 560px auto; color: #fff; padding: 56px 0 44px; }
 .page-head .lead { color: #cfd6da; }
 .crumbs { font-size: .85rem; margin-bottom: 18px; color: #aab4ba; }
-.crumbs a { color: #d9c08a; text-decoration: none; }
+.crumbs a { color: #e7c984; text-decoration: none; }
 
 /* Buttons */
-.btn { display: inline-block; background: var(--accent); color: #fff; padding: 13px 26px; border-radius: var(--radius); text-decoration: none; font-weight: 600; border: 2px solid var(--accent); cursor: pointer; font: inherit; font-weight: 600; margin: 4px 8px 4px 0; }
-.btn:hover { background: var(--accent-dark); border-color: var(--accent-dark); color: #fff; }
+.btn { display: inline-block; background: var(--accent); color: var(--ink); padding: 13px 26px; border-radius: var(--radius); text-decoration: none; font-weight: 600; border: 2px solid var(--accent); cursor: pointer; font: inherit; font-weight: 600; margin: 4px 8px 4px 0; }
+.btn:hover { background: #f1dca9; border-color: #f1dca9; color: var(--ink); }
 .btn.ghost { background: transparent; color: var(--ink); border-color: var(--ink); }
 .btn.ghost:hover { background: var(--ink); color: #fff; }
 .btn.ghost.light { color: #fff; border-color: #fff; } .btn.ghost.light:hover { background: #fff; color: var(--ink); }
@@ -74,14 +74,14 @@ nav .lang a { border: 1px solid rgba(255,255,255,.35); padding: 4px 10px; border
 .grid4 { grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); }
 .card { background: #fff; border: 1px solid var(--line); border-radius: var(--radius); overflow: hidden; display: flex; transition: box-shadow .2s, transform .2s; }
 .card > a { color: inherit; text-decoration: none; display: flex; flex-direction: column; width: 100%; }
-.card:has(a):hover { box-shadow: 0 10px 30px rgba(29,38,43,.12); transform: translateY(-2px); }
+.card:has(a):hover { box-shadow: 0 10px 30px rgba(14,47,71,.12); transform: translateY(-2px); }
 .card-body { padding: 22px; flex: 1; }
 .card h3 { margin-bottom: .4em; }
 .card p { color: var(--ink-soft); font-size: .95rem; margin-bottom: .5em; }
 .card h3::after { content: ""; display: block; width: 36px; height: 2px; background: var(--accent); margin-top: 10px; }
 .thumb { aspect-ratio: 4/3; background: var(--bg-alt); overflow: hidden; }
 .thumb img { width: 100%; height: 100%; object-fit: cover; }
-.ph { height: 100%; display: grid; place-items: center; color: #9aa4a9; text-transform: uppercase; letter-spacing: .12em; font-size: .8rem; background: repeating-linear-gradient(135deg, #eceae5 0 14px, #f4f3f0 14px 28px); }
+.ph { height: 100%; display: grid; place-items: center; color: #9aa4a9; text-transform: uppercase; letter-spacing: .12em; font-size: .8rem; background: repeating-linear-gradient(135deg, #eceae5 0 14px, #f5f3ee 14px 28px); }
 .tag { text-transform: uppercase; letter-spacing: .1em; font-size: .72rem !important; color: var(--accent-dark) !important; font-weight: 600; }
 .meta { font-size: .88rem; color: var(--ink-soft); }
 .more { color: var(--accent-dark) !important; font-weight: 600; }
@@ -91,7 +91,7 @@ nav .lang a { border: 1px solid rgba(255,255,255,.35); padding: 4px 10px; border
 .facts { padding: 0; background: var(--ink); color: #fff; border-top: 1px solid rgba(255,255,255,.12); }
 .facts .grid3 { gap: 0; }
 .facts div div { padding: 28px 24px; border-left: 1px solid rgba(255,255,255,.12); }
-.facts strong { display: block; font-size: 2.2rem; color: #d9c08a; line-height: 1; margin-bottom: 8px; }
+.facts strong { display: block; font-size: 2.2rem; color: #e7c984; line-height: 1; margin-bottom: 8px; }
 .facts span { font-size: .92rem; color: #cfd6da; }
 
 /* Zweispaltig */
@@ -162,10 +162,10 @@ address { font-style: normal; margin-bottom: 1em; }
 @media (max-width: 560px) { .gantt div { grid-template-columns: 1fr; gap: 2px; } .gantt b { text-align: left; } }
 
 /* CTA & Footer */
-.cta { background: var(--accent); color: #fff; text-align: center; }
+.cta { background: var(--ink) url(/images/wasserzeichen.png) no-repeat right -60px center / 620px auto; color: #fff; text-align: center; border-top: 3px solid var(--accent); }
 .cta p { max-width: 60ch; margin-left: auto; margin-right: auto; }
-.cta .btn { background: var(--ink); border-color: var(--ink); } .cta .btn.ghost { background: transparent; border-color: #fff; color: #fff; }
-.site-footer { background: var(--ink); color: #cfd6da; padding: 48px 0; font-size: .92rem; }
+.cta .btn.ghost { background: transparent; border-color: #fff; color: #fff; } .cta .btn.ghost:hover { background: #fff; color: var(--ink); }
+.site-footer { background: #0a2436; color: #cfd6da; padding: 48px 0; font-size: .92rem; }
 .site-footer a { color: #fff; text-decoration: none; } .site-footer a:hover { text-decoration: underline; }
 .cols { display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 28px; }
 @media print { .site-header, .site-footer, .cta, .burger { display: none; } }
@@ -178,7 +178,7 @@ address { font-style: normal; margin-bottom: 1em; }
 .seg input:checked + span { background: var(--ink); color: #fff; border-color: var(--ink); }
 .seg input:focus-visible + span { outline: 3px solid var(--accent); outline-offset: 2px; }
 .res-head { background: var(--ink); color: #fff; border-left: 5px solid var(--accent); border-radius: var(--radius); padding: 22px 24px; margin-bottom: 12px; }
-.res-head span { display: block; font-size: .8rem; text-transform: uppercase; letter-spacing: .1em; color: #d9c08a; margin-bottom: 6px; }
+.res-head span { display: block; font-size: .8rem; text-transform: uppercase; letter-spacing: .1em; color: #e7c984; margin-bottom: 6px; }
 .res-head strong { display: block; font-size: clamp(1.45rem, 5.6vw, 2.3rem); line-height: 1.15; white-space: nowrap; font-variant-numeric: tabular-nums; }
 .res-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 12px; margin-bottom: 16px; }
 .res-grid div { background: var(--bg-alt); border-radius: var(--radius); padding: 14px 16px; }
@@ -194,9 +194,10 @@ address { font-style: normal; margin-bottom: 1em; }
 @media (max-width: 700px) {
   body { font-size: 16px; }
   .hero h1 { max-width: none; }
+  h1 { hyphens: auto; }
   section { padding: 44px 0; }
   .wrap { padding: 0 18px; }
-  .bar { min-height: 64px; } .logo img { height: 36px; }
+  .bar { min-height: 64px; } .logo img { height: 36px; } .logo { font-size: .98rem; gap: 9px; }
   .grid3, .grid4 { grid-template-columns: 1fr; gap: 16px; }
   .facts div div { border-left: 0; border-top: 1px solid rgba(255,255,255,.12); padding: 20px 0; }
   .filters { gap: 10px; } .filter.view { margin-left: 0; }
@@ -214,3 +215,12 @@ address { font-style: normal; margin-bottom: 1em; }
   .h-row { align-items: flex-start; flex-direction: column; gap: 4px; }
   .download { flex-direction: column; align-items: stretch; }
 }
+
+/* CI-Icons (aus den Original-Icons der DH Baumanagement AG) */
+.icon { width: 58px; height: 58px; color: var(--ink); margin-bottom: 14px; display: block; }
+.icon svg { width: 100%; height: 100%; display: block; }
+.service .icon { width: 72px; height: 72px; }
+.eyebrow { color: var(--accent); }
+.hero { background-color: var(--ink); }
+.facts { background: #0a2436; }
+.quote { border-color: var(--accent); }

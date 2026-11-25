@@ -4,7 +4,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import PDFDocument from 'pdfkit';
 
-const INK = '#1d262b', ACC = '#b98a2e', SOFT = '#55626a', ALT = '#f4f3f0', LINE = '#dfddd7', GOLD = '#d9c08a';
+const INK = '#0e2f47', ACC = '#e7c984', DARKGOLD = '#9a7b2e', SOFT = '#4d6172', ALT = '#f5f3ee', LINE = '#dfddd7', GOLD = '#e7c984';
 const TX = {
   de: { file: 'DH-Baumanagement-Unternehmensprofil.pdf', title: 'Unternehmensprofil', sub: 'mit Referenzliste', about: 'Über uns', strengths: 'Was uns ausmacht', person: 'Ihr Ansprechpartner', role: 'Projektleiter und Inhaber, dipl. Techniker HF Hochbau', services: 'Leistungen', segments: 'Für wen wir bauen', refs: 'Referenzen', selected: 'Ausgewählte Projekte', th: ['Projekt', 'Ort', 'Zeitraum', 'Art', 'Unsere Leistungen'], contact: 'Kontakt', facts: 'Unternehmen', factRows: (s) => [['Firma', s.name], ['Sitz', `${s.street}, ${s.zip} ${s.city}`], ['UID', s.uid], ['Tätigkeitsgebiet', 'Zentralschweiz, Aargau, Zürich, Bern'], ['Schwerpunkte', 'Industrie- und Gewerbebauten, Arealentwicklung, Wohnbau, Sanierung']], stand: 'Stand', page: 'Seite', count: (n) => `${n} Projekte` },
   en: { file: 'DH-Baumanagement-Company-Profile.pdf', title: 'Company profile', sub: 'with reference list', about: 'About us', strengths: 'What defines us', person: 'Your contact', role: 'Project manager and owner, dipl. Techniker HF Hochbau', services: 'Services', segments: 'Who we build for', refs: 'References', selected: 'Selected projects', th: ['Project', 'Location', 'Period', 'Type', 'Our services'], contact: 'Contact', facts: 'Company', factRows: (s) => [['Company', s.name], ['Registered office', `${s.street}, ${s.zip} ${s.city}, Switzerland`], ['Company ID (UID)', s.uid], ['Area of activity', 'Central Switzerland, Aargau, Zurich, Bern'], ['Focus', 'Industrial and commercial buildings, site development, residential, refurbishment']], stand: 'As of', page: 'Page', count: (n) => `${n} projects` },
@@ -26,7 +26,8 @@ export function buildProfile({ lang, outDir, root, SITE, T, CATS, TYPES, project
   doc.rect(0, 0, W, H).fill(INK);
   if (hero) { doc.save().opacity(0.28).image(hero, 0, 0, { cover: [W, 430], align: 'center', valign: 'center' }).restore(); }
   doc.rect(M, 300, 60, 4).fill(ACC);
-  if (logo) { doc.roundedRect(M, 60, 190, 66, 3).fill('#ffffff'); doc.image(logo, M + 10, 68, { fit: [170, 50] }); }
+  const mark = local('images/wasserzeichen.png'); if (mark) doc.image(mark, 60, 40, { width: 640 });
+  if (logo) doc.image(logo, M, 70, { fit: [230, 130] });
   else doc.fillColor('#ffffff').font('Helvetica-Bold').fontSize(20).text(SITE.name, M, 80);
   doc.fillColor('#ffffff').font('Helvetica-Bold').fontSize(40).text(x.title, M, 330);
   doc.font('Helvetica').fontSize(20).fillColor(GOLD).text(x.sub, M, 380);
@@ -38,7 +39,7 @@ export function buildProfile({ lang, outDir, root, SITE, T, CATS, TYPES, project
   /* Bausteine */
   const need = (h) => { if (doc.y + h > H - 70) doc.addPage(); };
   const h1 = (s) => { doc.addPage(); doc.font('Helvetica-Bold').fontSize(24).fillColor(INK).text(s, M, 78); doc.rect(M, doc.y + 6, 40, 3).fill(ACC); doc.y += 26; };
-  const h2 = (s) => { need(140); doc.moveDown(0.8); doc.font('Helvetica-Bold').fontSize(9).fillColor(ACC).text(s.toUpperCase(), M, doc.y, { characterSpacing: 1 }); doc.moveDown(0.5); };
+  const h2 = (s) => { need(140); doc.moveDown(0.8); doc.font('Helvetica-Bold').fontSize(9).fillColor(DARKGOLD).text(s.toUpperCase(), M, doc.y, { characterSpacing: 1 }); doc.moveDown(0.5); };
   const p = (s, o = {}) => doc.font('Helvetica').fontSize(10.5).fillColor(o.color || INK).text(s, o.x || M, doc.y, { width: o.w || CW, lineGap: 3 });
   const item = (title, text) => { need(70); doc.font('Helvetica-Bold').fontSize(11.5).fillColor(INK).text(title, M, doc.y); doc.moveDown(0.2); p(text, { color: SOFT }); doc.moveDown(0.7); };
 
@@ -54,7 +55,7 @@ export function buildProfile({ lang, outDir, root, SITE, T, CATS, TYPES, project
   const py = doc.y, tx = portrait ? M + 125 : M, tw = portrait ? CW - 125 : CW;
   if (portrait) doc.image(portrait, M, py, { cover: [108, 130], align: 'center', valign: 'center' });
   doc.font('Helvetica-Bold').fontSize(12.5).fillColor(INK).text('Martin Dahinden', tx, py, { width: tw });
-  doc.font('Helvetica').fontSize(9.5).fillColor(ACC).text(x.role, tx, doc.y + 2, { width: tw }); doc.moveDown(0.5);
+  doc.font('Helvetica').fontSize(9.5).fillColor(DARKGOLD).text(x.role, tx, doc.y + 2, { width: tw }); doc.moveDown(0.5);
   doc.font('Helvetica').fontSize(10).fillColor(SOFT).text(t.home.about, tx, doc.y, { width: tw, lineGap: 2.5 }); doc.moveDown(0.5);
   doc.font('Helvetica-Oblique').fontSize(10.5).fillColor(INK).text(t.home.quote, tx, doc.y, { width: tw });
   if (portrait && doc.y < py + 136) doc.y = py + 136;
@@ -126,7 +127,7 @@ export function buildProfile({ lang, outDir, root, SITE, T, CATS, TYPES, project
   for (let i = 1; i < range.count; i++) {
     doc.switchToPage(i); doc.page.margins.bottom = 0;
     doc.rect(0, 0, W, 42).fill(INK); doc.rect(0, 42, W, 2).fill(ACC);
-    doc.font('Helvetica-Bold').fontSize(10).fillColor('#ffffff').text(SITE.name, M, 16, { lineBreak: false });
+    doc.font('Helvetica-Bold').fontSize(10).fillColor(GOLD).text(SITE.name, M, 16, { lineBreak: false });
     doc.font('Helvetica').fontSize(8.5).fillColor(GOLD).text(x.title, W - M - 200, 17, { width: 200, align: 'right', lineBreak: false });
     doc.font('Helvetica').fontSize(8).fillColor(SOFT).text(`${SITE.street} · ${SITE.zip} ${SITE.city} · ${SITE.phone} · ${SITE.email}`, M, H - 40, { lineBreak: false });
     doc.text(`${x.page} ${i + 1} / ${range.count}`, W - M - 100, H - 40, { width: 100, align: 'right', lineBreak: false });

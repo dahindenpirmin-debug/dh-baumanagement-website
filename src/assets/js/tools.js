@@ -105,7 +105,7 @@
     return logoP || (logoP = new Promise(function (ok) {
       var im = new Image();
       im.onload = function () {
-        try { var cv = document.createElement('canvas'); cv.width = im.naturalWidth; cv.height = im.naturalHeight; cv.getContext('2d').drawImage(im, 0, 0); ok({ data: cv.toDataURL('image/png'), r: im.naturalWidth / im.naturalHeight }); } catch (e) { ok(null); }
+        try { var cv = document.createElement('canvas'), k = Math.min(1, 420 / im.naturalWidth); cv.width = Math.round(im.naturalWidth * k); cv.height = Math.round(im.naturalHeight * k); cv.getContext('2d').drawImage(im, 0, 0, cv.width, cv.height); ok({ data: cv.toDataURL('image/png'), r: im.naturalWidth / im.naturalHeight }); } catch (e) { ok(null); }
       };
       im.onerror = function () { ok(null); }; im.src = '/images/logo.png';
     }));
@@ -115,17 +115,17 @@
       var doc = new a[0]({ unit: 'mm', format: 'a4' }), lg = a[1], W = 210, M = 18, y;
       var _text = doc.text.bind(doc); // Standardschrift kennt keine Hochzahlen
       doc.text = function (t) { var args = [].slice.call(arguments); args[0] = typeof t === 'string' ? t.replace(/²/g, '2').replace(/³/g, '3') : t.map(function (x) { return x.replace(/²/g, '2').replace(/³/g, '3'); }); return _text.apply(null, args); };
-      var INK = [29, 38, 43], ACC = [185, 138, 46], SOFT = [85, 98, 106], ALT = [244, 243, 240], LINE = [223, 221, 215];
+      var INK = [14, 47, 71], ACC = [231, 201, 132], GOLD = [154, 123, 46], SOFT = [77, 97, 114], ALT = [245, 243, 238], LINE = [223, 221, 215];
       doc.setFillColor.apply(doc, INK); doc.rect(0, 0, W, 30, 'F');
       doc.setFillColor.apply(doc, ACC); doc.rect(0, 30, W, 1.4, 'F');
-      if (lg) { var lh = 16, lw = Math.min(lh * lg.r, 60); doc.setFillColor(255, 255, 255); doc.roundedRect(M - 2, 6, lw + 4, lh + 2, 1, 1, 'F'); doc.addImage(lg.data, 'PNG', M, 7, lw, lw / lg.r); }
+      if (lg) { var lh = 21, lw = lh * lg.r; doc.addImage(lg.data, 'PNG', M, 4.5, lw, lh, 'logo', 'FAST'); }
       else { doc.setTextColor(255, 255, 255); doc.setFont('helvetica', 'bold'); doc.setFontSize(15); doc.text(s.name, M, 18.5); }
-      doc.setTextColor(217, 192, 138); doc.setFont('helvetica', 'normal'); doc.setFontSize(8.5);
+      doc.setTextColor(231, 201, 132); doc.setFont('helvetica', 'normal'); doc.setFontSize(8.5);
       doc.text(s.claim, W - M, 18.5, { align: 'right' });
       y = 48; doc.setTextColor.apply(doc, INK); doc.setFont('helvetica', 'bold'); doc.setFontSize(20); doc.text(title, M, y);
       y += 7; doc.setFont('helvetica', 'normal'); doc.setFontSize(9); doc.setTextColor.apply(doc, SOFT);
       doc.text(l.stand + ' ' + new Date().toLocaleDateString('de-CH') + ' · ' + s.web, M, y);
-      var h2 = function (t) { y += 13; doc.setFont('helvetica', 'bold'); doc.setFontSize(9); doc.setTextColor.apply(doc, ACC); doc.text(t.toUpperCase(), M, y, { charSpace: 0.4 }); y += 3; };
+      var h2 = function (t) { y += 13; doc.setFont('helvetica', 'bold'); doc.setFontSize(9); doc.setTextColor.apply(doc, GOLD); doc.text(t.toUpperCase(), M, y, { charSpace: 0.4 }); y += 3; };
       var rows = function (list) {
         list.forEach(function (r) {
           y += 7.5; doc.setFontSize(10.5); doc.setFont('helvetica', 'normal'); doc.setTextColor.apply(doc, SOFT); doc.text(String(r[0]), M, y);
