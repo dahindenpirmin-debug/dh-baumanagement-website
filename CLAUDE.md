@@ -84,6 +84,13 @@ Schreibregeln: Schweizer Rechtschreibung (kein ß), konkrete Zahlen mit Einordnu
 
 Steht in `data/projekte.csv` in der Spalte `bilder` ein Eintrag `wix:…` oder in `dokument` eine `https://`-Adresse, lädt die GitHub-Action «Bilder importieren» (`.github/workflows/`) die Dateien bei jedem Push der CSV ins Repository und stellt die Zeile auf lokale Dateien um. Von Hand: `npm run bilder`.
 
+## Satz und Umbrüche (verbindlich)
+
+- Wörter werden nie mitten im Wort umbrochen. In PDF-Tabellen richtet sich jede Spaltenbreite nach dem längsten Wort der Spalte (`src/profil.mjs`, `minW`); feste Spaltenbreiten sind nicht erlaubt.
+- «&» steht nie allein am Zeilenende oder auf einer eigenen Zeile (geschütztes Leerzeichen nach «&»).
+- Blöcke bleiben zusammen: Eine Kategorie der Referenzliste, ein Leistungsblock oder eine Projektkarte wird nicht über einen Seitenumbruch getrennt; keine einzelnen Zeilen allein auf einer neuen Seite.
+- Nach jeder Änderung an PDF-Layouts beide Sprachen und beide Varianten rendern (`pdftoppm`) und ansehen, bevor veröffentlicht wird.
+
 ## Rechner und Formulare
 
 - Kennwerte (CHF/m², CHF/m³, Faktoren, Zuschläge, Phasendauern) stehen in `src/tools.mjs` unter `CONFIG`.

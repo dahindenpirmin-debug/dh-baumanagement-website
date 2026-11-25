@@ -129,10 +129,20 @@ export function buildProfile({ variant = 'liste', lang, outDir, root, SITE, T, C
   /* Referenzliste */
   const hasVol = projects.some((pr) => pr.vol);
   if (!PF) h1(x.refs);
-  const cols = hasVol ? [128, 72, 58, 74, 46, CW - 378] : [142, 76, 60, 76, CW - 354], pad = 4, TH = hasVol ? [...x.th.slice(0, 4), x.vol, x.th[4]] : x.th;
+  const pad = 4, TH = hasVol ? [...x.th.slice(0, 4), x.vol, x.th[4]] : x.th;
+  const cellsOf = (pr) => [pr.t[lang], `${pr.ort}${pr.kanton ? ' ' + pr.kanton : ''}`, pr.zeit, TYPES[pr.projektart][lang], ...(hasVol ? [pr.vol.replace(' MCHF', '') || '–'] : []), pr.leist[lang].join(', ')].map((c) => String(c).replace(/ & /g, ' &\u00a0'));
+  // Spaltenbreiten aus dem Inhalt: Jede Spalte ist mindestens so breit wie ihr längstes Wort, damit nie mitten im Wort umbrochen wird.
+  const allRows = projects.map(cellsOf), nC = TH.length, last = nC - 1;
+  const wordW = (txt, bold, size) => { doc.font(bold ? 'Helvetica-Bold' : 'Helvetica').fontSize(size); return Math.max(...String(txt).split(/ +/).map((w) => doc.widthOfString(w))); };
+  const minW = TH.map((h, i) => Math.ceil(Math.max(doc.font('Helvetica-Bold').fontSize(7.5).widthOfString(String(h).toUpperCase()) + String(h).length * 0.5, ...allRows.map((r) => wordW(r[i], i === 0, 8.8))) + 2 * pad + 3));
+  const cols = minW.slice();
+  for (let i = 1; i < last; i++) cols[i] = Math.max(minW[i], i === 1 ? 70 : 0);
+  const rest = CW - cols.slice(1, last).reduce((a, b) => a + b, 0);
+  cols[0] = Math.max(minW[0], Math.round(rest * 0.46)); cols[last] = rest - cols[0];
+  if (cols[last] < minW[last]) { cols[last] = minW[last]; cols[0] = rest - cols[last]; }
+  const rowH = (cells, head) => Math.max(...cells.map((c, i) => doc.font(head || i === 0 ? 'Helvetica-Bold' : 'Helvetica').fontSize(head ? 7.5 : 8.8).heightOfString(head ? String(c).toUpperCase() : String(c), { width: cols[i] - 2 * pad, characterSpacing: head ? 0.5 : 0 }))) + 2 * pad;
   const row = (cells, head) => {
-    doc.font(head ? 'Helvetica-Bold' : 'Helvetica').fontSize(head ? 7.5 : 8.8);
-    const hgt = Math.max(...cells.map((c, i) => doc.heightOfString(String(c), { width: cols[i] - 2 * pad }))) + 2 * pad;
+    const hgt = rowH(cells, head);
     if (doc.y + hgt > H - 70) { doc.addPage(); doc.y = 78; if (!head) row(TH, true); doc.font('Helvetica').fontSize(8.8); }
     const y = doc.y; let cx = M;
     if (head) doc.rect(M, y, CW, hgt).fill(ALT);
@@ -147,11 +157,13 @@ export function buildProfile({ variant = 'liste', lang, outDir, root, SITE, T, C
   for (const [key, cat] of PF ? [] : Object.entries(CATS)) {
     const list = byCat(key);
     if (!list.length) continue;
-    need(110); doc.moveDown(0.9);
+    // Eine Kategorie bleibt zusammen: passt sie nicht mehr auf die Seite, beginnt sie auf einer neuen.
+    const blockH = 44 + rowH(TH, true) + list.reduce((n, pr) => n + rowH(cellsOf(pr), false), 0);
+    if (doc.y + blockH > H - 70 && blockH < H - 150) { doc.addPage(); doc.y = 78; } else { need(110); doc.moveDown(0.9); }
     doc.font('Helvetica-Bold').fontSize(13).fillColor(INK).text(cat[lang], M, doc.y, { continued: true }).font('Helvetica').fontSize(9).fillColor(SOFT).text(`   ${x.count(list.length)}`);
     doc.moveDown(0.5);
     row(TH, true);
-    for (const pr of list) row([pr.t[lang], `${pr.ort}${pr.kanton ? ' ' + pr.kanton : ''}`, pr.zeit, TYPES[pr.projektart][lang], ...(hasVol ? [pr.vol.replace(' MCHF', '') || '–'] : []), pr.leist[lang].join(', ')]);
+    for (const pr of list) row(cellsOf(pr));
   }
 
   /* Kontakt */
