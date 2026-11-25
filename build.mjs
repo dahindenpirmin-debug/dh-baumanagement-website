@@ -1,0 +1,378 @@
+// Statischer Website-Generator der DH Baumanagement AG.
+// Aufruf: `npm run build` -> erzeugt den Ordner dist/ (wird von Netlify veröffentlicht).
+import fs from 'node:fs';
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
+import { marked } from 'marked';
+import matter from 'gray-matter';
+import { SITE, CATS, TYPES, T } from './src/texts.mjs';
+import { TOOLS, CONFIG, toolForm, toolLabels } from './src/tools.mjs';
+
+const ROOT = path.dirname(fileURLToPath(import.meta.url));
+const OUT = path.join(ROOT, 'dist');
+const LANGS = ['de', 'en'];
+const PROD = !!process.env.NETLIFY;
+const esc = (s = '') => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+const u = (lang, p) => (lang === 'de' ? p : '/en' + p);
+const abs = (p) => SITE.domain + p;
+const exists = (p) => fs.existsSync(path.join(ROOT, p));
+const pages = []; // für Sitemap: {de, en}
+
+/* ---------- Helfer ---------- */
+function write(urlPath, html) {
+  const file = path.join(OUT, urlPath.endsWith('/') ? urlPath + 'index.html' : urlPath);
+  fs.mkdirSync(path.dirname(file), { recursive: true });
+  fs.writeFileSync(file, html);
+}
+function parseCSV(text) {
+  text = text.replace(/^\uFEFF/, '');
+  const first = text.split(/\r?\n/)[0];
+  const d = (first.match(/;/g) || []).length >= (first.match(/,/g) || []).length ? ';' : ',';
+  const rows = []; let row = [], cur = '', q = false;
+  for (let i = 0; i < text.length; i++) {
+    const c = text[i];
+    if (q) { if (c === '"') { if (text[i + 1] === '"') { cur += '"'; i++; } else q = false; } else cur += c; }
+    else if (c === '"') q = true;
+    else if (c === d) { row.push(cur); cur = ''; }
+    else if (c === '\n') { row.push(cur); rows.push(row); row = []; cur = ''; }
+    else if (c !== '\r') cur += c;
+  }
+  if (cur || row.length) { row.push(cur); rows.push(row); }
+  const head = rows.shift().map((h) => h.trim());
+  return rows.filter((r) => r.some((c) => c.trim())).map((r) => Object.fromEntries(head.map((h, i) => [h, (r[i] || '').trim()])));
+}
+const WIX = 'https://static.wixstatic.com/media/';
+function img(src, w, h) {
+  if (src.startsWith(WIX)) {
+    const ext = (src.match(/\.(jpe?g|png|webp)$/i) || ['.jpg'])[0];
+    return h ? `${src}/v1/fill/w_${w},h_${h},al_c,q_80,enc_auto/bild${ext}` : `${src}/v1/fit/w_${w},h_${w},q_85,enc_auto/bild${ext}`;
+  }
+  if (PROD && src.startsWith('/images/')) return `/.netlify/images?url=${encodeURIComponent(src)}&w=${w}${h ? `&h=${h}&fit=cover` : ''}&q=80`;
+  return src;
+}
+const brand = (name, file) => (exists('src/images/' + file) ? '/images/' + file : SITE.remote[name]);
+const LOGO = brand('logo', 'logo.png'), HERO = brand('hero', 'hero.jpg'), PORTRAIT = brand('portrait', 'martin-dahinden.jpg');
+
+/* ---------- Daten laden ---------- */
+function loadProjects() {
+  const rows = parseCSV(fs.readFileSync(path.join(ROOT, 'data/projekte.csv'), 'utf8'));
+  return rows.map((r, i) => {
+    if (!r.slug) throw new Error(`projekte.csv Zeile ${i + 2}: slug fehlt`);
+    if (!CATS[r.kategorie]) throw new Error(`projekte.csv «${r.slug}»: unbekannte kategorie «${r.kategorie}» (erlaubt: ${Object.keys(CATS).join(', ')})`);
+    if (!TYPES[r.projektart]) throw new Error(`projekte.csv «${r.slug}»: unbekannte projektart «${r.projektart}» (erlaubt: ${Object.keys(TYPES).join(', ')})`);
+    let bilder = r.bilder ? r.bilder.split('|').map((b) => b.trim()).filter(Boolean).map((b) => (b.startsWith('wix:') ? WIX + b.slice(4) : /^https?:/.test(b) ? b : `/images/projekte/${r.slug}/${b}`)) : [];
+    const dir = path.join(ROOT, 'src/images/projekte', r.slug);
+    if (!bilder.length && fs.existsSync(dir)) bilder = fs.readdirSync(dir).filter((f) => /\.(jpe?g|png|webp|avif)$/i.test(f)).sort().map((f) => `/images/projekte/${r.slug}/${f}`);
+    const zeit = (l) => (!r.jahr_bis || r.jahr_bis === r.jahr_von ? r.jahr_von : `${r.jahr_von}–${r.jahr_bis}`);
+    return { ...r, bilder, zeit: zeit(), featured: /^(ja|yes|x|1)$/i.test(r.featured), order: i,
+      t: { de: r.titel_de, en: r.titel_en || r.titel_de },
+      leist: { de: r.leistungen_de.split('|').map((s) => s.trim()).filter(Boolean), en: (r.leistungen_en || r.leistungen_de).split('|').map((s) => s.trim()).filter(Boolean) },
+      beschr: { de: r.beschreibung_de, en: r.beschreibung_en || '' }, kenn: { de: r.kennzahlen_de, en: r.kennzahlen_en || '' } };
+  });
+}
+function loadArticles(lang) {
+  const dir = path.join(ROOT, 'content/wissen', lang);
+  return fs.readdirSync(dir).filter((f) => f.endsWith('.md')).sort().map((f) => {
+    const { data, content } = matter(fs.readFileSync(path.join(dir, f), 'utf8'));
+    const slug = f.replace(/^\d+-/, '').replace(/\.md$/, '');
+    for (const k of ['id', 'title', 'description', 'category', 'summary']) if (!data[k]) throw new Error(`${lang}/${f}: Feld «${k}» fehlt`);
+    const date = data.date instanceof Date ? data.date.toISOString().slice(0, 10) : String(data.date || '2026-11-25');
+    return { ...data, date, slug, lang, md: content, html: marked.parse(content), min: Math.max(3, Math.round(content.split(/\s+/).length / 200)), url: u(lang, `/wissen/${slug}/`) };
+  });
+}
+const projects = loadProjects();
+const articles = { de: loadArticles('de'), en: loadArticles('en') };
+
+/* ---------- Layout ---------- */
+const orgLd = {
+  '@context': 'https://schema.org', '@type': ['ProfessionalService', 'LocalBusiness'], '@id': SITE.domain + '/#organisation', name: SITE.name, url: SITE.domain, logo: LOGO.startsWith('/') ? abs(LOGO) : LOGO,
+  image: HERO.startsWith('/') ? abs(HERO) : HERO, telephone: SITE.phoneIntl, email: SITE.email, vatID: SITE.uid,
+  address: { '@type': 'PostalAddress', streetAddress: SITE.street, postalCode: SITE.zip, addressLocality: SITE.city, addressRegion: SITE.region, addressCountry: SITE.country },
+  geo: { '@type': 'GeoCoordinates', latitude: SITE.geo.lat, longitude: SITE.geo.lng },
+  areaServed: ['Luzern', 'Zentralschweiz', 'Aargau', 'Zürich', 'Bern', 'Schweiz'], sameAs: [SITE.linkedin],
+  founder: { '@type': 'Person', name: 'Martin Dahinden', jobTitle: 'Projektleiter und Inhaber' },
+  knowsAbout: ['Baumanagement', 'Bauherrenvertretung', 'Gesamtprojektleitung', 'Bauleitung', 'Kostenplanung', 'Arealentwicklung', 'Industriebau', 'Gewerbebau', 'Sanierung'],
+};
+const crumbLd = (items) => ({ '@context': 'https://schema.org', '@type': 'BreadcrumbList', itemListElement: items.map(([name, p], i) => ({ '@type': 'ListItem', position: i + 1, name, item: abs(p) })) });
+
+function layout({ lang, title, desc, paths, body, ld = [], ogImage, active = '', noindex = false, crumbs }) {
+  const t = T[lang], other = lang === 'de' ? 'en' : 'de', self = paths[lang];
+  if (!noindex) pages.push(paths);
+  const nav = [['leistungen', '/leistungen/'], ['projekte', '/projekte/'], ['wissen', '/wissen/'], ['tools', '/tools/'], ['kontakt', '/kontakt/']];
+  const lds = [orgLd, ...(crumbs ? [crumbLd(crumbs)] : []), ...ld];
+  const og = ogImage ? (ogImage.startsWith('/') ? abs(ogImage) : ogImage) : img(HERO, 1200, 630).replace(/^\//, SITE.domain + '/');
+  return `<!doctype html>
+<html lang="${lang === 'de' ? 'de-CH' : 'en'}">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>${esc(title)} | ${SITE.name}</title>
+<meta name="description" content="${esc(desc)}">
+${noindex ? '<meta name="robots" content="noindex">' : `<link rel="canonical" href="${abs(self)}">
+<link rel="alternate" hreflang="de-CH" href="${abs(paths.de)}">
+<link rel="alternate" hreflang="en" href="${abs(paths.en)}">
+<link rel="alternate" hreflang="x-default" href="${abs(paths.de)}">`}
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="${SITE.name}">
+<meta property="og:title" content="${esc(title)}">
+<meta property="og:description" content="${esc(desc)}">
+<meta property="og:url" content="${abs(self)}">
+<meta property="og:image" content="${esc(og)}">
+<meta property="og:locale" content="${lang === 'de' ? 'de_CH' : 'en_GB'}">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="theme-color" content="#1d262b">
+<link rel="icon" href="/favicon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="/assets/css/style.css">
+${lds.map((l) => `<script type="application/ld+json">${JSON.stringify(l).replace(/</g, '\\u003c')}</script>`).join('\n')}
+</head>
+<body>
+<a class="skip" href="#inhalt">${t.skip}</a>
+<header class="site-header">
+  <div class="wrap bar">
+    <a class="logo" href="${u(lang, '/')}" aria-label="${SITE.name} – Home"><img src="${img(LOGO, 400, 0) }" alt="${SITE.name}" width="200" height="56"></a>
+    <button class="burger" aria-expanded="false" aria-controls="nav" aria-label="${t.menu}"><span></span><span></span><span></span></button>
+    <nav id="nav" aria-label="Hauptnavigation">
+      <ul>${nav.map(([k, p]) => `<li><a href="${u(lang, p)}"${active === k ? ' aria-current="page"' : ''}>${t.nav[k]}</a></li>`).join('')}
+      <li class="lang"><a href="${paths[other]}" hreflang="${other}" lang="${other}">${other.toUpperCase()}</a></li></ul>
+    </nav>
+  </div>
+</header>
+<main id="inhalt">
+${body}
+</main>
+<footer class="site-footer">
+  <div class="wrap cols">
+    <div><strong>${SITE.name}</strong><br>${SITE.street}<br>${SITE.zip} ${SITE.city}</div>
+    <div><a href="tel:${SITE.phoneIntl}">${SITE.phone}</a><br><a href="mailto:${SITE.email}">${SITE.email}</a><br><a href="${SITE.linkedin}" rel="noopener">LinkedIn</a></div>
+    <div>${nav.map(([k, p]) => `<a href="${u(lang, p)}">${t.nav[k]}</a>`).join('<br>')}</div>
+    <div><a href="${u(lang, '/impressum-datenschutz/')}">${t.footer.legal}</a><br>${SITE.uid}<br>© ${new Date().getFullYear()} ${SITE.name}</div>
+  </div>
+</footer>
+<script src="/assets/js/main.js" defer></script>
+</body>
+</html>`;
+}
+const cta = (lang) => `<section class="cta"><div class="wrap"><h2>${T[lang].cta.h}</h2><p>${T[lang].cta.p}</p><p><a class="btn" href="${u(lang, '/kontakt/')}">${T[lang].cta.b}</a> <a class="btn ghost" href="tel:${SITE.phoneIntl}">${SITE.phone}</a></p></div></section>`;
+const pageHead = (h1, lead, crumbs) => `<section class="page-head"><div class="wrap">${crumbs ? `<nav class="crumbs" aria-label="Breadcrumb">${crumbs.map(([n, p], i) => (i < crumbs.length - 1 ? `<a href="${p}">${esc(n)}</a>` : `<span>${esc(n)}</span>`)).join(' › ')}</nav>` : ''}<h1>${esc(h1)}</h1>${lead ? `<p class="lead">${esc(lead)}</p>` : ''}</div></section>`;
+
+/* ---------- Bausteine ---------- */
+function projectCard(p, lang) {
+  const pic = p.bilder[0];
+  return `<article class="card project" data-cat="${p.kategorie}" data-type="${p.projektart}">
+  <a href="${u(lang, `/projekte/${p.slug}/`)}">
+    <div class="thumb">${pic ? `<img src="${img(pic, 640, 480)}" alt="${esc(p.t[lang])}, ${esc(p.ort)}" loading="lazy" width="640" height="480">` : `<div class="ph" aria-hidden="true">${esc(TYPES[p.projektart][lang])}</div>`}</div>
+    <div class="card-body"><p class="tag">${CATS[p.kategorie][lang]}</p><h3>${esc(p.t[lang])}</h3><p class="meta">${esc(p.ort)} · ${p.zeit}</p><p class="meta">${p.leist[lang].map(esc).join(', ')}</p></div>
+  </a></article>`;
+}
+const articleCard = (a, lang) => `<article class="card"><a href="${a.url}"><div class="card-body"><p class="tag">${esc(a.category)}</p><h3>${esc(a.title)}</h3><p>${esc(a.description)}</p><p class="meta">${a.min} ${T[lang].wissen.min}</p></div></a></article>`;
+const toolCard = (tl, lang) => `<article class="card"><a href="${u(lang, `/tools/${tl.slug[lang]}/`)}"><div class="card-body"><h3>${tl.title[lang]}</h3><p>${tl.desc[lang]}</p><p class="more">${T[lang].tools.open} →</p></div></a></article>`;
+
+/* ---------- Seiten ---------- */
+function buildHome(lang) {
+  const t = T[lang], h = t.home, paths = { de: '/', en: '/en/' };
+  const body = `<section class="hero" style="background-image:linear-gradient(90deg,rgba(20,27,31,.86) 0%,rgba(20,27,31,.55) 55%,rgba(20,27,31,.15) 100%),url('${img(HERO, 2000, 1100)}')">
+  <div class="wrap"><p class="eyebrow">${SITE.name} · ${SITE.city}</p><h1>${h.h1}</h1><p class="lead">${h.lead}</p>
+  <p><a class="btn" href="${u(lang, '/kontakt/')}">${h.cta1}</a> <a class="btn ghost light" href="${u(lang, '/projekte/')}">${h.cta2}</a></p></div></section>
+<section class="facts"><div class="wrap grid3">${h.facts.map(([n, l]) => `<div><strong>${n}</strong><span>${l}</span></div>`).join('')}</div></section>
+<section><div class="wrap"><h2>${h.servicesH}</h2><div class="grid4">${t.services.map((s) => `<article class="card"><a href="${u(lang, '/leistungen/')}#${s.id}"><div class="card-body"><h3>${s.t}</h3><p>${s.p}</p></div></a></article>`).join('')}</div></div></section>
+<section class="alt"><div class="wrap"><h2>${t.segments.h}</h2><div class="grid4">${t.segments.items.map(([a, b, l]) => `<article class="card"><a href="${u(lang, l)}"><div class="card-body"><h3>${a}</h3><p>${b}</p></div></a></article>`).join('')}</div></div></section>
+<section><div class="wrap"><div class="h-row"><h2>${h.projectsH}</h2><a href="${u(lang, '/projekte/')}">${h.projectsAll} →</a></div><div class="grid3">${projects.filter((p) => p.featured).slice(0, 6).map((p) => projectCard(p, lang)).join('')}</div></div></section>
+<section class="alt about"><div class="wrap split"><img src="${img(PORTRAIT, 600, 720)}" alt="Martin Dahinden, ${lang === 'de' ? 'Projektleiter und Inhaber' : 'project manager and owner'}" loading="lazy" width="600" height="720">
+  <div><h2>${h.aboutH}</h2><p class="quote">${h.quote}</p><p>${h.about}</p><p class="claim">${h.claim}</p></div></div></section>
+<section><div class="wrap"><div class="h-row"><h2>${h.knowH}</h2><a href="${u(lang, '/wissen/')}">${h.knowAll} →</a></div><div class="grid3">${articles[lang].filter((a) => a.featured).slice(0, 3).map((a) => articleCard(a, lang)).join('')}</div></div></section>
+<section class="alt"><div class="wrap"><h2>${h.toolsH}</h2><p class="lead">${h.toolsLead}</p><div class="grid3">${TOOLS.map((tl) => toolCard(tl, lang)).join('')}</div></div></section>
+${cta(lang)}`;
+  const ld = [{ '@context': 'https://schema.org', '@type': 'WebSite', name: SITE.name, url: SITE.domain, inLanguage: ['de-CH', 'en'] }];
+  write(paths[lang], layout({ lang, title: h.title, desc: h.desc, paths, body, ld }));
+}
+
+function buildLeistungen(lang) {
+  const t = T[lang], paths = { de: '/leistungen/', en: '/en/leistungen/' };
+  const crumbs = [[t.crumbHome, u(lang, '/')], [t.nav.leistungen, paths[lang]]];
+  const body = `${pageHead(t.leistungen.h1, t.leistungen.lead, crumbs)}
+<section><div class="wrap">${t.services.map((s) => `<article class="service" id="${s.id}"><div><h2>${s.t}</h2><p>${s.p}</p></div><ul class="check">${s.li.map((x) => `<li>${x}</li>`).join('')}</ul></article>`).join('')}</div></section>
+<section class="alt"><div class="wrap"><h2>${t.leistungen.whatH}</h2><div class="grid3">${t.strengths.map(([a, b]) => `<div class="card"><div class="card-body"><h3>${a}</h3><p>${b}</p></div></div>`).join('')}</div></div></section>
+<section><div class="wrap"><h2>${t.segments.h}</h2><div class="grid4">${t.segments.items.map(([a, b, l]) => `<article class="card"><a href="${u(lang, l)}"><div class="card-body"><h3>${a}</h3><p>${b}</p></div></a></article>`).join('')}</div></div></section>
+${cta(lang)}`;
+  const ld = t.services.map((s) => ({ '@context': 'https://schema.org', '@type': 'Service', name: s.t, description: s.p, provider: { '@id': SITE.domain + '/#organisation' }, areaServed: 'CH' }));
+  write(paths[lang], layout({ lang, title: t.leistungen.title, desc: t.leistungen.desc, paths, body, ld, active: 'leistungen', crumbs }));
+}
+
+function buildProjekte(lang) {
+  const t = T[lang], tp = t.projekte, paths = { de: '/projekte/', en: '/en/projekte/' };
+  const crumbs = [[t.crumbHome, u(lang, '/')], [t.nav.projekte, paths[lang]]];
+  const btns = (group, obj) => `<div class="filter" role="group" data-group="${group}"><button class="on" data-val="">${tp.all}</button>${Object.entries(obj).filter(([k]) => projects.some((p) => p[group === 'cat' ? 'kategorie' : 'projektart'] === k)).map(([k, v]) => `<button data-val="${k}">${v[lang]}</button>`).join('')}</div>`;
+  const body = `${pageHead(tp.h1, tp.lead, crumbs)}
+<section><div class="wrap">
+  <div class="filters">${btns('cat', CATS)}${btns('type', TYPES)}<div class="filter view" role="group"><button class="on" data-view="grid">${tp.grid}</button><button data-view="table">${tp.table}</button></div></div>
+  <div class="grid3" id="p-grid">${projects.map((p) => projectCard(p, lang)).join('')}</div>
+  <div class="table-wrap" id="p-table" hidden><table><thead><tr>${tp.th.map((h) => `<th>${h}</th>`).join('')}</tr></thead><tbody>
+  ${projects.map((p) => `<tr data-cat="${p.kategorie}" data-type="${p.projektart}"><td><a href="${u(lang, `/projekte/${p.slug}/`)}">${esc(p.t[lang])}</a></td><td>${CATS[p.kategorie][lang]}</td><td>${TYPES[p.projektart][lang]}</td><td>${esc(p.ort)}${p.kanton ? ' ' + p.kanton : ''}</td><td>${p.zeit}</td><td>${p.leist[lang].map(esc).join(', ')}</td></tr>`).join('\n  ')}
+  </tbody></table></div>
+</div></section>
+${cta(lang)}`;
+  const ld = [{ '@context': 'https://schema.org', '@type': 'ItemList', itemListElement: projects.map((p, i) => ({ '@type': 'ListItem', position: i + 1, name: p.t[lang], url: abs(u(lang, `/projekte/${p.slug}/`)) })) }];
+  write(paths[lang], layout({ lang, title: tp.title, desc: tp.desc, paths, body, ld, active: 'projekte', crumbs }));
+
+  for (const p of projects) {
+    const pp = { de: `/projekte/${p.slug}/`, en: `/en/projekte/${p.slug}/` };
+    const typ = TYPES[p.projektart][lang], f = tp.facts;
+    const auto = tp.auto({ typ, ort: p.ort, kanton: p.kanton, zeit: p.zeit, leist: p.leist[lang].join(', ') });
+    const text = p.beschr[lang] || auto;
+    const cr = [...crumbs.slice(0, 1), [t.nav.projekte, paths[lang]], [p.t[lang], pp[lang]]];
+    const more = projects.filter((x) => x.kategorie === p.kategorie && x.slug !== p.slug).slice(0, 3);
+    const pbody = `${pageHead(p.t[lang], '', cr)}
+<section><div class="wrap split top">
+  <div>${text.split(/\n{2,}|\\n\\n/).map((x) => `<p>${esc(x)}</p>`).join('')}${p.kenn[lang] ? `<ul class="check">${p.kenn[lang].split('|').map((k) => `<li>${esc(k.trim())}</li>`).join('')}</ul>` : ''}
+  ${p.dokument ? `<p><a class="btn ghost" href="${esc(p.dokument)}">${f.doc}</a></p>` : ''}</div>
+  <dl class="facts-list"><dt>${f.cat}</dt><dd>${CATS[p.kategorie][lang]}</dd><dt>${f.type}</dt><dd>${typ}</dd><dt>${f.loc}</dt><dd>${esc(p.ort)}${p.kanton ? ' ' + p.kanton : ''}</dd><dt>${f.time}</dt><dd>${p.zeit}</dd>${p.bauherr ? `<dt>${f.client}</dt><dd>${esc(p.bauherr)}</dd>` : ''}<dt>${f.serv}</dt><dd>${p.leist[lang].map(esc).join('<br>')}</dd></dl>
+</div></section>
+${p.bilder.length ? `<section class="alt"><div class="wrap gallery">${p.bilder.map((b, i) => `<a href="${img(b, 1800)}"><img src="${img(b, 900, 675)}" alt="${esc(p.t[lang])}, ${esc(p.ort)} – ${lang === 'de' ? 'Bild' : 'image'} ${i + 1}" loading="${i ? 'lazy' : 'eager'}" width="900" height="675"></a>`).join('')}</div></section>` : ''}
+${more.length ? `<section><div class="wrap"><div class="h-row"><h2>${tp.more}</h2><a href="${paths[lang]}">${tp.back} →</a></div><div class="grid3">${more.map((x) => projectCard(x, lang)).join('')}</div></div></section>` : ''}
+${cta(lang)}`;
+    const pld = [{ '@context': 'https://schema.org', '@type': 'CreativeWork', name: p.t[lang], description: text, url: abs(pp[lang]), creator: { '@id': SITE.domain + '/#organisation' }, temporalCoverage: p.jahr_bis && p.jahr_bis !== p.jahr_von ? `${p.jahr_von}/${p.jahr_bis}` : p.jahr_von, genre: `${CATS[p.kategorie][lang]} – ${typ}`, locationCreated: { '@type': 'Place', name: p.ort, address: { '@type': 'PostalAddress', addressLocality: p.ort, addressRegion: p.kanton || undefined, addressCountry: 'CH' } }, image: p.bilder.map((b) => (b.startsWith('/') ? abs(b) : b)) }];
+    write(pp[lang], layout({ lang, title: `${p.t[lang]}, ${p.ort}`, desc: text.slice(0, 158), paths: pp, body: pbody, ld: pld, active: 'projekte', crumbs: cr, ogImage: p.bilder[0] ? img(p.bilder[0], 1200, 630) : undefined }));
+  }
+}
+
+function buildWissen(lang) {
+  const t = T[lang], tw = t.wissen, paths = { de: '/wissen/', en: '/en/wissen/' }, list = articles[lang];
+  const crumbs = [[t.crumbHome, u(lang, '/')], [t.nav.wissen, paths[lang]]];
+  const cats = [...new Set(list.map((a) => a.category))];
+  const body = `${pageHead(tw.h1, tw.lead, crumbs)}
+${cats.map((c, i) => `<section${i % 2 ? ' class="alt"' : ''}><div class="wrap"><h2>${esc(c)}</h2><div class="grid3">${list.filter((a) => a.category === c).map((a) => articleCard(a, lang)).join('')}</div></div></section>`).join('\n')}
+${cta(lang)}`;
+  write(paths[lang], layout({ lang, title: tw.title, desc: tw.desc, paths, body, active: 'wissen', crumbs, ld: [{ '@context': 'https://schema.org', '@type': 'Blog', name: tw.h1, url: abs(paths[lang]), publisher: { '@id': SITE.domain + '/#organisation' } }] }));
+
+  for (const a of list) {
+    const o = lang === 'de' ? 'en' : 'de', tr = articles[o].find((x) => x.id === a.id);
+    const ap = { [lang]: a.url, [o]: tr ? tr.url : paths[o] };
+    const cr = [...crumbs, [a.title, a.url]];
+    const rel = [...list.filter((x) => x.category === a.category && x.id !== a.id), ...list.filter((x) => x.category !== a.category)].slice(0, 3);
+    const toolHint = a.tool ? TOOLS.find((x) => x.id === a.tool) : null;
+    const abody = `<article class="post">${pageHead(a.title, '', cr)}
+<div class="wrap narrow">
+  <p class="meta">${esc(a.category)} · ${a.min} ${tw.min} · ${tw.updated}: <time datetime="${a.date}">${a.date.split('-').reverse().join('.')}</time></p>
+  <aside class="brief"><strong>${tw.brief}</strong><p>${esc(a.summary)}</p></aside>
+  <div class="prose">${a.html}</div>
+  ${toolHint ? `<aside class="tool-hint"><strong>${toolHint.title[lang]}</strong><p>${toolHint.desc[lang]}</p><a class="btn" href="${u(lang, `/tools/${toolHint.slug[lang]}/`)}">${t.tools.open}</a></aside>` : ''}
+  ${a.faq?.length ? `<section class="faq"><h2>${tw.faq}</h2>${a.faq.map((f) => `<details><summary>${esc(f.q)}</summary><p>${esc(f.a)}</p></details>`).join('')}</section>` : ''}
+  <p class="byline">${tw.by}</p><p class="disclaimer">${tw.disclaimer}</p>
+</div></article>
+<section class="alt"><div class="wrap"><h2>${tw.related}</h2><div class="grid3">${rel.map((x) => articleCard(x, lang)).join('')}</div></div></section>
+${cta(lang)}`;
+    const ld = [{ '@context': 'https://schema.org', '@type': 'Article', headline: a.title, description: a.description, abstract: a.summary, inLanguage: lang === 'de' ? 'de-CH' : 'en', datePublished: a.date, dateModified: a.date, mainEntityOfPage: abs(a.url), articleSection: a.category, author: { '@type': 'Person', name: 'Martin Dahinden', jobTitle: 'dipl. Techniker HF Hochbau', worksFor: { '@id': SITE.domain + '/#organisation' } }, publisher: { '@id': SITE.domain + '/#organisation' } }];
+    if (a.faq?.length) ld.push({ '@context': 'https://schema.org', '@type': 'FAQPage', mainEntity: a.faq.map((f) => ({ '@type': 'Question', name: f.q, acceptedAnswer: { '@type': 'Answer', text: f.a } })) });
+    write(a.url, layout({ lang, title: a.title, desc: a.description, paths: ap, body: abody, ld, active: 'wissen', crumbs: cr }));
+  }
+}
+
+function buildTools(lang) {
+  const t = T[lang], tt = t.tools, paths = { de: '/tools/', en: '/en/tools/' }, l = toolLabels(lang);
+  const crumbs = [[t.crumbHome, u(lang, '/')], [t.nav.tools, paths[lang]]];
+  write(paths[lang], layout({ lang, title: tt.title, desc: tt.desc, paths, active: 'tools', crumbs, body: `${pageHead(tt.h1, tt.lead, crumbs)}<section><div class="wrap grid3">${TOOLS.map((x) => toolCard(x, lang)).join('')}</div></section>${cta(lang)}` }));
+  for (const tool of TOOLS) {
+    const tp = { de: `/tools/${tool.slug.de}/`, en: `/en/tools/${tool.slug.en}/` };
+    const cr = [...crumbs, [tool.title[lang], tp[lang]]];
+    const body = `${pageHead(tool.title[lang], tool.intro[lang], cr)}
+<section><div class="wrap split top tool" data-tool="${tool.id}" data-lang="${lang}">
+  <form class="tool-form" onsubmit="return false">${toolForm(tool, lang)}<button class="btn" type="submit">${l.calc}</button></form>
+  <div class="tool-result" aria-live="polite"><h2>${l.res}</h2><div class="out"></div><p class="disclaimer">${tt.note}</p><p><a class="btn" data-discuss href="${u(lang, '/kontakt/')}">${tt.discuss}</a></p></div>
+</div></section>
+<script type="application/json" id="tool-config">${JSON.stringify({ c: CONFIG, l })}</script>
+<script src="/assets/js/tools.js" defer></script>
+<section class="alt"><div class="wrap grid3">${TOOLS.filter((x) => x.id !== tool.id).map((x) => toolCard(x, lang)).join('')}</div></section>`;
+    const ld = [{ '@context': 'https://schema.org', '@type': 'WebApplication', name: tool.title[lang], description: tool.desc[lang], url: abs(tp[lang]), applicationCategory: 'BusinessApplication', operatingSystem: 'All', offers: { '@type': 'Offer', price: '0', priceCurrency: 'CHF' }, provider: { '@id': SITE.domain + '/#organisation' } }];
+    write(tp[lang], layout({ lang, title: tool.title[lang], desc: tool.desc[lang], paths: tp, body, ld, active: 'tools', crumbs: cr }));
+  }
+}
+
+function buildKontakt(lang) {
+  const t = T[lang], k = t.kontakt, f = k.f, paths = { de: '/kontakt/', en: '/en/kontakt/' }, thanks = { de: '/danke/', en: '/en/danke/' };
+  const crumbs = [[t.crumbHome, u(lang, '/')], [t.nav.kontakt, paths[lang]]];
+  const body = `${pageHead(k.h1, k.lead, crumbs)}
+<section><div class="wrap split top">
+  <form class="contact" name="kontakt" method="POST" action="${thanks[lang]}" data-netlify="true" netlify-honeypot="website">
+    <input type="hidden" name="form-name" value="kontakt"><input type="hidden" name="sprache" value="${lang}">
+    <p class="hp"><label>Website <input name="website" tabindex="-1" autocomplete="off"></label></p>
+    <label class="field"><span>${f.name} *</span><input name="name" required autocomplete="name"></label>
+    <label class="field"><span>${f.firma}</span><input name="firma" autocomplete="organization"></label>
+    <label class="field"><span>${f.email} *</span><input type="email" name="email" required autocomplete="email"></label>
+    <label class="field"><span>${f.tel}</span><input type="tel" name="telefon" autocomplete="tel"></label>
+    <label class="field"><span>${f.art}</span><select name="vorhaben">${f.arts.map((a) => `<option>${a}</option>`).join('')}</select></label>
+    <label class="field"><span>${f.msg} *</span><textarea name="nachricht" rows="7" required></textarea></label>
+    <p class="disclaimer">${f.privacy} <a href="${u(lang, '/impressum-datenschutz/')}">${t.footer.legal}</a></p>
+    <button class="btn" type="submit">${f.send}</button>
+  </form>
+  <div><h2>${k.findH}</h2><address><strong>${SITE.name}</strong><br>${SITE.street}<br>${SITE.zip} ${SITE.city}<br><br><a href="tel:${SITE.phoneIntl}">${SITE.phone}</a><br><a href="mailto:${SITE.email}">${SITE.email}</a></address>
+  <p><a class="btn ghost" href="https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(`${SITE.name}, ${SITE.street}, ${SITE.zip} ${SITE.city}`)}" rel="noopener">Google Maps</a></p>
+  <img class="round" src="${img(PORTRAIT, 480, 480)}" alt="Martin Dahinden" loading="lazy" width="240" height="240"><p><strong>Martin Dahinden</strong><br>${lang === 'de' ? 'Projektleiter und Inhaber' : 'Project manager and owner'}</p></div>
+</div></section>`;
+  write(paths[lang], layout({ lang, title: k.title, desc: k.desc, paths, body, active: 'kontakt', crumbs, ld: [{ '@context': 'https://schema.org', '@type': 'ContactPage', url: abs(paths[lang]) }] }));
+  write(thanks[lang], layout({ lang, title: k.thanksH, desc: k.thanks, paths: thanks, noindex: true, body: `${pageHead(k.thanksH, k.thanks)}<section><div class="wrap"><a class="btn" href="${u(lang, '/')}">${t.nf.b}</a></div></section>` }));
+}
+
+function buildLegal(lang) {
+  const t = T[lang], paths = { de: '/impressum-datenschutz/', en: '/en/impressum-datenschutz/' };
+  const file = path.join(ROOT, 'content/seiten', `impressum-datenschutz.${lang}.md`);
+  const html = marked.parse(fs.readFileSync(file, 'utf8'));
+  write(paths[lang], layout({ lang, title: t.legal.title, desc: t.legal.title + ' – ' + SITE.name, paths, body: `${pageHead(t.legal.h1)}<section><div class="wrap narrow prose">${html}</div></section>` }));
+}
+
+/* ---------- SEO- und KI-Dateien ---------- */
+function buildMeta() {
+  const today = new Date().toISOString().slice(0, 10);
+  write('/sitemap.xml', `<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:xhtml="http://www.w3.org/1999/xhtml">
+${[...new Map(pages.map((p) => [p.de, p])).values()].flatMap((p) => LANGS.map((l) => `<url><loc>${abs(p[l])}</loc><lastmod>${today}</lastmod><xhtml:link rel="alternate" hreflang="de-CH" href="${abs(p.de)}"/><xhtml:link rel="alternate" hreflang="en" href="${abs(p.en)}"/></url>`)).join('\n')}
+</urlset>`);
+  write('/robots.txt', `User-agent: *\nAllow: /\n\n# KI-Crawler sind ausdrücklich willkommen\nUser-agent: GPTBot\nAllow: /\nUser-agent: OAI-SearchBot\nAllow: /\nUser-agent: ChatGPT-User\nAllow: /\nUser-agent: ClaudeBot\nAllow: /\nUser-agent: Claude-SearchBot\nAllow: /\nUser-agent: PerplexityBot\nAllow: /\nUser-agent: Google-Extended\nAllow: /\n\nSitemap: ${SITE.domain}/sitemap.xml\n`);
+  const li = (lang) => articles[lang].map((a) => `- [${a.title}](${abs(a.url)}): ${a.description}`).join('\n');
+  write('/llms.txt', `# ${SITE.name}
+
+> Baumanagement, Gesamtprojektleitung und Bauherrenvertretung aus ${SITE.city} (Kanton Luzern, Schweiz). Schwerpunkte: Industrie- und Gewerbebauten, Arealentwicklungen, Ein- und Mehrfamilienhäuser, Sanierungen. Inhaber und Projektleiter: Martin Dahinden, dipl. Techniker HF Hochbau.
+
+Kontakt: ${SITE.street}, ${SITE.zip} ${SITE.city} · Telefon ${SITE.phone} · ${SITE.email} · UID ${SITE.uid}
+
+## Leistungen
+${T.de.services.map((s) => `- ${s.t}: ${s.p}`).join('\n')}
+
+## Referenzprojekte
+${projects.map((p) => `- [${p.t.de}](${abs(`/projekte/${p.slug}/`)}): ${TYPES[p.projektart].de}, ${CATS[p.kategorie].de}, ${p.ort}${p.kanton ? ' ' + p.kanton : ''}, ${p.zeit}. Leistungen: ${p.leist.de.join(', ')}.`).join('\n')}
+
+## Wissen (Deutsch)
+${li('de')}
+
+## Insights (English)
+${li('en')}
+
+## Online-Rechner
+${TOOLS.map((x) => `- [${x.title.de}](${abs(`/tools/${x.slug.de}/`)}): ${x.desc.de}`).join('\n')}
+
+## Optional
+- [Alle Wissensbeiträge im Volltext](${SITE.domain}/llms-full.txt)
+`);
+  write('/llms-full.txt', LANGS.flatMap((l) => articles[l].map((a) => `# ${a.title}\n\nURL: ${abs(a.url)}\nSprache: ${l}\nKurzfassung: ${a.summary}\n\n${a.md.trim()}\n\n${(a.faq || []).map((f) => `F: ${f.q}\nA: ${f.a}`).join('\n\n')}`)).join('\n\n---\n\n'));
+  write('/_redirects', `# Alte Wix-Adressen
+/dhreferenzen /projekte/ 301
+/en/dhreferenzen /en/projekte/ 301
+/en/projects /en/projekte/ 301
+/en/services /en/leistungen/ 301
+/en/contact /en/kontakt/ 301
+/blog/* /wissen/ 301
+`);
+  for (const lang of LANGS) { /* 404 */ }
+  write('/404.html', layout({ lang: 'de', title: T.de.nf.h, desc: T.de.nf.p, paths: { de: '/404.html', en: '/404.html' }, noindex: true, body: `${pageHead(T.de.nf.h + ' / ' + T.en.nf.h, T.de.nf.p + ' ' + T.en.nf.p)}<section><div class="wrap"><a class="btn" href="/">${T.de.nf.b}</a> <a class="btn ghost" href="/en/">${T.en.nf.b}</a></div></section>` }));
+}
+
+/* ---------- Ablauf ---------- */
+fs.rmSync(OUT, { recursive: true, force: true });
+fs.mkdirSync(OUT, { recursive: true });
+fs.cpSync(path.join(ROOT, 'src/assets'), path.join(OUT, 'assets'), { recursive: true });
+if (exists('src/images')) fs.cpSync(path.join(ROOT, 'src/images'), path.join(OUT, 'images'), { recursive: true });
+fs.cpSync(path.join(ROOT, 'src/static'), OUT, { recursive: true });
+for (const lang of LANGS) { buildHome(lang); buildLeistungen(lang); buildProjekte(lang); buildWissen(lang); buildTools(lang); buildKontakt(lang); buildLegal(lang); }
+buildMeta();
+const unpaired = articles.de.filter((a) => !articles.en.some((b) => b.id === a.id)).map((a) => a.id);
+if (unpaired.length) console.warn('Hinweis: keine englische Fassung für', unpaired.join(', '));
+console.log(`Fertig: ${projects.length} Projekte, ${articles.de.length} DE- und ${articles.en.length} EN-Beiträge, ${pages.length} Seiten -> dist/`);
