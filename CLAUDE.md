@@ -16,7 +16,7 @@ Statische, zweisprachige Website (DE unter `/`, EN unter `/en/`). Kein CMS, kein
 | Unternehmensprofil (PDF, DE/EN) | `src/profil.mjs` – wird bei jedem Build aus Texten und Projektliste neu erzeugt (`/downloads/…`) |
 | Impressum & Datenschutz | `content/seiten/` |
 | Design (Farben, Schrift) | `src/assets/css/style.css`, Block `:root`. CI: Blau `#0e2f47`, Gold `#e7c984`, Schrift Avenir (Lauftext Book, Titel Black) |
-| Logo (Variante A-1), Bildmarke, Wasserzeichen | `src/images/logo-quer.svg` (Header), `logo.png` (PDFs), `logo-mark.png`, `wasserzeichen.png`, `hintergrund-navy.jpg`. Kleinformat-Zeichen A-2 in den Favicons |
+| Logo (Variante A-1), Bildmarke, Wasserzeichen | `src/images/logo-quer-hell.svg` (Header, weiss), `logo-quer.svg` (für blaue Flächen), `logo.png` (PDFs), `logo-mark.png`, `wasserzeichen.png`, `hintergrund-navy.jpg`. Kleinformat-Zeichen A-2 in den Favicons |
 | Infografiken Leistungen / Marktsegmente | `src/images/grafiken/*-de|en.svg` (Website) und `.png` (Unternehmensprofil); Text ist in Pfade umgewandelt, Änderungen über das CI-Paket neu erzeugen |
 | Kategorie-Illustrationen (11 Stück: goldenes Objekt, für blaue Kacheln) | `src/assets/illus/*.svg` – Zuordnung über das Feld `icon` in `src/texts.mjs` und `src/tools.mjs`; neue Kategorie = neue Illustration im selben Stil |
 | Linien-Icons (10 Stück, SVG, einfärbbar) | `src/assets/icons/*.svg` – Zuordnung über das Feld `icon` in `src/texts.mjs` und `src/tools.mjs` |

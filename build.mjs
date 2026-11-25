@@ -129,7 +129,7 @@ ${noindex ? '<meta name="robots" content="noindex">' : `<link rel="canonical" hr
 <meta property="og:image" content="${esc(og)}">
 <meta property="og:locale" content="${lang === 'de' ? 'de_CH' : 'en_GB'}">
 <meta name="twitter:card" content="summary_large_image">
-<meta name="theme-color" content="#0e2f47">
+<meta name="theme-color" content="#ffffff">
 <link rel="icon" href="/favicon.ico" sizes="48x48">
 <link rel="icon" href="/favicon.svg" type="image/svg+xml">
 <link rel="apple-touch-icon" href="/apple-touch-icon.png">
@@ -141,7 +141,7 @@ ${lds.map((l) => `<script type="application/ld+json">${JSON.stringify(l).replace
 <a class="skip" href="#inhalt">${t.skip}</a>
 <header class="site-header">
   <div class="wrap bar">
-    <a class="logo" href="${u(lang, '/')}" aria-label="${SITE.name} – Home">${exists('src/images/logo-quer.svg') ? `<img src="/images/logo-quer.svg" alt="${SITE.name}" width="252" height="46">` : `<img src="${img(LOGO, 400, 0)}" alt="${SITE.name}" width="200" height="56">`}</a>
+    <a class="logo" href="${u(lang, '/')}" aria-label="${SITE.name} – Home">${exists('src/images/logo-quer-hell.svg') ? `<img src="/images/logo-quer-hell.svg" alt="${SITE.name}" width="252" height="46">` : `<img src="${img(LOGO, 400, 0)}" alt="${SITE.name}" width="200" height="56">`}</a>
     <button class="burger" aria-expanded="false" aria-controls="nav" aria-label="${t.menu}"><span></span><span></span><span></span></button>
     <nav id="nav" aria-label="Hauptnavigation">
       <ul>${nav.map(([k, p]) => `<li><a href="${u(lang, p)}"${active === k ? ' aria-current="page"' : ''}>${t.nav[k]}</a></li>`).join('')}
@@ -186,7 +186,7 @@ const toolCard = (tl, lang) => `<article class="card"><a href="${u(lang, `/tools
 function buildHome(lang) {
   const t = T[lang], h = t.home, paths = { de: '/', en: '/en/' };
   const body = `<section class="hero" style="background-image:linear-gradient(90deg,rgba(10,36,54,.92) 0%,rgba(14,47,71,.72) 55%,rgba(14,47,71,.35) 100%),url('${img(HERO, 2000, 1100)}')">
-  <div class="wrap"><p class="eyebrow">${SITE.name} · ${SITE.city}</p><h1>${h.h1}</h1><p class="lead">${h.lead}</p>
+  <div class="wrap"><p class="eyebrow">${SITE.name} · ${SITE.city}</p><h1>${h.h1.replace('Gesamtdienstleistungsanbieter', 'Gesamtdienst&shy;leistungs&shy;anbieter')}</h1><p class="lead">${h.lead}</p>
   <p><a class="btn" href="${u(lang, '/kontakt/')}">${h.cta1}</a> <a class="btn ghost light" href="${u(lang, '/projekte/')}">${h.cta2}</a></p></div></section>
 <section class="facts"><div class="wrap grid3">${h.facts.map(([n, l]) => `<div><strong>${n}</strong><span>${l}</span></div>`).join('')}</div></section>
 <section><div class="wrap"><h2>${h.servicesH}</h2><div class="grid4">${t.services.map((s) => `<article class="card"><a href="${u(lang, '/leistungen/')}#${s.id}"><div class="card-body">${icon(s.icon)}<h3>${s.t}</h3><p>${s.p}</p></div></a></article>`).join('')}</div></div></section>

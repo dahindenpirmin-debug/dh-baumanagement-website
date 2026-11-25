@@ -31,30 +31,29 @@ section.alt { background: var(--bg-alt); }
 .skip { position: absolute; left: -999px; } .skip:focus { left: 8px; top: 8px; background: #fff; padding: 8px 12px; z-index: 99; }
 :focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
 
-/* Header (dunkel) */
-.site-header { position: sticky; top: 0; z-index: 20; background: rgba(14,47,71,.97); backdrop-filter: blur(6px); border-bottom: 2px solid var(--accent); }
+/* Header (weiss, Logo in Blau/Gold) */
+.site-header { position: sticky; top: 0; z-index: 20; background: rgba(255,255,255,.97); backdrop-filter: blur(6px); border-bottom: 2px solid var(--accent); }
 .bar { display: flex; align-items: center; justify-content: space-between; min-height: 76px; gap: 24px; }
-.logo { display: flex; align-items: center; gap: 12px; text-decoration: none; color: var(--accent); font-weight: 500; font-size: 1.12rem; letter-spacing: .045em; white-space: nowrap; }
+.logo { display: flex; align-items: center; text-decoration: none; }
 .logo img { height: 46px; width: auto; }
 nav ul { list-style: none; display: flex; gap: 28px; margin: 0; padding: 0; align-items: center; }
-nav a { color: #fff; text-decoration: none; font-size: .95rem; text-transform: uppercase; letter-spacing: .08em; padding: 6px 0; border-bottom: 2px solid transparent; }
-nav a:hover { color: #e7c984; }
+nav a { color: var(--ink); text-decoration: none; font-size: .95rem; text-transform: uppercase; letter-spacing: .08em; padding: 6px 0; border-bottom: 2px solid transparent; }
 nav a:hover, nav a[aria-current] { border-color: var(--accent); }
-nav .lang a { border: 1px solid rgba(255,255,255,.35); padding: 4px 10px; border-radius: var(--radius); }
+nav .lang a { border: 1px solid var(--line); padding: 4px 10px; border-radius: var(--radius); }
 .burger { display: none; background: none; border: 0; padding: 10px; cursor: pointer; }
-.burger span { display: block; width: 26px; height: 2px; background: #fff; margin: 6px 0; }
+.burger span { display: block; width: 26px; height: 2px; background: var(--ink); margin: 6px 0; }
 @media (max-width: 900px) {
   .burger { display: block; }
-  nav { display: none; position: absolute; left: 0; right: 0; top: 100%; background: var(--ink); border-bottom: 2px solid var(--accent); }
+  nav { display: none; position: absolute; left: 0; right: 0; top: 100%; background: #fff; border-bottom: 2px solid var(--accent); }
   nav.open { display: block; }
   nav ul { flex-direction: column; align-items: stretch; gap: 0; padding: 8px 24px 20px; }
-  nav li a { display: block; padding: 13px 0; border-bottom: 1px solid rgba(255,255,255,.12); }
+  nav li a { display: block; padding: 13px 0; border-bottom: 1px solid var(--line); }
   nav .lang { margin-top: 14px; } nav .lang a { display: inline-block; padding: 8px 16px; }
 }
 
 /* Hero */
 .hero { background-color: var(--ink); background-size: cover; background-position: center; color: #fff; padding: clamp(90px, 16vw, 190px) 0 clamp(70px, 12vw, 150px); }
-.hero h1 { max-width: 24ch; }
+.hero h1 { max-width: 880px; font-size: clamp(1.7rem, 4.2vw, 3rem); }
 .hero .lead { color: #e7eaec; }
 .eyebrow { text-transform: uppercase; letter-spacing: .16em; font-size: .8rem; color: #e7c984; margin-bottom: 1.2em; }
 .page-head { background: var(--ink) url(/images/wasserzeichen.png) no-repeat right -40px top 10px / 560px auto; color: #fff; padding: 56px 0 44px; }
