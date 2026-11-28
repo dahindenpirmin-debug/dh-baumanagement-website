@@ -362,3 +362,11 @@ section[id="werte"] { scroll-margin-top: 80px; }
 /* Fusszeile: grössere Tippflächen auf Handys */
 @media (max-width: 700px) { .site-footer a { display: inline-block; padding: 5px 0; } }
 .only-mobile { display: none; } @media (max-width: 800px) { .only-mobile { display: flex; margin: 0 0 22px; } .only-mobile .btn { flex: 1 1 100%; text-align: center; } }
+/* Impressum/Datenschutz: Tabelle auf Handys gestapelt statt seitlich scrollen */
+@media (max-width: 640px) {
+  .legal table, .legal tbody, .legal tr, .legal td { display: block; width: auto; }
+  .legal thead { display: none; }
+  .legal tr { padding: 12px 0; border-bottom: 1px solid var(--line); }
+  .legal td { border: 0; padding: 2px 0; }
+  .legal td:first-child { font-weight: 700; }
+}

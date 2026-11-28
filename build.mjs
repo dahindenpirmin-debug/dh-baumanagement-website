@@ -464,7 +464,7 @@ function buildLegal(lang) {
   const t = T[lang], paths = { de: '/impressum-datenschutz/', en: '/en/impressum-datenschutz/' };
   const file = path.join(ROOT, 'content/seiten', `impressum-datenschutz.${lang}.md`);
   const html = marked.parse(fs.readFileSync(file, 'utf8'));
-  write(paths[lang], layout({ lang, title: t.legal.title, desc: t.legal.title + ' – ' + SITE.name, paths, body: `${pageHead(t.legal.h1)}<section><div class="wrap narrow prose">${html}</div></section>` }));
+  write(paths[lang], layout({ lang, title: t.legal.title, desc: t.legal.title + ' – ' + SITE.name, paths, body: `${pageHead(t.legal.h1)}<section><div class="wrap narrow prose legal">${html}</div></section>` }));
 }
 
 /* ---------- SEO- und KI-Dateien ---------- */
