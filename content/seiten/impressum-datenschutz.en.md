@@ -16,7 +16,6 @@ The content of this website, in particular the articles and online calculators, 
 
 ## Privacy
 
-> **Replace before going live:** please insert the existing privacy notice from the previous website here, or have it adapted to the new technical setup by a specialist. The points below describe the technical status of this website.
 
 - **Hosting:** the website is hosted by Netlify, Inc. Technically necessary connection data (e.g. IP address, time, page requested) is processed when you visit.
 - **Contact form:** the details you enter are transmitted via Netlify Forms and used solely to handle your enquiry.

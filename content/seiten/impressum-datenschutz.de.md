@@ -16,7 +16,6 @@ Die Inhalte dieser Website, insbesondere die Wissensbeiträge und Online-Rechner
 
 ## Datenschutz
 
-> **Vor dem Livegang ersetzen:** Bitte hier den bestehenden Datenschutztext der bisherigen Website einfügen bzw. von einer Fachperson an die neue technische Umgebung anpassen lassen. Die folgenden Punkte beschreiben den technischen Stand dieser Website.
 
 - **Hosting:** Die Website wird bei Netlify, Inc. gehostet. Beim Aufruf werden technisch notwendige Verbindungsdaten (z. B. IP-Adresse, Zeitpunkt, aufgerufene Seite) verarbeitet.
 - **Kontaktformular:** Die im Formular eingegebenen Angaben werden über Netlify Forms übermittelt und ausschliesslich zur Bearbeitung der Anfrage verwendet.

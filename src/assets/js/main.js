@@ -143,7 +143,25 @@
     fm.addEventListener('submit', function (e) {
       var bad = fields().filter(function (el) { return !check(el); }), fast = Date.now() - t0 < 4000;
       top.hidden = !bad.length && !fast; top.textContent = bad.length ? TX.top : fast ? TX.fast : '';
-      if (bad.length || fast) { e.preventDefault(); e.stopImmediatePropagation(); if (bad[0]) bad[0].focus(); }
+      if (bad.length || fast) { e.preventDefault(); e.stopImmediatePropagation(); if (bad[0]) bad[0].focus(); return; }
+      if (!fm.classList.contains('contact') || !window.fetch) return;
+      // Kontaktformular: im Hintergrund senden. Schlägt die Übermittlung fehl, geht die Nachricht nicht verloren:
+      // Der Text bleibt stehen und ein E-Mail-Link mit dem Inhalt wird angeboten.
+      e.preventDefault();
+      var btn = fm.querySelector('button[type=submit]'), label = btn.textContent, box = fm.querySelector('.contact-msg');
+      var val = function (n) { var el = fm.querySelector('[name=' + n + ']'); return el ? el.value.trim() : ''; };
+      btn.disabled = true; btn.textContent = de ? 'Wird gesendet …' : 'Sending …'; box.hidden = true;
+      fetch('/', { method: 'POST', headers: { 'Content-Type': 'application/x-www-form-urlencoded' }, body: new URLSearchParams(new FormData(fm)).toString() })
+        .then(function (r) { if (!r.ok) throw new Error(r.status); location.href = fm.getAttribute('action'); })
+        .catch(function () {
+          var mail = (fm.querySelector('a[href^="mailto:"]') || { getAttribute: function () { return 'mailto:info@dh-baumanagement.ch'; } }).getAttribute('href').split('?')[0];
+          var body = [val('nachricht'), '', val('name'), val('firma'), val('telefon'), val('email')].filter(function (x, i) { return x || i === 1; }).join('\n');
+          var a = document.createElement('a'); a.href = mail + '?subject=' + encodeURIComponent((de ? 'Anfrage: ' : 'Enquiry: ') + val('vorhaben')) + '&body=' + encodeURIComponent(body);
+          a.textContent = de ? 'Nachricht als E-Mail senden' : 'Send the message by email';
+          box.textContent = de ? 'Die Nachricht konnte gerade nicht übermittelt werden. Ihr Text ist nicht verloren: ' : 'Your message could not be sent just now. Your text is not lost: ';
+          box.appendChild(a); box.appendChild(document.createTextNode(de ? ' oder rufen Sie uns an.' : ' or give us a call.')); box.hidden = false;
+          btn.disabled = false; btn.textContent = label;
+        });
     }, true);
   });
 

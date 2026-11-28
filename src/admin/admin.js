@@ -160,6 +160,17 @@
     ['titel_de', 'kategorie', 'projektart', 'ort', 'jahr_von'].forEach(function (k) { var ok = String(F[k].value).trim() !== ''; F[k].classList.toggle('bad', !ok); if (!ok) bad.push(k); });
     var gew = [].slice.call(document.querySelectorAll('#leist input:checked')).map(function (c) { return c.value; });
     $('leist').classList.toggle('bad', !gew.length); if (!gew.length) bad.push('leist');
+    // Plausibilität: Jahre, Bauvolumen, Koordinaten
+    var nz = function (v) { return parseFloat(String(v).replace(',', '.')); }, why = [], jahr = new Date().getFullYear();
+    var flag = function (k, ok, text) { if (!bad.includes(k)) F[k].classList.toggle('bad', !ok); if (!ok) why.push(text); };
+    var jv = +F.jahr_von.value, jb = +F.jahr_bis.value;
+    if (F.jahr_von.value) flag('jahr_von', jv >= 1990 && jv <= jahr + 10, 'Jahr von: zwischen 1990 und ' + (jahr + 10));
+    flag('jahr_bis', !F.jahr_bis.value || (jb >= jv && jb <= jahr + 15), 'Jahr bis: darf nicht vor «Jahr von» liegen');
+    var bv = String(F.bauvolumen_mchf.value).trim();
+    flag('bauvolumen_mchf', !bv || (/^\d+([.,]\d+)?$/.test(bv) && nz(bv) > 0 && nz(bv) < 2000), 'Bauvolumen: nur die Zahl in Mio. CHF, z. B. 4.2');
+    var la = String(F.lat.value).trim(), lo = String(F.lng.value).trim(), inCH = nz(la) > 45.7 && nz(la) < 47.9 && nz(lo) > 5.8 && nz(lo) < 10.6;
+    flag('lat', (!la && !lo) || inCH, 'Standort: Koordinaten liegen nicht in der Schweiz (am einfachsten auf die Karte klicken)'); F.lng.classList.toggle('bad', !((!la && !lo) || inCH));
+    if (!bad.length && why.length) { status(why.join(' · '), 'err'); return; }
     if (bad.length) { status('Bitte die markierten Pflichtfelder ausfüllen' + (gew.length ? '.' : ' und mindestens eine Dienstleistung ankreuzen.'), 'err'); return; }
     var slug = cur ? cur.slug : slugify(F.titel_de.value + ' ' + F.ort.value);
     if (!cur && projekte.some(function (p) { return p.slug === slug; })) { status('Ein Projekt mit diesem Titel und Ort existiert bereits. Bitte das bestehende bearbeiten oder den Titel anpassen.', 'err'); return; }

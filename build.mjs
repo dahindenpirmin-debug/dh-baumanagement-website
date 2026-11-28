@@ -134,7 +134,7 @@ const orgLd = {
   address: { '@type': 'PostalAddress', streetAddress: SITE.street, postalCode: SITE.zip, addressLocality: SITE.city, addressRegion: SITE.region, addressCountry: SITE.country },
   geo: { '@type': 'GeoCoordinates', latitude: SITE.geo.lat, longitude: SITE.geo.lng },
   areaServed: ['Luzern', 'Zentralschweiz', 'Aargau', 'Zürich', 'Bern', 'Schweiz'], sameAs: [SITE.linkedin],
-  founder: { '@type': 'Person', name: 'Martin Dahinden', jobTitle: 'Projektleiter und Inhaber' },
+  founder: { '@type': 'Person', name: 'Martin Dahinden', jobTitle: 'Inhaber und Projektleiter' },
   knowsAbout: ['Baumanagement', 'Bauherrenvertretung', 'Gesamtprojektleitung', 'Bauleitung', 'Kostenplanung', 'Arealentwicklung', 'Industriebau', 'Gewerbebau', 'Sanierung'],
 };
 const crumbLd = (items) => ({ '@context': 'https://schema.org', '@type': 'BreadcrumbList', itemListElement: items.map(([name, p], i) => ({ '@type': 'ListItem', position: i + 1, name, item: abs(p) })) });
@@ -215,7 +215,9 @@ const pageHead = (h1, lead, crumbs) => `<section class="page-head"><div class="w
 
 /* ---------- Bausteine ---------- */
 const KT = { ZH: 'Zürich', BE: 'Bern', LU: 'Luzern', UR: 'Uri', SZ: 'Schwyz', OW: 'Obwalden', NW: 'Nidwalden', GL: 'Glarus', ZG: 'Zug', FR: 'Freiburg', SO: 'Solothurn', BS: 'Basel-Stadt', BL: 'Basel-Landschaft', SH: 'Schaffhausen', AR: 'Appenzell Ausserrhoden', AI: 'Appenzell Innerrhoden', SG: 'St. Gallen', GR: 'Graubünden', AG: 'Aargau', TG: 'Thurgau', TI: 'Tessin', VD: 'Waadt', VS: 'Wallis', NE: 'Neuenburg', GE: 'Genf', JU: 'Jura' };
-const pdata = (p, lang) => `data-slug="${p.slug}" data-cat="${p.kategorie}" data-type="${p.projektart}" data-kt="${p.kanton || ''}" data-von="${p.jahr_von}" data-bis="${p.jahr_bis || p.jahr_von}" data-q="${esc([p.t[lang], p.ort, KT[p.kanton] || '', CATS[p.kategorie][lang], TYPES[p.projektart][lang], p.leist[lang].join(' '), p.bauherr || ''].join(' ').toLowerCase())}"`;
+// Suchtext: Original + Varianten ohne Umlaute (zürich, zuerich, zurich)
+const norm = (t) => { const a = t.replace(/ä/g, 'ae').replace(/ö/g, 'oe').replace(/ü/g, 'ue'), b = t.normalize('NFD').replace(/[\u0300-\u036f]/g, ''); return [...new Set([t, a, b])].join(' '); };
+const pdata = (p, lang) => `data-slug="${p.slug}" data-cat="${p.kategorie}" data-type="${p.projektart}" data-kt="${p.kanton || ''}" data-von="${p.jahr_von}" data-bis="${p.jahr_bis || p.jahr_von}" data-q="${esc(norm([p.t[lang], p.ort, KT[p.kanton] || '', CATS[p.kategorie][lang], TYPES[p.projektart][lang], p.leist[lang].join(' '), p.bauherr || ''].join(' ').toLowerCase()))}"`;
 const mapXY = (lat, lng) => [(lng - KARTE.LNG0) * KARTE.COS * KARTE.K, (KARTE.LAT1 - lat) * KARTE.K];
 function mapSvg(lang) {
   const pts = projects.filter((x) => x.lat && x.lng).map((p) => ({ p, xy: mapXY(p.lat, p.lng) })), cl = [];
@@ -259,7 +261,7 @@ function buildHome(lang) {
 <section><div class="wrap"><h2>${h.servicesH}</h2><div class="grid4">${t.services.map((s) => `<article class="card"><a href="${u(lang, '/leistungen/')}#${s.id}"><div class="card-body">${icon(s.icon)}<h3>${s.t}</h3><p>${s.k}</p></div></a></article>`).join('')}</div></div></section>
 <section class="alt"><div class="wrap"><h2>${t.segments.h}</h2><div class="grid4">${t.segments.items.map(([a, b, l, ic, k]) => `<article class="card"><a href="${u(lang, l)}"><div class="card-body">${icon(ic)}<h3>${a}</h3><p>${k}</p></div></a></article>`).join('')}</div></div></section>
 <section><div class="wrap"><div class="h-row"><h2>${h.projectsH}</h2><a href="${u(lang, '/projekte/')}">${h.projectsAll} →</a></div><div class="grid3">${projects.filter((p) => p.featured).slice(0, 6).map((p) => projectCard(p, lang)).join('')}</div></div></section>
-<section class="alt about"><div class="wrap split"><img src="${img(PORTRAIT, 600, 720)}" alt="Martin Dahinden, ${lang === 'de' ? 'Projektleiter und Inhaber' : 'project manager and owner'}" loading="lazy" width="600" height="720">
+<section class="alt about"><div class="wrap split"><img src="${img(PORTRAIT, 600, 720)}" alt="Martin Dahinden, ${lang === 'de' ? 'Inhaber und Projektleiter' : 'owner and project manager'}" loading="lazy" width="600" height="720">
   <div><h2>${h.aboutH}</h2><p class="quote">${h.quote}</p><p>${h.about}</p><p class="btns"><a class="btn" href="${u(lang, '/ueber-uns/')}">${t.ueber.link}</a><a class="btn ghost" href="${u(lang, '/ueber-uns/')}#werte">${t.werte.h}</a><a class="btn ghost" href="${profileUrl(lang)}" download>${t.profil.b}</a></p></div></div></section>
 <section><div class="wrap"><div class="h-row"><h2>${RT[lang].h1}</h2><a href="${u(lang, '/regionen/')}">${RT[lang].nav} →</a></div><div class="grid4">${REGIONEN.map((r) => `<article class="card"><a href="${regUrl(r, lang)}"><div class="card-body"><h3>${r.name[lang]}</h3><p>${RT[lang].anzahl(regRefs(r).length)}</p><p class="more">${RT[lang].mehr} →</p></div></a></article>`).join('')}</div></div></section>
 <section class="alt"><div class="wrap"><div class="h-row"><h2>${h.knowH}</h2><a href="${u(lang, '/wissen/')}">${h.knowAll} →</a></div><div class="grid3">${articles[lang].filter((a) => a.featured).slice(0, 3).map((a) => articleCard(a, lang)).join('')}</div></div></section>
@@ -438,7 +440,8 @@ function buildKontakt(lang) {
 <section><div class="wrap split top">
   <form class="contact" name="kontakt" method="POST" action="${thanks[lang]}" data-netlify="true" netlify-honeypot="website">
     <input type="hidden" name="form-name" value="kontakt"><input type="hidden" name="sprache" value="${lang}">
-    <p class="hp"><label>Website <input name="website" tabindex="-1" autocomplete="off"></label></p>
+    <p class="quick only-mobile"><a class="btn" href="tel:${SITE.phoneIntl}">${lang === 'de' ? 'Anrufen' : 'Call'} ${SITE.phone}</a><a class="btn ghost" href="mailto:${SITE.email}">${lang === 'de' ? 'E-Mail schreiben' : 'Send an email'}</a></p>
+    <p class="hp" aria-hidden="true"><label>Website <input name="website" tabindex="-1" autocomplete="off"></label></p>
     <label class="field"><span>${f.name} *</span><input name="name" required autocomplete="name"></label>
     <label class="field"><span>${f.firma}</span><input name="firma" autocomplete="organization"></label>
     <label class="field"><span>${f.email} *</span><input type="email" name="email" required autocomplete="email"></label>
@@ -447,10 +450,11 @@ function buildKontakt(lang) {
     <label class="field"><span>${f.msg} *</span><textarea name="nachricht" rows="7" required></textarea></label>
     <p class="disclaimer">${f.privacy} <a href="${u(lang, '/impressum-datenschutz/')}">${t.footer.legal}</a></p>
     <button class="btn" type="submit">${f.send}</button>
+    <p class="contact-msg" role="alert" hidden></p>
   </form>
   <div><h2>${k.findH}</h2><address><strong>${SITE.name}</strong><br>${SITE.street}<br>${SITE.zip} ${SITE.city}<br><br><a href="tel:${SITE.phoneIntl}">${SITE.phone}</a><br><a href="mailto:${SITE.email}">${SITE.email}</a></address>
   <p><a class="btn ghost" href="https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(`${SITE.name}, ${SITE.street}, ${SITE.zip} ${SITE.city}`)}" rel="noopener">Google Maps</a></p>
-  <img class="round" src="${img(PORTRAIT, 480, 480)}" alt="Martin Dahinden" loading="lazy" width="240" height="240"><p><strong>Martin Dahinden</strong><br>${lang === 'de' ? 'Projektleiter und Inhaber' : 'Project manager and owner'}</p></div>
+  <img class="round" src="${img(PORTRAIT, 480, 480)}" alt="Martin Dahinden" loading="lazy" width="240" height="240"><p><strong>Martin Dahinden</strong><br>${lang === 'de' ? 'Inhaber und Projektleiter' : 'Owner and project manager'}</p></div>
 </div></section>`;
   write(paths[lang], layout({ lang, title: k.title, desc: k.desc, paths, body, active: 'kontakt', crumbs, ld: [{ '@context': 'https://schema.org', '@type': 'ContactPage', url: abs(paths[lang]) }] }));
   write(thanks[lang], layout({ lang, title: k.thanksH, desc: k.thanks, paths: thanks, noindex: true, body: `${pageHead(k.thanksH, k.thanks)}<section><div class="wrap"><a class="btn" href="${u(lang, '/')}">${t.nf.b}</a></div></section>` }));

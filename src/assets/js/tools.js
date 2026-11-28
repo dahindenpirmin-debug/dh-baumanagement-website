@@ -7,7 +7,15 @@
   var lang = root.dataset.lang, id = root.dataset.tool, out = root.querySelector('.out');
   var title = document.title.split(' | ')[0];
   var $ = function (i) { return document.getElementById(i); };
-  var num = function (i) { return Math.max(0, parseFloat($(i).value) || 0); };
+  // Zahl lesen: Komma als Dezimalzeichen zulassen, auf min/max des Feldes begrenzen; leere und begrenzte Felder merken
+  var leer = [], begrenzt = [];
+  var num = function (i) {
+    var el = $(i), raw = String(el.value).replace(',', '.').trim(), v = parseFloat(raw), lo = parseFloat(el.min), hi = parseFloat(el.max);
+    if (raw === '' || isNaN(v) || (v <= 0 && !(lo === 0))) { if (!(lo === 0 && (raw === '' || v === 0))) leer.push(i); return 0; }
+    if (!isNaN(hi) && v > hi) { begrenzt.push(i); return hi; }
+    if (!isNaN(lo) && v < lo) { begrenzt.push(i); return lo; }
+    return v;
+  };
   var n0 = function (v) { return Math.round(v).toLocaleString('de-CH'); };
   var report = null; // { inputs: [[k,v]], head: [k,v], rows: [[k,v]], phases: [[name, months]], note }
 
@@ -16,7 +24,7 @@
   function money(lo, hi) {
     if (hi == null) hi = lo;
     var one = lo === hi;
-    if (hi >= 1e6) { var d = dec(hi / 1e6); return 'MCHF ' + (lo / 1e6).toFixed(d) + (one ? '' : ' – ' + (hi / 1e6).toFixed(d)); }
+    if (hi >= 1e6) { var d = dec(hi / 1e6), mf = function (v) { return d ? (v / 1e6).toFixed(d) : n0(v / 1e6); }; return 'MCHF ' + mf(lo) + (one ? '' : ' – ' + mf(hi)); }
     var r = function (v) { return n0(Math.round(v / 1e4) * 10); };
     return 'TCHF ' + r(lo) + (one ? '' : ' – ' + r(hi));
   }
@@ -81,7 +89,18 @@
   }
 
   var calc = { kosten: kosten, areal: areal, dauer: dauer }[id];
-  var run = function () { calc(); render(); };
+  var acts = [].slice.call(root.querySelectorAll('[data-act]'));
+  var run = function () {
+    leer = []; begrenzt = []; calc();
+    if (leer.length) { // ohne brauchbare Eingabe kein Resultat mit Nullen zeigen
+      out.innerHTML = '<p class="tool-hint">' + esc(l.leer) + '</p>';
+    } else {
+      render();
+      if (begrenzt.length) out.insertAdjacentHTML('afterbegin', '<p class="tool-hint">' + esc(l.grenze + ' ' + begrenzt.map(function (i) { var lab = $(i + '-label'); return (lab ? lab.textContent : i) + ' ' + $(i).min + '–' + n0(+$(i).max); }).join(', ')) + '</p>');
+    }
+    [].forEach.call(root.querySelectorAll('.tool-form input[type=number]'), function (el) { el.classList.toggle('bad', leer.indexOf(el.id) >= 0 || begrenzt.indexOf(el.id) >= 0); });
+    acts.forEach(function (b) { b.disabled = !!leer.length; });
+  };
   if (id === 'dauer') { // Monat und Jahr als zwei Auswahlfelder: einheitliche Darstellung in allen Browsern (type=month fehlt in Safari/Firefox)
     var n = new Date(), y0 = n.getFullYear(), sj = $('d-start-j');
     for (var y = y0 - 1; y <= y0 + 8; y++) { var o = document.createElement('option'); o.value = y; o.textContent = y; sj.appendChild(o); }
