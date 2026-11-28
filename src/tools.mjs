@@ -92,7 +92,7 @@ export function toolForm(tool, lang) {
     ${field('a-miete', l.miete, `<input id="a-miete" type="number" min="0" step="5" value="140" inputmode="numeric">`)}`;
   return `
     ${field('d-gross', l.gross, `<select id="d-gross">${opts(c.dauer, lang).replace('value="mittel"', 'value="mittel" selected')}</select>`)}
-    ${field('d-start', l.start, `<input id="d-start" type="month">`)}
+    ${field('d-start-m', l.start, `<span class="monat"><select id="d-start-m" aria-label="${lang === 'de' ? 'Monat' : 'Month'}">${Array.from({ length: 12 }, (_, i) => `<option value="${i}">${new Date(2026, i, 1).toLocaleDateString(lang === 'de' ? 'de-CH' : 'en-GB', { month: 'long' })}</option>`).join('')}</select><select id="d-start-j" aria-label="${lang === 'de' ? 'Jahr' : 'Year'}"></select></span>`)}
     ${field('d-bew', l.bew, `<select id="d-bew"><option value="1">${l.ja}</option><option value="0">${l.nein}</option></select>`)}`;
 }
 

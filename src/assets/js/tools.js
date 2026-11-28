@@ -69,7 +69,7 @@
     var g = c.dauer[$('d-gross').value], m = g.m.slice(), bew = $('d-bew').value === '1';
     if (!bew) m[2] = 0;
     var total = m.reduce(function (a, b) { return a + b; }, 0);
-    var v = $('d-start').value, start = v ? new Date(v + '-01T12:00:00') : new Date();
+    var start = new Date(+$('d-start-j').value, +$('d-start-m').value, 1, 12);
     var end = new Date(start.getFullYear(), start.getMonth() + total, 1);
     var fmt = function (d) { return d.toLocaleDateString(lang === 'de' ? 'de-CH' : 'en-GB', { month: 'long', year: 'numeric' }); };
     report = {
@@ -82,7 +82,11 @@
 
   var calc = { kosten: kosten, areal: areal, dauer: dauer }[id];
   var run = function () { calc(); render(); };
-  if (id === 'dauer') { var n = new Date(); $('d-start').value = n.getFullYear() + '-' + ('0' + (n.getMonth() + 1)).slice(-2); }
+  if (id === 'dauer') { // Monat und Jahr als zwei Auswahlfelder: einheitliche Darstellung in allen Browsern (type=month fehlt in Safari/Firefox)
+    var n = new Date(), y0 = n.getFullYear(), sj = $('d-start-j');
+    for (var y = y0 - 1; y <= y0 + 8; y++) { var o = document.createElement('option'); o.value = y; o.textContent = y; sj.appendChild(o); }
+    sj.value = y0; $('d-start-m').value = n.getMonth();
+  }
   if (id === 'kosten') [].forEach.call(document.querySelectorAll('[name=k-basis]'), function (r) {
     // Beim Wechsel m² <-> m³ die Menge mit der typischen Geschosshöhe umrechnen
     r.addEventListener('change', function () { var h = c.kosten.typen[$('k-typ').value].h, q = num('k-menge'); $('k-menge').value = Math.round((r.value === 'm3' ? q * h : q / h) / 10) * 10; });

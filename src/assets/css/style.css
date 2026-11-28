@@ -349,3 +349,6 @@ section[id="werte"] { scroll-margin-top: 80px; }
 /* Referenzen: nach Kategorie gruppiert */
 .p-group + .p-group { margin-top: 44px; }
 .p-group h2 { margin-bottom: 20px; }
+
+/* Terminrechner: Projektstart als Monat + Jahr */
+.field .monat { display: grid; grid-template-columns: 1.5fr 1fr; gap: 10px; margin: 0; font-weight: 400; font-size: inherit; }
