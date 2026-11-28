@@ -7,7 +7,7 @@ import { marked } from 'marked';
 import matter from 'gray-matter';
 import crypto from 'node:crypto';
 import { SITE, CATS, TYPES, T, LEISTUNGEN, TEAM } from './src/texts.mjs';
-import { TOOLS, CONFIG, toolForm, toolResult, toolLabels } from './src/tools.mjs';
+import { TOOLS, CONFIG, toolForm, toolResult, toolLabels, toolAnnahmen } from './src/tools.mjs';
 import { buildProfile, profileFile } from './src/profil.mjs';
 import { REGIONEN, RT } from './src/regionen.mjs';
 import { KARTE } from './src/karte.mjs';
@@ -77,7 +77,7 @@ const leistOf = (r) => {
   for (const d of de) if (!LMAP[d]) console.warn(`Hinweis: Leistung «${d}» (${r.slug}) steht nicht in der vordefinierten Liste (src/texts.mjs, LEISTUNGEN).`);
   return { de, en: de.map((d, i) => (enIn.length === de.length ? enIn[i] : LMAP[d] || d)) };
 };
-const CSVCOLS = ['slug', 'titel_de', 'titel_en', 'kategorie', 'projektart', 'ort', 'kanton', 'jahr_von', 'jahr_bis', 'leistungen_de', 'leistungen_en', 'bauherr', 'beschreibung_de', 'beschreibung_en', 'kennzahlen_de', 'kennzahlen_en', 'bilder', 'dokument', 'featured', 'bauvolumen_mchf', 'lat', 'lng'];
+const CSVCOLS = ['slug', 'titel_de', 'titel_en', 'kategorie', 'projektart', 'ort', 'kanton', 'jahr_von', 'jahr_bis', 'leistungen_de', 'leistungen_en', 'bauherr', 'beschreibung_de', 'beschreibung_en', 'kennzahlen_de', 'kennzahlen_en', 'bilder', 'dokument', 'featured', 'bauvolumen_mchf', 'lat', 'lng', 'zitat_de', 'zitat_en', 'zitat_von'];
 let ALLROWS = [];
 function loadProjects() {
   let rows = parseCSV(fs.readFileSync(path.join(ROOT, 'data/projekte.csv'), 'utf8'));
@@ -107,6 +107,7 @@ function loadProjects() {
     return { ...r, bilder, zeit: zeit(), featured: /^(ja|yes|x|1)$/i.test(r.featured), order: i,
       t: { de: r.titel_de, en: r.titel_en || r.titel_de },
       leist: leistOf(r),
+      zitat: { de: r.zitat_de || '', en: r.zitat_en || r.zitat_de || '' }, zitatVon: r.zitat_von || '',
       lat: parseFloat(r.lat) || null, lng: parseFloat(r.lng) || null,
       vol: r.bauvolumen_mchf ? (/[a-z]/i.test(r.bauvolumen_mchf) ? r.bauvolumen_mchf.trim() : r.bauvolumen_mchf.trim() + ' MCHF') : '',
       beschr: { de: r.beschreibung_de, en: r.beschreibung_en || '' }, kenn: { de: r.kennzahlen_de, en: r.kennzahlen_en || '' } };
@@ -232,15 +233,18 @@ function mapSvg(lang) {
 <g class="pins si">${pts.sort((a, b) => a.xy[1] - b.xy[1]).map(({ p, xy }) => pin(xy[0], xy[1], [p])).join('')}</g>
 </svg><div class="mapctl"><button type="button" id="z-in" aria-label="${L.in}" title="${L.in}">+</button><button type="button" id="z-out" aria-label="${L.out}" title="${L.out}">−</button><button type="button" id="z-all" aria-label="${L.all}" title="${L.all}">⤢</button></div></div>`;
 }
+// Projektart nur nennen, wenn der Titel nicht schon damit beginnt (sonst «Neubau · Neubau …»)
+const typNeu = (p, lang) => !p.t[lang].toLowerCase().startsWith(TYPES[p.projektart][lang].split(/[ &]/)[0].toLowerCase());
+const tagOf = (p, lang) => CATS[p.kategorie][lang] + (typNeu(p, lang) ? ' · ' + TYPES[p.projektart][lang] : '');
 function projectCard(p, lang) {
   const pic = p.bilder[0];
   return `<article class="card project" ${pdata(p, lang)}>
   <a href="${u(lang, `/projekte/${p.slug}/`)}">
     <div class="thumb">${pic ? `<img src="${img(pic, 640, 480)}" alt="${esc(p.t[lang])}, ${esc(p.ort)}" loading="lazy" width="640" height="480">` : `<div class="ph" aria-hidden="true">${hell(ILLUS[p.kategorie === 'wohnen' ? 'wohnbau' : 'gewerbe'] || '')}</div>`}</div>
-    <div class="card-body"><p class="tag">${CATS[p.kategorie][lang]} · ${TYPES[p.projektart][lang]}</p><h3>${esc(p.t[lang])}</h3><p class="meta">${esc(p.ort)}${p.kanton ? ' ' + p.kanton : ''} · ${p.zeit}${p.vol ? ' · ' + esc(p.vol) : ''}</p><p class="meta leist">${p.leist[lang].map(esc).join(', ')}</p></div>
+    <div class="card-body"><p class="tag">${tagOf(p, lang)}</p><h3>${esc(p.t[lang])}</h3><p class="meta">${esc(p.ort)}${p.kanton ? ' (' + p.kanton + ')' : ''} · ${p.zeit}${p.vol ? ' · ' + esc(p.vol) : ''}</p><p class="meta leist">${p.leist[lang].map(esc).join(', ')}</p></div>
   </a></article>`;
 }
-const articleCard = (a, lang) => `<article class="card"><a href="${a.url}"><div class="card-body"><p class="tag">${esc(a.category)}</p><h3>${esc(a.title)}</h3><p>${esc(a.description)}</p><p class="meta more">${a.date.split('-').reverse().join('.')} · ${a.min} ${T[lang].wissen.min}</p></div></a></article>`;
+const articleCard = (a, lang) => `<article class="card"><a href="${a.url}"><div class="card-body"><p class="tag">${esc(a.category)}</p><h3>${esc(a.title)}</h3><p>${esc(a.description)}</p><p class="meta more">${a.min} ${T[lang].wissen.min}</p></div></a></article>`;
 const toolCard = (tl, lang) => `<article class="card"><a href="${u(lang, `/tools/${tl.slug[lang]}/`)}"><div class="card-body">${icon(tl.icon)}<h3>${tl.title[lang]}</h3><p>${tl.kurz[lang]}</p><p class="more">${T[lang].tools.open} →</p></div></a></article>`;
 
 /* ---------- Seiten ---------- */
@@ -254,7 +258,7 @@ function buildHome(lang) {
 <section class="alt"><div class="wrap"><h2>${t.segments.h}</h2><div class="grid4">${t.segments.items.map(([a, b, l, ic, k]) => `<article class="card"><a href="${u(lang, l)}"><div class="card-body">${icon(ic)}<h3>${a}</h3><p>${k}</p></div></a></article>`).join('')}</div></div></section>
 <section><div class="wrap"><div class="h-row"><h2>${h.projectsH}</h2><a href="${u(lang, '/projekte/')}">${h.projectsAll} →</a></div><div class="grid3">${projects.filter((p) => p.featured).slice(0, 6).map((p) => projectCard(p, lang)).join('')}</div></div></section>
 <section class="alt about"><div class="wrap split"><img src="${img(PORTRAIT, 600, 720)}" alt="Martin Dahinden, ${lang === 'de' ? 'Projektleiter und Inhaber' : 'project manager and owner'}" loading="lazy" width="600" height="720">
-  <div><h2>${h.aboutH}</h2><p class="quote">${h.quote}</p><p>${h.about}</p><p class="claim">${h.claim}</p><p class="btns"><a class="btn" href="${u(lang, '/ueber-uns/')}">${t.ueber.link}</a><a class="btn ghost" href="${u(lang, '/ueber-uns/')}#werte">${t.werte.h}</a><a class="btn ghost" href="${profileUrl(lang)}" download>${t.profil.b}</a></p></div></div></section>
+  <div><h2>${h.aboutH}</h2><p class="quote">${h.quote}</p><p>${h.about}</p><p class="btns"><a class="btn" href="${u(lang, '/ueber-uns/')}">${t.ueber.link}</a><a class="btn ghost" href="${u(lang, '/ueber-uns/')}#werte">${t.werte.h}</a><a class="btn ghost" href="${profileUrl(lang)}" download>${t.profil.b}</a></p></div></div></section>
 <section><div class="wrap"><div class="h-row"><h2>${RT[lang].h1}</h2><a href="${u(lang, '/regionen/')}">${RT[lang].nav} →</a></div><div class="grid4">${REGIONEN.map((r) => `<article class="card"><a href="${regUrl(r, lang)}"><div class="card-body"><h3>${r.name[lang]}</h3><p>${RT[lang].anzahl(regRefs(r).length)}</p><p class="more">${RT[lang].mehr} →</p></div></a></article>`).join('')}</div></div></section>
 <section class="alt"><div class="wrap"><div class="h-row"><h2>${h.knowH}</h2><a href="${u(lang, '/wissen/')}">${h.knowAll} →</a></div><div class="grid3">${articles[lang].filter((a) => a.featured).slice(0, 3).map((a) => articleCard(a, lang)).join('')}</div></div></section>
 <section><div class="wrap"><h2>${h.toolsH}</h2><p class="lead">${h.toolsLead}</p><div class="grid3">${TOOLS.map((tl) => toolCard(tl, lang)).join('')}</div></div></section>
@@ -300,7 +304,7 @@ function buildProjekte(lang) {
   <p id="p-empty" class="lead" hidden>${F.empty}</p>
   <div class="grid3" id="p-grid">${projects.map((p) => projectCard(p, lang)).join('')}</div>
   <div class="table-wrap" id="p-table" hidden><table><thead><tr>${[...tp.th.slice(0, 5), ...(anyVol() ? [t.profil.vol] : []), tp.th[5]].map((h) => `<th>${h}</th>`).join('')}</tr></thead><tbody>
-  ${projects.map((p) => `<tr ${pdata(p, lang)}><td><a href="${u(lang, `/projekte/${p.slug}/`)}">${esc(p.t[lang])}</a></td><td>${CATS[p.kategorie][lang]}</td><td>${TYPES[p.projektart][lang]}</td><td>${esc(p.ort)}${p.kanton ? ' ' + p.kanton : ''}</td><td>${p.zeit}</td>${anyVol() ? `<td>${esc(p.vol) || '–'}</td>` : ''}<td>${p.leist[lang].map(esc).join(', ')}</td></tr>`).join('\n  ')}
+  ${projects.map((p) => `<tr ${pdata(p, lang)}><td><a href="${u(lang, `/projekte/${p.slug}/`)}">${esc(p.t[lang])}</a></td><td>${CATS[p.kategorie][lang]}</td><td>${TYPES[p.projektart][lang]}</td><td>${esc(p.ort)}${p.kanton ? ' (' + p.kanton + ')' : ''}</td><td>${p.zeit}</td>${anyVol() ? `<td>${esc(p.vol) || '–'}</td>` : ''}<td>${p.leist[lang].map(esc).join(', ')}</td></tr>`).join('\n  ')}
   </tbody></table></div>
 </div></section>
 ${profileBox(lang)}
@@ -318,8 +322,9 @@ ${cta(lang)}`;
     const pbody = `${pageHead(p.t[lang], '', cr)}
 <section><div class="wrap split top">
   <div>${text.split(/\n{2,}|\\n\\n/).map((x) => `<p>${esc(x)}</p>`).join('')}${p.kenn[lang] ? `<ul class="check">${p.kenn[lang].split('|').map((k) => `<li>${esc(k.trim())}</li>`).join('')}</ul>` : ''}
+  ${p.zitat[lang] ? `<figure class="kundenstimme"><blockquote>«${esc(p.zitat[lang])}»</blockquote>${p.zitatVon ? `<figcaption>${esc(p.zitatVon)}</figcaption>` : ''}</figure>` : ''}
   <p><a class="btn ghost" href="/downloads/referenzen/${refFile(p, lang)}" download>${lang === 'de' ? 'Referenzblatt (PDF)' : 'Reference sheet (PDF)'}</a></p></div>
-  <dl class="facts-list"><dt>${f.cat}</dt><dd>${CATS[p.kategorie][lang]}</dd><dt>${f.type}</dt><dd>${typ}</dd><dt>${f.loc}</dt><dd>${esc(p.ort)}${p.kanton ? ' ' + p.kanton : ''}</dd><dt>${f.time}</dt><dd>${p.zeit}</dd>${p.vol ? `<dt>${t.profil.vol}</dt><dd>${esc(p.vol)}</dd>` : ''}${p.bauherr ? `<dt>${f.client}</dt><dd>${esc(p.bauherr)}</dd>` : ''}<dt>${f.serv}</dt><dd>${p.leist[lang].map(esc).join('<br>')}</dd></dl>
+  <dl class="facts-list"><dt>${f.cat}</dt><dd>${CATS[p.kategorie][lang]}</dd><dt>${f.type}</dt><dd>${typ}</dd><dt>${f.loc}</dt><dd>${esc(p.ort)}${p.kanton ? ' (' + p.kanton + ')' : ''}</dd><dt>${f.time}</dt><dd>${p.zeit}</dd>${p.vol ? `<dt>${t.profil.vol}</dt><dd>${esc(p.vol)}</dd>` : ''}${p.bauherr ? `<dt>${f.client}</dt><dd>${esc(p.bauherr)}</dd>` : ''}<dt>${f.serv}</dt><dd>${p.leist[lang].map(esc).join('<br>')}</dd></dl>
 </div></section>
 ${p.bilder.length ? `<section class="alt"><div class="wrap gallery">${p.bilder.map((b, i) => `<a href="${img(b, 1800)}"><img src="${img(b, 900, 675)}" alt="${esc(p.t[lang])}, ${esc(p.ort)} – ${lang === 'de' ? 'Bild' : 'image'} ${i + 1}" loading="${i ? 'lazy' : 'eager'}" width="900" height="675"></a>`).join('')}</div></section>` : ''}
 ${more.length ? `<section><div class="wrap"><div class="h-row"><h2>${tp.more}</h2><a href="${paths[lang]}">${tp.back} →</a></div><div class="grid3">${more.map((x) => projectCard(x, lang)).join('')}</div></div></section>` : ''}
@@ -347,7 +352,7 @@ ${cta(lang)}`;
     const toolHint = a.tool ? TOOLS.find((x) => x.id === a.tool) : null;
     const abody = `<article class="post">${pageHead(a.title, '', cr)}
 <div class="wrap narrow">
-  <p class="meta">${esc(a.category)} · ${a.min} ${tw.min} · ${tw.updated}: <time datetime="${a.date}">${a.date.split('-').reverse().join('.')}</time></p>
+  <p class="meta">${esc(a.category)} · ${a.min} ${tw.min} · ${tw.updated}: <time datetime="${a.date}">${new Date(a.date + 'T12:00:00Z').toLocaleDateString(lang === 'de' ? 'de-CH' : 'en-GB', { month: 'long', year: 'numeric', timeZone: 'UTC' })}</time></p>
   <aside class="brief"><strong>${tw.brief}</strong><p>${esc(a.summary)}</p></aside>
   <div class="prose">${a.html}</div>
   ${toolHint ? `<aside class="tool-hint"><strong>${toolHint.title[lang]}</strong><p>${toolHint.desc[lang]}</p><a class="btn" href="${u(lang, `/tools/${toolHint.slug[lang]}/`)}">${t.tools.open}</a></aside>` : ''}
@@ -373,6 +378,7 @@ function buildTools(lang) {
     const body = `${pageHead(tool.title[lang], tool.intro[lang], cr)}
 <section><div class="wrap split top tool" data-tool="${tool.id}" data-lang="${lang}">
   <form class="tool-form">${toolForm(tool, lang)}<button class="btn" type="submit">${l.calc}</button></form>
+  ${toolAnnahmen(tool, lang)}
   ${toolResult(tool, lang, tt.note, u(lang, '/impressum-datenschutz/'), t.footer.legal)}
 </div></section>
 <script type="application/json" id="tool-config">${JSON.stringify({ c: CONFIG, l, s: { name: SITE.name, addr: `${SITE.street}, ${SITE.zip} ${SITE.city}`, phone: SITE.phone, email: SITE.email, web: SITE.domain.replace('https://', ''), claim: t.home.h1 } })}</script>
@@ -474,7 +480,7 @@ Kontakt: ${SITE.street}, ${SITE.zip} ${SITE.city} · Telefon ${SITE.phone} · ${
 ${T.de.services.map((s) => `- ${s.t}: ${s.p}`).join('\n')}
 
 ## Referenzprojekte
-${projects.map((p) => `- [${p.t.de}](${abs(`/projekte/${p.slug}/`)}): ${TYPES[p.projektart].de}, ${CATS[p.kategorie].de}, ${p.ort}${p.kanton ? ' ' + p.kanton : ''}, ${p.zeit}. Leistungen: ${p.leist.de.join(', ')}.`).join('\n')}
+${projects.map((p) => `- [${p.t.de}](${abs(`/projekte/${p.slug}/`)}): ${TYPES[p.projektart].de}, ${CATS[p.kategorie].de}, ${p.ort}${p.kanton ? ' (' + p.kanton + ')' : ''}, ${p.zeit}. Leistungen: ${p.leist.de.join(', ')}.`).join('\n')}
 
 ## Wissen (Deutsch)
 ${li('de')}

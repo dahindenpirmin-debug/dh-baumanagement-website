@@ -36,7 +36,7 @@ export async function buildRefSheet({ p, lang, outDir, root, SITE, CATS, TYPES, 
   label(`${x.obj}  ·  ${CATS[p.kategorie][lang]}`, M, 66, CW);
   doc.font('Helvetica-Bold').fontSize(24).fillColor(INK).text(nb(p.t[lang]), M, 82, { width: CW, lineGap: 1 });
   doc.rect(M, doc.y + 6, 40, 3).fill(ACC);
-  doc.font('Helvetica').fontSize(11.5).fillColor(SOFT).text(`${p.ort}${p.kanton ? ' ' + p.kanton : ''}  ·  ${p.zeit}  ·  ${nb(TYPES[p.projektart][lang])}`, M, doc.y + 18, { width: CW });
+  doc.font('Helvetica').fontSize(11.5).fillColor(SOFT).text(`${p.ort}${p.kanton ? ' (' + p.kanton + ')' : ''}  ·  ${p.zeit}${p.t[lang].toLowerCase().startsWith(TYPES[p.projektart][lang].split(/[ &]/)[0].toLowerCase()) ? '' : '  ·  ' + nb(TYPES[p.projektart][lang])}`, M, doc.y + 18, { width: CW });
   let y = doc.y + 14;
 
   /* Titelbild */
@@ -44,7 +44,7 @@ export async function buildRefSheet({ p, lang, outDir, root, SITE, CATS, TYPES, 
 
   /* Eckdaten rechts */
   const LW = 296, RX = M + LW + 26, RW = CW - LW - 26, pad = 14;
-  const rows = [[x.ort, `${p.ort}${p.kanton ? ' ' + p.kanton : ''}`], [x.zeit, p.zeit], [x.kat, CATS[p.kategorie][lang]], [x.art, nb(TYPES[p.projektart][lang])], ...(p.vol ? [[x.vol, p.vol]] : []), ...(p.bauherr ? [[x.bh, lang === 'en' && p.bauherr === 'Privat' ? 'Private' : p.bauherr]] : [])];
+  const rows = [[x.ort, `${p.ort}${p.kanton ? ' (' + p.kanton + ')' : ''}`], [x.zeit, p.zeit], [x.kat, CATS[p.kategorie][lang]], [x.art, nb(TYPES[p.projektart][lang])], ...(p.vol ? [[x.vol, p.vol]] : []), ...(p.bauherr ? [[x.bh, lang === 'en' && p.bauherr === 'Privat' ? 'Private' : p.bauherr]] : [])];
   const valH = (v) => doc.font('Helvetica-Bold').fontSize(10.5).heightOfString(String(v), { width: RW - 2 * pad });
   const boxH = pad + 16 + rows.reduce((n, [, v]) => n + 11 + valH(v) + 9, 0) + pad - 9;
   doc.rect(RX, y, RW, boxH).fill(ALT); doc.rect(RX, y, RW, 3).fill(ACC);
@@ -63,6 +63,12 @@ export async function buildRefSheet({ p, lang, outDir, root, SITE, CATS, TYPES, 
   doc.y += 9; label(x.leist, M, doc.y, LW); doc.y += 5; bullets(p.leist[lang]);
   const kenn = String(p.kenn[lang] || '').split('|').map((s) => s.trim()).filter(Boolean);
   if (kenn.length) { doc.y += 12; label(x.kenn, M, doc.y, LW); doc.y += 5; bullets(kenn); }
+  if (p.zitat && p.zitat[lang]) { // Kundenstimme
+    doc.y += 14; const qy = doc.y;
+    doc.font('Helvetica-Oblique').fontSize(11).fillColor(INK).text('«' + p.zitat[lang] + '»', M + 14, qy + 2, { width: LW - 14, lineGap: 3 });
+    if (p.zitatVon) doc.font('Helvetica').fontSize(9).fillColor(SOFT).text(p.zitatVon, M + 14, doc.y + 5, { width: LW - 14 });
+    doc.rect(M, qy, 3, doc.y - qy + 2).fill(ACC);
+  }
   const endY = Math.max(doc.y, y + boxH);
 
   /* Kontakt: unten auf Seite 1, sonst auf einer neuen Seite */

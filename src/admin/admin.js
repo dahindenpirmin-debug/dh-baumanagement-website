@@ -61,7 +61,7 @@
   function renderList() {
     $('list').tBodies[0].innerHTML = projekte.map(function (p, i) {
       var zeit = p.jahr_bis && p.jahr_bis !== p.jahr_von ? p.jahr_von + '–' + p.jahr_bis : p.jahr_von;
-      return '<tr data-i="' + i + '"' + (p.versteckt ? ' class="hid"' : '') + '><td><strong>' + esc(p.titel_de) + '</strong></td><td>' + esc(p.ort) + (p.kanton ? ' ' + esc(p.kanton) : '') + '</td><td>' + esc(zeit) + '</td><td>' + esc(cfg.cats[p.kategorie] || p.kategorie) + '</td><td>' + esc(cfg.types[p.projektart] || p.projektart) + '</td><td>' + esc(p.bauvolumen_mchf || '–') + '</td><td>' + esc(p.fotos) + '</td><td>' + (p.versteckt ? 'ausgeblendet' : p.neu ? 'gespeichert' : 'online') + '</td></tr>';
+      return '<tr data-i="' + i + '"' + (p.versteckt ? ' class="hid"' : '') + '><td><strong>' + esc(p.titel_de) + '</strong></td><td>' + esc(p.ort) + (p.kanton ? ' (' + esc(p.kanton) + ')' : '') + '</td><td>' + esc(zeit) + '</td><td>' + esc(cfg.cats[p.kategorie] || p.kategorie) + '</td><td>' + esc(cfg.types[p.projektart] || p.projektart) + '</td><td>' + esc(p.bauvolumen_mchf || '–') + '</td><td>' + esc(p.fotos) + '</td><td>' + (p.versteckt ? 'ausgeblendet' : p.neu ? 'gespeichert' : 'online') + '</td></tr>';
     }).join('');
   }
   $('list').addEventListener('click', function (e) { var tr = e.target.closest('tr[data-i]'); if (tr) edit(projekte[+tr.dataset.i]); });
@@ -73,7 +73,7 @@
     cur = p; fotos = []; neue = []; form.reset(); status('');
     $('e-title').textContent = p ? p.titel_de : 'Neues Projekt';
     if (p) {
-      ['titel_de', 'titel_en', 'kategorie', 'projektart', 'ort', 'kanton', 'jahr_von', 'jahr_bis', 'bauvolumen_mchf', 'bauherr', 'lat', 'lng'].forEach(function (k) { F[k].value = p[k] || ''; });
+      ['titel_de', 'titel_en', 'kategorie', 'projektart', 'ort', 'kanton', 'jahr_von', 'jahr_bis', 'bauvolumen_mchf', 'bauherr', 'lat', 'lng', 'zitat_de', 'zitat_von'].forEach(function (k) { F[k].value = p[k] || ''; });
       ['kennzahlen_de', 'kennzahlen_en'].forEach(function (k) { F[k].value = lines(p[k]).join('\n'); });
       ['beschreibung_de', 'beschreibung_en'].forEach(function (k) { F[k].value = String(p[k] || '').replace(/\\n/g, '\n'); });
       F.featured.checked = !!p.featured; F.versteckt.checked = !!p.versteckt;
@@ -171,6 +171,7 @@
       leistungen_de: gew, leistungen_en: gew.map(function (d) { return lmap[d] || d; }),
       beschreibung_de: F.beschreibung_de.value.trim(), beschreibung_en: F.beschreibung_en.value.trim(),
       kennzahlen_de: lines(F.kennzahlen_de.value), kennzahlen_en: lines(F.kennzahlen_en.value),
+      zitat_de: F.zitat_de.value.trim(), zitat_en: (cur && cur.zitat_de === F.zitat_de.value.trim() && cur.zitat_en) || '', zitat_von: F.zitat_von.value.trim(),
       lat: num(F.lat.value), lng: num(F.lng.value), featured: F.featured.checked, versteckt: F.versteckt.checked,
       erfasst: (cur && cur.erfasst) || new Date().toISOString().slice(0, 10)
     };

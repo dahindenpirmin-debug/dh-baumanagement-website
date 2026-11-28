@@ -332,3 +332,16 @@ section[id="werte"] { scroll-margin-top: 80px; }
 .werte { margin-top: 30px; }
 .wert .wp { margin-bottom: 0; }
 .member img { object-position: center 18%; filter: grayscale(1); }
+
+/* Rechner: Annahmen und Haftungsausschluss; Kundenstimme */
+.annahmen { border: 1px solid var(--line); border-radius: var(--radius); padding: 14px 18px; margin: 22px 0; background: #fff; }
+.annahmen summary { cursor: pointer; font-weight: 700; color: var(--ink); }
+.annahmen[open] summary { margin-bottom: 12px; }
+.annahmen table { font-size: .92rem; } .annahmen ul { font-size: .95rem; padding-left: 20px; } .annahmen li { margin: 5px 0; }
+.annahmen .haftung { font-size: .88rem; color: var(--ink-soft); border-top: 1px solid var(--line); padding-top: 12px; margin: 14px 0 0; }
+.kundenstimme { margin: 26px 0; padding: 4px 0 4px 20px; border-left: 4px solid var(--accent); }
+.kundenstimme blockquote { margin: 0; font-size: 1.15rem; font-style: italic; color: var(--ink); }
+.kundenstimme figcaption { margin-top: 8px; font-size: .9rem; color: var(--ink-soft); }
+.annahmen { max-width: 100%; min-width: 0; overflow: hidden; }
+.annahmen .table-wrap { overflow-x: auto; max-width: 100%; }
+.tool-form, .tool-result { min-width: 0; }

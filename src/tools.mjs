@@ -96,6 +96,27 @@ export function toolForm(tool, lang) {
     ${field('d-bew', l.bew, `<select id="d-bew"><option value="1">${l.ja}</option><option value="0">${l.nein}</option></select>`)}`;
 }
 
+// Annahmen offenlegen: Die Kennwerte kommen direkt aus CONFIG, damit Anzeige und Berechnung nie auseinanderlaufen.
+export function toolAnnahmen(tool, lang) {
+  const de = lang === 'de', nf = (n) => String(n).replace(/\B(?=(\d{3})+(?!\d))/g, '’'), pc = (f) => Math.round(f * 100) + '\u00a0%', K = CONFIG.kosten, z = K.zuschlag;
+  const tbl = (head, rows) => `<div class="table-wrap"><table><thead><tr>${head.map((h) => `<th>${h}</th>`).join('')}</tr></thead><tbody>${rows.map((r) => `<tr>${r.map((c) => `<td>${c}</td>`).join('')}</tr>`).join('')}</tbody></table></div>`;
+  let body = '';
+  if (tool.id === 'kosten') body = `<p>${de ? 'Kennwerte für BKP 2 (Gebäude) bei mittlerem Standard, Neubau, Preisstand 2026, ohne MWST:' : 'Benchmarks for BKP 2 (building) at medium standard, new build, 2026 prices, excluding VAT:'}</p>
+${tbl(de ? ['Gebäudetyp', 'CHF pro m² Geschossfläche', 'CHF pro m³ Gebäudevolumen'] : ['Building type', 'CHF per m² floor area', 'CHF per m³ building volume'], Object.values(K.typen).map((t) => [t[lang], `${nf(t.min)} – ${nf(t.max)}`, `${nf(t.m3min)} – ${nf(t.m3max)}`]))}
+<ul><li>${de ? 'Standard' : 'Standard'}: ${Object.values(K.standard).map((x) => `${x[lang]} × ${x.f.toFixed(2)}`).join(', ')}</li>
+<li>${de ? 'Eingriff' : 'Scope'}: ${Object.values(K.eingriff).map((x) => `${x[lang]} × ${x.f.toFixed(2)}`).join(', ')}</li>
+<li>${de ? `Zuschläge auf BKP 2: Vorbereitung (BKP 1) ${pc(z.bkp1)}, Umgebung (BKP 4) ${pc(z.bkp4)}, Baunebenkosten (BKP 5) ${pc(z.bkp5)}, Reserve ${pc(z.reserve)}` : `Additions to BKP 2: preparation (BKP 1) ${pc(z.bkp1)}, external works (BKP 4) ${pc(z.bkp4)}, ancillary costs (BKP 5) ${pc(z.bkp5)}, contingency ${pc(z.reserve)}`}</li>
+<li>${de ? 'Nicht enthalten: Grundstück, Erschliessung ausserhalb der Parzelle, Betriebseinrichtungen, Altlasten, Finanzierung, MWST' : 'Not included: land, off-site infrastructure, operating equipment, contamination, financing, VAT'}</li></ul>`;
+  else if (tool.id === 'dauer') body = `<p>${de ? 'Richtdauern in Monaten je Phase, ohne Einsprachen und Rekurse:' : 'Indicative durations in months per phase, excluding objections and appeals:'}</p>
+${tbl(de ? ['Projektgrösse', 'Vorstudie', 'Projektierung', 'Bewilligung', 'Ausschreibung', 'Realisierung'] : ['Project size', 'Preliminary study', 'Design', 'Permit', 'Tender', 'Construction'], Object.values(CONFIG.dauer).map((d) => [d[lang], ...d.m]))}`;
+  else body = `<ul><li>${de ? 'Mögliche Geschossfläche = Grundstücksfläche × Ausnützungsziffer; Reserve = mögliche minus bestehende Geschossfläche' : 'Possible floor area = plot area × floor area ratio; reserve = possible minus existing floor area'}</li>
+<li>${de ? 'Investition: Kennwerte des Baukosten-Rechners für die gewählte Nutzung (mittlerer Standard, Neubau)' : 'Investment: benchmarks of the construction cost calculator for the selected use (medium standard, new build)'}</li>
+<li>${de ? 'Ertrag: Ihre Eingabe für den Mietertrag pro m² und Jahr; Bruttorendite = Jahresertrag ÷ Investition' : 'Income: your input for rent per m² per year; gross yield = annual income ÷ investment'}</li>
+<li>${de ? 'Die Ausnützungsziffer und ihre Berechnung richten sich nach der Bau- und Zonenordnung der Gemeinde; massgebend ist die Auskunft des Bauamts' : 'The floor area ratio and its calculation follow the municipal building and zoning regulations; the building office’s information is decisive'}</li></ul>`;
+  return `<details class="annahmen"><summary>${de ? 'Mit diesen Annahmen rechnen wir' : 'The assumptions behind this calculator'}</summary>${body}
+<p class="haftung"><strong>${de ? 'Haftungsausschluss' : 'Disclaimer'}:</strong> ${de ? 'Der Rechner liefert eine unverbindliche Grobschätzung auf Basis von Erfahrungswerten. Das Resultat ist keine Offerte, kein Kostenvoranschlag und keine Zusicherung. Die DH Baumanagement AG übernimmt keine Haftung für Entscheide, die auf dieser Schätzung beruhen. Verbindliche Zahlen erhalten Sie nach einer Prüfung Ihres Vorhabens.' : 'The calculator provides a non-binding rough estimate based on empirical values. The result is not a quotation, not a cost estimate and not an assurance. DH Baumanagement AG accepts no liability for decisions based on this estimate. You will receive binding figures after a review of your project.'}</p></details>`;
+}
+
 // Resultatbereich mit Aktionen und Anfrageformular (Netlify Forms, PDF wird per Skript angehängt)
 export function toolResult(tool, lang, note, legalUrl, legalLabel) {
   const l = L[lang];
