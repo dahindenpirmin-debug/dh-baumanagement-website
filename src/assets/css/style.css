@@ -387,3 +387,14 @@ section[id="werte"] { scroll-margin-top: 80px; }
   .annahmen td::before { content: attr(data-l); color: var(--ink-soft); text-align: left; white-space: normal; }
   .annahmen td:first-child { font-weight: 700; display: block; text-align: left; white-space: normal; } .annahmen td:first-child::before { content: none; }
 }
+/* Bildergalerie: Grossansicht */
+.gallery a { cursor: zoom-in; }
+html.lb-open { overflow: hidden; }
+.lb { position: fixed; inset: 0; z-index: 100; background: rgba(8, 24, 36, .94); display: flex; align-items: center; justify-content: center; padding: 56px 64px; }
+.lb[hidden] { display: none; }
+.lb img { max-width: 100%; max-height: 100%; object-fit: contain; box-shadow: 0 10px 40px rgba(0,0,0,.5); }
+.lb button { position: absolute; width: 48px; height: 48px; border: 0; border-radius: 50%; background: rgba(255,255,255,.14); color: #fff; font: 400 30px/1 Arial, sans-serif; cursor: pointer; display: grid; place-items: center; padding: 0 0 4px; }
+.lb button:hover, .lb button:focus-visible { background: var(--accent); color: var(--ink); outline: none; }
+.lb-close { top: 14px; right: 14px; } .lb-prev { left: 12px; top: 50%; margin-top: -24px; } .lb-next { right: 12px; top: 50%; margin-top: -24px; }
+.lb-count { position: absolute; bottom: 12px; left: 0; right: 0; margin: 0; text-align: center; color: #cfd6da; font-size: .9rem; }
+@media (max-width: 700px) { .lb { padding: 64px 8px 44px; } .lb-prev { left: 6px; } .lb-next { right: 6px; } }
