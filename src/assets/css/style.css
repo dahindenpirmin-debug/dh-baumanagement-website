@@ -345,3 +345,7 @@ section[id="werte"] { scroll-margin-top: 80px; }
 .annahmen { max-width: 100%; min-width: 0; overflow: hidden; }
 .annahmen .table-wrap { overflow-x: auto; max-width: 100%; }
 .tool-form, .tool-result { min-width: 0; }
+
+/* Referenzen: nach Kategorie gruppiert */
+.p-group + .p-group { margin-top: 44px; }
+.p-group h2 { margin-bottom: 20px; }

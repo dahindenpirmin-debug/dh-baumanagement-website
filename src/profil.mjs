@@ -140,7 +140,7 @@ export function buildProfile({ TEAM = [], variant = 'liste', lang, outDir, root,
       doc.rect(cx, cy, cw, ih).lineWidth(0.5).strokeColor(LINE).stroke(); doc.rect(cx, cy + ih, cw, 2).fill(ACC);
       doc.font('Helvetica-Bold').fontSize(7).fillColor(DARKGOLD).text((CATS[pr.kategorie][lang] + (pr.t[lang].toLowerCase().startsWith(TYPES[pr.projektart][lang].split(/[ &]/)[0].toLowerCase()) ? '' : ' · ' + TYPES[pr.projektart][lang])).toUpperCase(), cx, cy + ih + 11, { width: cw, height: 9, ellipsis: true, characterSpacing: 0.6 });
       doc.font('Helvetica-Bold').fontSize(10.5).fillColor(INK).text(pr.t[lang], cx, cy + ih + 23, { width: cw, height: 26, ellipsis: true });
-      doc.font('Helvetica').fontSize(9).fillColor(INK).text(`${pr.ort}${pr.kanton ? ' (' + pr.kanton + ')' : ''}  ·  ${pr.zeit}${pr.vol ? '  ·  ' + pr.vol : ''}`, cx, cy + ih + 51, { width: cw, height: 11, ellipsis: true });
+      doc.font('Helvetica').fontSize(9).fillColor(INK).text(`${pr.ort}${pr.ktx}  ·  ${pr.zeit}${pr.vol ? '  ·  ' + pr.vol : ''}`, cx, cy + ih + 51, { width: cw, height: 11, ellipsis: true });
       doc.font('Helvetica').fontSize(8.5).fillColor(SOFT).text(pr.leist[lang].join(', '), cx, cy + ih + 65, { width: cw, height: 22, ellipsis: true });
     };
     for (const [key, cat] of Object.entries(CATS)) {
@@ -161,7 +161,7 @@ export function buildProfile({ TEAM = [], variant = 'liste', lang, outDir, root,
   const hasVol = projects.some((pr) => pr.vol);
   if (!PF) h1(x.refs);
   const pad = 4, TH = hasVol ? [...x.th.slice(0, 4), x.vol, x.th[4]] : x.th;
-  const cellsOf = (pr) => [pr.t[lang], `${pr.ort}${pr.kanton ? ' (' + pr.kanton + ')' : ''}`, pr.zeit, TYPES[pr.projektart][lang], ...(hasVol ? [pr.vol.replace(' MCHF', '') || '–'] : []), pr.leist[lang].join(', ')].map((c) => String(c).replace(/ & /g, ' &\u00a0'));
+  const cellsOf = (pr) => [pr.t[lang], `${pr.ort}${pr.ktx}`, pr.zeit, TYPES[pr.projektart][lang], ...(hasVol ? [pr.vol.replace(' MCHF', '') || '–'] : []), pr.leist[lang].join(', ')].map((c) => String(c).replace(/ & /g, ' &\u00a0'));
   // Spaltenbreiten aus dem Inhalt: Jede Spalte ist mindestens so breit wie ihr längstes Wort, damit nie mitten im Wort umbrochen wird.
   const allRows = projects.map(cellsOf), nC = TH.length, last = nC - 1;
   const wordW = (txt, bold, size) => { doc.font(bold ? 'Helvetica-Bold' : 'Helvetica').fontSize(size); return Math.max(...String(txt).split(/ +/).map((w) => doc.widthOfString(w))); };

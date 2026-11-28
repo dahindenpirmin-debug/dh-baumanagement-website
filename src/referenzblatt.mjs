@@ -19,7 +19,7 @@ async function small(file) {
   return cache.get(file);
 }
 
-export async function buildRefSheet({ p, lang, outDir, root, SITE, CATS, TYPES, text }) {
+export async function buildRefSheet({ eigen = true, p, lang, outDir, root, SITE, CATS, TYPES, text }) {
   const x = TX[lang], M = 50, W = 595.28, H = 841.89, CW = W - 2 * M;
   const nb = (s) => String(s).replace(/ & /g, ' & '); // «&» nie allein am Zeilenende
   const files = p.bilder.map((b) => path.join(root, 'src', b.replace(/^\//, ''))).filter((f) => /\.(jpe?g|png)$/i.test(f) && fs.existsSync(f)).slice(0, 7);
@@ -36,7 +36,7 @@ export async function buildRefSheet({ p, lang, outDir, root, SITE, CATS, TYPES, 
   label(`${x.obj}  ·  ${CATS[p.kategorie][lang]}`, M, 66, CW);
   doc.font('Helvetica-Bold').fontSize(24).fillColor(INK).text(nb(p.t[lang]), M, 82, { width: CW, lineGap: 1 });
   doc.rect(M, doc.y + 6, 40, 3).fill(ACC);
-  doc.font('Helvetica').fontSize(11.5).fillColor(SOFT).text(`${p.ort}${p.kanton ? ' (' + p.kanton + ')' : ''}  ·  ${p.zeit}${p.t[lang].toLowerCase().startsWith(TYPES[p.projektart][lang].split(/[ &]/)[0].toLowerCase()) ? '' : '  ·  ' + nb(TYPES[p.projektart][lang])}`, M, doc.y + 18, { width: CW });
+  doc.font('Helvetica').fontSize(11.5).fillColor(SOFT).text(`${p.ort}${p.ktx}  ·  ${p.zeit}${p.t[lang].toLowerCase().startsWith(TYPES[p.projektart][lang].split(/[ &]/)[0].toLowerCase()) ? '' : '  ·  ' + nb(TYPES[p.projektart][lang])}`, M, doc.y + 18, { width: CW });
   let y = doc.y + 14;
 
   /* Titelbild */
@@ -44,7 +44,7 @@ export async function buildRefSheet({ p, lang, outDir, root, SITE, CATS, TYPES, 
 
   /* Eckdaten rechts */
   const LW = 296, RX = M + LW + 26, RW = CW - LW - 26, pad = 14;
-  const rows = [[x.ort, `${p.ort}${p.kanton ? ' (' + p.kanton + ')' : ''}`], [x.zeit, p.zeit], [x.kat, CATS[p.kategorie][lang]], [x.art, nb(TYPES[p.projektart][lang])], ...(p.vol ? [[x.vol, p.vol]] : []), ...(p.bauherr ? [[x.bh, lang === 'en' && p.bauherr === 'Privat' ? 'Private' : p.bauherr]] : [])];
+  const rows = [[x.ort, `${p.ort}${p.ktx}`], [x.zeit, p.zeit], [x.kat, CATS[p.kategorie][lang]], ...(p.t[lang].toLowerCase().startsWith(TYPES[p.projektart][lang].split(/[ &]/)[0].toLowerCase()) ? [] : [[x.art, nb(TYPES[p.projektart][lang])]]), ...(p.vol ? [[x.vol, p.vol]] : []), ...(p.bauherr ? [[x.bh, lang === 'en' && p.bauherr === 'Privat' ? 'Private' : p.bauherr]] : [])];
   const valH = (v) => doc.font('Helvetica-Bold').fontSize(10.5).heightOfString(String(v), { width: RW - 2 * pad });
   const boxH = pad + 16 + rows.reduce((n, [, v]) => n + 11 + valH(v) + 9, 0) + pad - 9;
   doc.rect(RX, y, RW, boxH).fill(ALT); doc.rect(RX, y, RW, 3).fill(ACC);
@@ -58,9 +58,13 @@ export async function buildRefSheet({ p, lang, outDir, root, SITE, CATS, TYPES, 
 
   /* Beschrieb, Leistungen, Kennzahlen links */
   const bullets = (list) => { for (const li of list) { const by = doc.y; doc.rect(M + 2, by + 4.5, 4, 4).fill(ACC); doc.font('Helvetica').fontSize(10.5).fillColor(INK).text(nb(li), M + 14, by, { width: LW - 14, lineGap: 2 }); doc.y += 3; } };
-  label(x.projekt, M, y, LW); doc.y += 5;
-  for (const para of String(text).split(/\n{2,}|\\n\\n/)) { doc.font('Helvetica').fontSize(10.5).fillColor(INK).text(para.trim(), M, doc.y, { width: LW, lineGap: 3.2 }); doc.y += 7; }
-  doc.y += 9; label(x.leist, M, doc.y, LW); doc.y += 5; bullets(p.leist[lang]);
+  doc.y = y;
+  if (eigen) { // eigener Beschrieb; ohne ihn beginnt die Spalte direkt mit den Leistungen (keine Wiederholung der Eckdaten)
+    label(x.projekt, M, y, LW); doc.y += 5;
+    for (const para of String(text).split(/\n{2,}|\\n\\n/)) { doc.font('Helvetica').fontSize(10.5).fillColor(INK).text(para.trim(), M, doc.y, { width: LW, lineGap: 3.2 }); doc.y += 7; }
+    doc.y += 9;
+  }
+  label(x.leist, M, doc.y, LW); doc.y += 5; bullets(p.leist[lang]);
   const kenn = String(p.kenn[lang] || '').split('|').map((s) => s.trim()).filter(Boolean);
   if (kenn.length) { doc.y += 12; label(x.kenn, M, doc.y, LW); doc.y += 5; bullets(kenn); }
   if (p.zitat && p.zitat[lang]) { // Kundenstimme

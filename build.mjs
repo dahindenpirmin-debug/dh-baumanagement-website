@@ -107,6 +107,7 @@ function loadProjects() {
     return { ...r, bilder, zeit: zeit(), featured: /^(ja|yes|x|1)$/i.test(r.featured), order: i,
       t: { de: r.titel_de, en: r.titel_en || r.titel_de },
       leist: leistOf(r),
+      ktx: r.kanton && !/[()]/.test(r.ort) ? ` (${r.kanton})` : '', // Kantonskürzel in Klammern; entfällt, wenn der Ort schon einen Klammerzusatz hat
       zitat: { de: r.zitat_de || '', en: r.zitat_en || r.zitat_de || '' }, zitatVon: r.zitat_von || '',
       lat: parseFloat(r.lat) || null, lng: parseFloat(r.lng) || null,
       vol: r.bauvolumen_mchf ? (/[a-z]/i.test(r.bauvolumen_mchf) ? r.bauvolumen_mchf.trim() : r.bauvolumen_mchf.trim() + ' MCHF') : '',
@@ -235,13 +236,14 @@ function mapSvg(lang) {
 }
 // Projektart nur nennen, wenn der Titel nicht schon damit beginnt (sonst «Neubau · Neubau …»)
 const typNeu = (p, lang) => !p.t[lang].toLowerCase().startsWith(TYPES[p.projektart][lang].split(/[ &]/)[0].toLowerCase());
-const tagOf = (p, lang) => CATS[p.kategorie][lang] + (typNeu(p, lang) ? ' · ' + TYPES[p.projektart][lang] : '');
-function projectCard(p, lang) {
-  const pic = p.bilder[0];
+// mode 'typ': ohne Kategorie (wenn die Karten bereits unter der Kategorie-Überschrift stehen)
+const tagOf = (p, lang, mode) => [mode === 'typ' ? '' : CATS[p.kategorie][lang], typNeu(p, lang) ? TYPES[p.projektart][lang] : ''].filter(Boolean).join(' · ');
+function projectCard(p, lang, mode) {
+  const pic = p.bilder[0], tag = tagOf(p, lang, mode);
   return `<article class="card project" ${pdata(p, lang)}>
   <a href="${u(lang, `/projekte/${p.slug}/`)}">
     <div class="thumb">${pic ? `<img src="${img(pic, 640, 480)}" alt="${esc(p.t[lang])}, ${esc(p.ort)}" loading="lazy" width="640" height="480">` : `<div class="ph" aria-hidden="true">${hell(ILLUS[p.kategorie === 'wohnen' ? 'wohnbau' : 'gewerbe'] || '')}</div>`}</div>
-    <div class="card-body"><p class="tag">${tagOf(p, lang)}</p><h3>${esc(p.t[lang])}</h3><p class="meta">${esc(p.ort)}${p.kanton ? ' (' + p.kanton + ')' : ''} · ${p.zeit}${p.vol ? ' · ' + esc(p.vol) : ''}</p><p class="meta leist">${p.leist[lang].map(esc).join(', ')}</p></div>
+    <div class="card-body">${tag ? `<p class="tag">${tag}</p>` : ''}<h3>${esc(p.t[lang])}</h3><p class="meta">${esc(p.ort)}${p.ktx} · ${p.zeit}${p.vol ? ' · ' + esc(p.vol) : ''}</p><p class="meta leist">${p.leist[lang].map(esc).join(', ')}</p></div>
   </a></article>`;
 }
 const articleCard = (a, lang) => `<article class="card"><a href="${a.url}"><div class="card-body"><p class="tag">${esc(a.category)}</p><h3>${esc(a.title)}</h3><p>${esc(a.description)}</p><p class="meta more">${a.min} ${T[lang].wissen.min}</p></div></a></article>`;
@@ -302,9 +304,9 @@ function buildProjekte(lang) {
   <div class="refbar"><strong id="p-count" data-one="${F.one}" data-many="${F.many}">${projects.length} ${F.many}</strong>
     <div class="filter view" role="group"><button class="on" data-view="grid">${tp.grid}</button><button data-view="table">${tp.table}</button><button type="button" id="f-reset">${F.reset}</button></div></div>
   <p id="p-empty" class="lead" hidden>${F.empty}</p>
-  <div class="grid3" id="p-grid">${projects.map((p) => projectCard(p, lang)).join('')}</div>
+  <div id="p-grid">${Object.entries(CATS).filter(([k]) => projects.some((p) => p.kategorie === k)).map(([k, c]) => `<div class="p-group"><h2>${c[lang]}</h2><div class="grid3">${projects.filter((p) => p.kategorie === k).map((p) => projectCard(p, lang, 'typ')).join('')}</div></div>`).join('')}</div>
   <div class="table-wrap" id="p-table" hidden><table><thead><tr>${[...tp.th.slice(0, 5), ...(anyVol() ? [t.profil.vol] : []), tp.th[5]].map((h) => `<th>${h}</th>`).join('')}</tr></thead><tbody>
-  ${projects.map((p) => `<tr ${pdata(p, lang)}><td><a href="${u(lang, `/projekte/${p.slug}/`)}">${esc(p.t[lang])}</a></td><td>${CATS[p.kategorie][lang]}</td><td>${TYPES[p.projektart][lang]}</td><td>${esc(p.ort)}${p.kanton ? ' (' + p.kanton + ')' : ''}</td><td>${p.zeit}</td>${anyVol() ? `<td>${esc(p.vol) || '–'}</td>` : ''}<td>${p.leist[lang].map(esc).join(', ')}</td></tr>`).join('\n  ')}
+  ${projects.map((p) => `<tr ${pdata(p, lang)}><td><a href="${u(lang, `/projekte/${p.slug}/`)}">${esc(p.t[lang])}</a></td><td>${CATS[p.kategorie][lang]}</td><td>${TYPES[p.projektart][lang]}</td><td>${esc(p.ort)}${p.ktx}</td><td>${p.zeit}</td>${anyVol() ? `<td>${esc(p.vol) || '–'}</td>` : ''}<td>${p.leist[lang].map(esc).join(', ')}</td></tr>`).join('\n  ')}
   </tbody></table></div>
 </div></section>
 ${profileBox(lang)}
@@ -315,19 +317,19 @@ ${cta(lang)}`;
   for (const p of projects) {
     const pp = { de: `/projekte/${p.slug}/`, en: `/en/projekte/${p.slug}/` };
     const typ = TYPES[p.projektart][lang], f = tp.facts;
-    const auto = tp.auto({ typ, ort: p.ort, kanton: p.kanton, zeit: p.zeit, leist: p.leist[lang].join(', ') });
-    const text = p.beschr[lang] || auto;
+    const auto = tp.auto({ typ, ort: p.ort, kanton: p.ktx ? p.kanton : '', zeit: p.zeit, leist: p.leist[lang].join(', ') });
+    const text = p.beschr[lang] || auto, eigen = !!p.beschr[lang]; // ohne eigenen Beschrieb: Leistungen als Hauptinhalt statt eines Satzes, der die Eckdaten wiederholt
     const cr = [...crumbs.slice(0, 1), [t.nav.projekte, paths[lang]], [p.t[lang], pp[lang]]];
     const more = projects.filter((x) => x.kategorie === p.kategorie && x.slug !== p.slug).slice(0, 3);
-    const pbody = `${pageHead(p.t[lang], '', cr)}
+    const pbody = `${pageHead(p.t[lang], '', cr.slice(0, -1))}
 <section><div class="wrap split top">
-  <div>${text.split(/\n{2,}|\\n\\n/).map((x) => `<p>${esc(x)}</p>`).join('')}${p.kenn[lang] ? `<ul class="check">${p.kenn[lang].split('|').map((k) => `<li>${esc(k.trim())}</li>`).join('')}</ul>` : ''}
+  <div>${eigen ? text.split(/\n{2,}|\\n\\n/).map((x) => `<p>${esc(x)}</p>`).join('') : `<h2>${f.serv}</h2><ul class="check">${p.leist[lang].map((x) => `<li>${esc(x)}</li>`).join('')}</ul>`}${p.kenn[lang] ? `${eigen ? '' : `<h2>${lang === 'de' ? 'Kennzahlen' : 'Key figures'}</h2>`}<ul class="check">${p.kenn[lang].split('|').map((k) => `<li>${esc(k.trim())}</li>`).join('')}</ul>` : ''}
   ${p.zitat[lang] ? `<figure class="kundenstimme"><blockquote>«${esc(p.zitat[lang])}»</blockquote>${p.zitatVon ? `<figcaption>${esc(p.zitatVon)}</figcaption>` : ''}</figure>` : ''}
   <p><a class="btn ghost" href="/downloads/referenzen/${refFile(p, lang)}" download>${lang === 'de' ? 'Referenzblatt (PDF)' : 'Reference sheet (PDF)'}</a></p></div>
-  <dl class="facts-list"><dt>${f.cat}</dt><dd>${CATS[p.kategorie][lang]}</dd><dt>${f.type}</dt><dd>${typ}</dd><dt>${f.loc}</dt><dd>${esc(p.ort)}${p.kanton ? ' (' + p.kanton + ')' : ''}</dd><dt>${f.time}</dt><dd>${p.zeit}</dd>${p.vol ? `<dt>${t.profil.vol}</dt><dd>${esc(p.vol)}</dd>` : ''}${p.bauherr ? `<dt>${f.client}</dt><dd>${esc(p.bauherr)}</dd>` : ''}<dt>${f.serv}</dt><dd>${p.leist[lang].map(esc).join('<br>')}</dd></dl>
+  <dl class="facts-list"><dt>${f.cat}</dt><dd>${CATS[p.kategorie][lang]}</dd>${typNeu(p, lang) ? `<dt>${f.type}</dt><dd>${typ}</dd>` : ''}<dt>${f.loc}</dt><dd>${esc(p.ort)}${p.ktx}</dd><dt>${f.time}</dt><dd>${p.zeit}</dd>${p.vol ? `<dt>${t.profil.vol}</dt><dd>${esc(p.vol)}</dd>` : ''}${p.bauherr ? `<dt>${f.client}</dt><dd>${esc(p.bauherr)}</dd>` : ''}${eigen ? `<dt>${f.serv}</dt><dd>${p.leist[lang].map(esc).join('<br>')}</dd>` : ''}</dl>
 </div></section>
 ${p.bilder.length ? `<section class="alt"><div class="wrap gallery">${p.bilder.map((b, i) => `<a href="${img(b, 1800)}"><img src="${img(b, 900, 675)}" alt="${esc(p.t[lang])}, ${esc(p.ort)} – ${lang === 'de' ? 'Bild' : 'image'} ${i + 1}" loading="${i ? 'lazy' : 'eager'}" width="900" height="675"></a>`).join('')}</div></section>` : ''}
-${more.length ? `<section><div class="wrap"><div class="h-row"><h2>${tp.more}</h2><a href="${paths[lang]}">${tp.back} →</a></div><div class="grid3">${more.map((x) => projectCard(x, lang)).join('')}</div></div></section>` : ''}
+${more.length ? `<section><div class="wrap"><div class="h-row"><h2>${lang === 'de' ? 'Weitere' : 'More'} ${CATS[p.kategorie][lang]}</h2><a href="${paths[lang]}">${tp.back} →</a></div><div class="grid3">${more.map((x) => projectCard(x, lang, 'typ')).join('')}</div></div></section>` : ''}
 ${cta(lang)}`;
     const pld = [{ '@context': 'https://schema.org', '@type': 'CreativeWork', name: p.t[lang], description: text, url: abs(pp[lang]), creator: { '@id': SITE.domain + '/#organisation' }, temporalCoverage: p.jahr_bis && p.jahr_bis !== p.jahr_von ? `${p.jahr_von}/${p.jahr_bis}` : p.jahr_von, genre: `${CATS[p.kategorie][lang]} – ${typ}`, locationCreated: { '@type': 'Place', name: p.ort, address: { '@type': 'PostalAddress', addressLocality: p.ort, addressRegion: p.kanton || undefined, addressCountry: 'CH' } }, image: p.bilder.map((b) => (b.startsWith('/') ? abs(b) : b)) }];
     write(pp[lang], layout({ lang, title: `${p.t[lang]}, ${p.ort}`, desc: text.slice(0, 158), paths: pp, body: pbody, ld: pld, active: 'projekte', crumbs: cr, ogImage: p.bilder[0] ? img(p.bilder[0], 1200, 630) : undefined }));
@@ -480,7 +482,7 @@ Kontakt: ${SITE.street}, ${SITE.zip} ${SITE.city} · Telefon ${SITE.phone} · ${
 ${T.de.services.map((s) => `- ${s.t}: ${s.p}`).join('\n')}
 
 ## Referenzprojekte
-${projects.map((p) => `- [${p.t.de}](${abs(`/projekte/${p.slug}/`)}): ${TYPES[p.projektart].de}, ${CATS[p.kategorie].de}, ${p.ort}${p.kanton ? ' (' + p.kanton + ')' : ''}, ${p.zeit}. Leistungen: ${p.leist.de.join(', ')}.`).join('\n')}
+${projects.map((p) => `- [${p.t.de}](${abs(`/projekte/${p.slug}/`)}): ${TYPES[p.projektart].de}, ${CATS[p.kategorie].de}, ${p.ort}${p.ktx}, ${p.zeit}. Leistungen: ${p.leist.de.join(', ')}.`).join('\n')}
 
 ## Wissen (Deutsch)
 ${li('de')}
@@ -533,7 +535,7 @@ fs.writeFileSync(path.join(OUT, 'admin/projekte.json'), JSON.stringify(ALLROWS.f
 /* Referenzblatt pro Projekt (DE und EN), gleicher Aufbau für alle Projekte */
 for (const p of projects) for (const lang of LANGS) {
   const tp = T[lang].projekte, text = p.beschr[lang] || tp.auto({ typ: TYPES[p.projektart][lang], ort: p.ort, kanton: p.kanton, zeit: p.zeit, leist: p.leist[lang].join(', ') });
-  await buildRefSheet({ p, lang, outDir: path.join(OUT, 'downloads/referenzen'), root: ROOT, SITE, CATS, TYPES, text });
+  await buildRefSheet({ eigen: !!p.beschr[lang], p, lang, outDir: path.join(OUT, 'downloads/referenzen'), root: ROOT, SITE, CATS, TYPES, text });
 }
 for (const lang of LANGS) for (const variant of ['liste', 'portfolio']) await buildProfile({ TEAM, variant, lang, outDir: path.join(OUT, 'downloads'), root: ROOT, SITE, T, CATS, TYPES, projects });
 for (const lang of LANGS) { buildHome(lang); buildLeistungen(lang); buildProjekte(lang); buildWissen(lang); buildTools(lang); buildRegionen(lang); buildUeber(lang); buildKontakt(lang); buildLegal(lang); }

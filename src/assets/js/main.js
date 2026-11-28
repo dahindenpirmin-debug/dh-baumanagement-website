@@ -31,6 +31,7 @@
       var n = 0, vis = {};
       grid.querySelectorAll('[data-slug]').forEach(function (el) { var ok = match(el.dataset, true); el.hidden = !ok; if (ok) n++; if (match(el.dataset, false)) vis[el.dataset.slug] = 1; });
       table.querySelectorAll('tr[data-slug]').forEach(function (el) { el.hidden = !match(el.dataset, true); });
+      grid.querySelectorAll('.p-group').forEach(function (g) { g.hidden = !g.querySelector('[data-slug]:not([hidden])'); }); // leere Kategorie ausblenden
       count.textContent = n + ' ' + (n === 1 ? count.dataset.one : count.dataset.many);
       empty.hidden = n > 0;
       pins.forEach(function (p) {
