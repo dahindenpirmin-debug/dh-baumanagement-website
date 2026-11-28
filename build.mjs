@@ -385,8 +385,8 @@ function buildTools(lang) {
     const body = `${pageHead(tool.title[lang], tool.intro[lang], cr)}
 <section><div class="wrap split top tool" data-tool="${tool.id}" data-lang="${lang}">
   <form class="tool-form">${toolForm(tool, lang)}<button class="btn" type="submit">${l.calc}</button></form>
-  ${toolAnnahmen(tool, lang)}
   ${toolResult(tool, lang, tt.note, u(lang, '/impressum-datenschutz/'), t.footer.legal)}
+  ${toolAnnahmen(tool, lang)}
 </div></section>
 <script type="application/json" id="tool-config">${JSON.stringify({ c: CONFIG, l, s: { name: SITE.name, addr: `${SITE.street}, ${SITE.zip} ${SITE.city}`, phone: SITE.phone, email: SITE.email, web: SITE.domain.replace('https://', ''), claim: t.home.h1 } })}</script>
 <script src="/assets/js/tools.js?v=${VER}" defer></script>

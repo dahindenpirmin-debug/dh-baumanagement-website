@@ -371,3 +371,19 @@ section[id="werte"] { scroll-margin-top: 80px; }
   .legal td:first-child { font-weight: 700; }
 }
 .wert h3::after { display: none; }
+
+/* Rechner: Eingabe links, Resultat rechts (Desktop), Annahmen darunter über die ganze Breite */
+.tool.split.top { grid-template-columns: 1fr 1fr; }
+.tool > .annahmen { grid-column: 1 / -1; margin: 0; }
+@media (max-width: 860px) { .tool.split.top { grid-template-columns: 1fr; } }
+.annahmen table { width: 100%; }
+/* Annahmen-Tabellen auf schmalen Bildschirmen gestapelt: kein seitliches Scrollen */
+@media (max-width: 980px) {
+  .annahmen .table-wrap { overflow: visible; }
+  .annahmen table, .annahmen tbody, .annahmen tr, .annahmen td { display: block; width: auto; }
+  .annahmen thead { display: none; }
+  .annahmen tr { padding: 10px 0; border-bottom: 1px solid var(--line); }
+  .annahmen td { border: 0; padding: 2px 0; display: flex; justify-content: space-between; gap: 14px; text-align: right; white-space: nowrap; }
+  .annahmen td::before { content: attr(data-l); color: var(--ink-soft); text-align: left; white-space: normal; }
+  .annahmen td:first-child { font-weight: 700; display: block; text-align: left; white-space: normal; } .annahmen td:first-child::before { content: none; }
+}

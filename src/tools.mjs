@@ -99,7 +99,7 @@ export function toolForm(tool, lang) {
 // Annahmen offenlegen: Die Kennwerte kommen direkt aus CONFIG, damit Anzeige und Berechnung nie auseinanderlaufen.
 export function toolAnnahmen(tool, lang) {
   const de = lang === 'de', nf = (n) => String(n).replace(/\B(?=(\d{3})+(?!\d))/g, '’'), pc = (f) => Math.round(f * 100) + '\u00a0%', K = CONFIG.kosten, z = K.zuschlag;
-  const tbl = (head, rows) => `<div class="table-wrap"><table><thead><tr>${head.map((h) => `<th>${h}</th>`).join('')}</tr></thead><tbody>${rows.map((r) => `<tr>${r.map((c) => `<td>${c}</td>`).join('')}</tr>`).join('')}</tbody></table></div>`;
+  const tbl = (head, rows) => `<div class="table-wrap"><table><thead><tr>${head.map((h) => `<th>${h}</th>`).join('')}</tr></thead><tbody>${rows.map((r) => `<tr>${r.map((c, i) => `<td data-l="${head[i]}">${c}</td>`).join('')}</tr>`).join('')}</tbody></table></div>`;
   let body = '';
   if (tool.id === 'kosten') body = `<p>${de ? 'Kennwerte für BKP 2 (Gebäude) bei mittlerem Standard, Neubau, Preisstand 2026, ohne MWST:' : 'Benchmarks for BKP 2 (building) at medium standard, new build, 2026 prices, excluding VAT:'}</p>
 ${tbl(de ? ['Gebäudetyp', 'CHF pro m² Geschossfläche', 'CHF pro m³ Gebäudevolumen'] : ['Building type', 'CHF per m² floor area', 'CHF per m³ building volume'], Object.values(K.typen).map((t) => [t[lang], `${nf(t.min)} – ${nf(t.max)}`, `${nf(t.m3min)} – ${nf(t.m3max)}`]))}
