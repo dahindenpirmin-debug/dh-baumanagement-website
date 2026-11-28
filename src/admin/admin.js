@@ -175,7 +175,11 @@
   $('nopin').addEventListener('click', function () { F.lat.value = ''; F.lng.value = ''; mark(); });
 
   /* ---------- Speichern: ein einziger Commit mit Projektdatei und Fotos ---------- */
+  // Hat sich der Stand im Repository während des Speicherns geändert (422 «not a fast forward»), einmal auf dem neuen Stand wiederholen
   function commit(message, entries) {
+    return commitOnce(message, entries).catch(function (err) { if (/^(422|409)/.test(err.message)) return commitOnce(message, entries); throw err; });
+  }
+  function commitOnce(message, entries) {
     var ref = repo() + '/git/refs/heads/' + cfg.branch, head;
     return gh(repo() + '/git/ref/heads/' + cfg.branch).then(function (r) { head = r.object.sha; return gh(repo() + '/git/commits/' + head); })
       .then(function (c) { return entries.length ? gh(repo() + '/git/trees', { method: 'POST', body: { base_tree: c.tree.sha, tree: entries } }) : c.tree; })
