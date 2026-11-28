@@ -70,7 +70,7 @@ export const T = {
       h1: 'Ihr persönlicher Gesamtdienstleistungsanbieter',
       lead: 'Wir unterstützen Sie bei der Entwicklung, Realisierung und Modernisierung Ihres Bauvorhabens – und begleiten Sie von Anfang bis Schluss. Ein Ansprechpartner, klare Kosten, verlässliche Termine.',
       cta1: 'Projekt besprechen', cta2: 'Referenzen ansehen',
-      facts: [['15+', 'Jahre Erfahrung in Bau und Immobilien'], ['2', 'Schwerpunkte: Wohnbau sowie Gewerbe & Industrie'], ['1', 'Ansprechpartner von der Idee bis zur Übergabe']],
+      facts: [['15+', 'Jahre Erfahrung in Bau und Immobilien'], ['2', 'Schwerpunkte: Gewerbe & Industrie sowie hochwertiger Wohnbau'], ['1', 'Ansprechpartner von der Idee bis zur Übergabe']],
       servicesH: 'Unsere Kompetenz: Gesamtdienstleistung',
       projectsH: 'Ausgewählte Projekte', projectsNow: 'Aktuelle Projekte', projectsAll: 'Alle Projekte',
       aboutH: 'Über uns', quote: '«Ihr Projekt ist meine Leidenschaft – Bauen ist meine Passion.»',
@@ -93,9 +93,9 @@ export const T = {
     segments: {
       h: 'Für wen wir bauen',
       items: [
-        ['Gewerbe & Industrie', 'Produktions-, Lager- und Bürogebäude, Umbauten im laufenden Betrieb und Sanierungen mit engen Zeitfenstern. Wir sprechen die Sprache der Betriebe: Verfügbarkeit, Logistik, Sicherheit.', '/projekte/?kategorie=gewerbe', 'gewerbe', 'Produktions-, Lager- und Bürogebäude, auch im laufenden Betrieb.'],
-        ['Arealentwicklung', 'Mehrjährige Entwicklungen in Etappen: Bestandsaufnahme, Nutzungsstrategie, Masterplan, Investitionsplanung und Umsetzung – mit einer Hand am Tagesgeschäft und einem Blick auf das Jahr 2035.', '/wissen/arealentwicklung-schritt-fuer-schritt/', 'areal', 'Mehrjährige Entwicklungen in Etappen, vom Bestand zum Masterplan.'],
-        ['Wohnbau', 'Ein- und Mehrfamilienhäuser für private Bauherrschaften, Investoren und Genossenschaften – vom Vorprojekt bis zur Übergabe an die Bewohner.', '/projekte/?kategorie=wohnen', 'wohnbau', 'Ein- und Mehrfamilienhäuser für Private, Investoren und Genossenschaften.'],
+        ['Gewerbe & Industrie', 'Produktions-, Lager- und Bürogebäude, Umbauten im laufenden Betrieb und Sanierungen mit engen Zeitfenstern – bis zur mehrjährigen Arealentwicklung in Etappen, vom Bestand über den Masterplan bis zur Umsetzung. Wir sprechen die Sprache der Betriebe: Verfügbarkeit, Logistik, Sicherheit.', '/projekte/?kategorie=gewerbe', 'gewerbe', 'Produktions-, Lager- und Bürogebäude bis zur Arealentwicklung in Etappen.'],
+        ['Hochwertiger Wohnbau', 'Villen und Wohnhäuser mit höchsten Ansprüchen an Architektur, Material und Ausführung. Wir führen anspruchsvolle Details, viele Spezialisten und hohe Erwartungen so zusammen, dass Qualität, Kosten und Termine stimmen.', '/projekte/?kategorie=wohnen&kanton=zh', 'wohnbau', 'Villen und Wohnhäuser mit höchsten Ansprüchen an Architektur und Ausführung.'],
+        ['Mehrfamilienhäuser', 'Miet- und Eigentumswohnungen für private Bauherrschaften, Investoren und Genossenschaften – vom Vorprojekt bis zur Übergabe an die Bewohner.', '/projekte/?kategorie=wohnen', 'areal', 'Miet- und Eigentumswohnungen für Private, Investoren und Genossenschaften.'],
         ['Umbau & Sanierung', 'Aufstockungen, Modernisierungen und Instandsetzungen: sorgfältige Bestandsaufnahme, realistische Reserven und saubere Abläufe, auch wenn das Gebäude bewohnt oder in Betrieb bleibt.', '/wissen/sanierung-gewerbeliegenschaft-strategie/', 'umbau', 'Aufstockung, Modernisierung und Instandsetzung im Bestand.'],
       ],
     },
@@ -129,7 +129,7 @@ export const T = {
       h1: 'Your personal full-service provider',
       lead: 'We support you in developing, building and modernising your property – from the first idea to handover. One point of contact, transparent costs, reliable schedules.',
       cta1: 'Discuss your project', cta2: 'View references',
-      facts: [['15+', 'years of experience in construction and real estate'], ['2', 'focus areas: residential and commercial & industrial'], ['1', 'point of contact from idea to handover']],
+      facts: [['15+', 'years of experience in construction and real estate'], ['2', 'focus areas: commercial & industrial and high-end residential'], ['1', 'point of contact from idea to handover']],
       servicesH: 'Our expertise: full-service delivery',
       projectsH: 'Selected projects', projectsNow: 'Current projects', projectsAll: 'All projects',
       aboutH: 'About us', quote: '“Your project is my passion – building is my calling.”',
@@ -152,9 +152,9 @@ export const T = {
     segments: {
       h: 'Who we build for',
       items: [
-        ['Commercial & industrial', 'Production, storage and office buildings, conversions during live operations and refurbishments within tight shutdown windows. We speak the language of operations: availability, logistics, safety.', '/projekte/?kategorie=gewerbe', 'gewerbe', 'Production, storage and office buildings, also during operations.'],
-        ['Site development', 'Multi-year, phased developments: survey of existing assets, use strategy, master plan, investment planning and delivery – with one hand on day-to-day business and one eye on 2035.', '/wissen/site-development-step-by-step/', 'areal', 'Multi-year phased developments, from existing site to master plan.'],
-        ['Residential', 'Single- and multi-family homes for private owners, investors and cooperatives – from concept design to handover to the residents.', '/projekte/?kategorie=wohnen', 'wohnbau', 'Single- and multi-family homes for owners, investors and cooperatives.'],
+        ['Commercial & industrial', 'Production, storage and office buildings, conversions during live operations and refurbishments within tight shutdown windows – through to multi-year, phased site developments, from the existing site via the master plan to delivery. We speak the language of operations: availability, logistics, safety.', '/projekte/?kategorie=gewerbe', 'gewerbe', 'Production, storage and office buildings through to phased site development.'],
+        ['High-end residential', 'Villas and homes with the highest standards of architecture, materials and workmanship. We bring demanding details, many specialists and high expectations together so that quality, cost and schedule are right.', '/projekte/?kategorie=wohnen&kanton=zh', 'wohnbau', 'Villas and homes with the highest standards of architecture and workmanship.'],
+        ['Apartment buildings', 'Rental and owner-occupied apartments for private owners, investors and cooperatives – from concept design to handover to the residents.', '/projekte/?kategorie=wohnen', 'areal', 'Rental and owner-occupied apartments for owners, investors and cooperatives.'],
         ['Conversion & refurbishment', 'Additional storeys, modernisations and repairs: careful surveys, realistic contingencies and clean sequencing, even while the building stays occupied or in operation.', '/wissen/refurbishing-commercial-property-strategy/', 'umbau', 'Extra storeys, modernisation and repairs to existing buildings.'],
       ],
     },
