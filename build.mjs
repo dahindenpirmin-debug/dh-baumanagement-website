@@ -242,11 +242,11 @@ const typNeu = (p, lang) => !p.t[lang].toLowerCase().startsWith(TYPES[p.projekta
 // mode 'typ': ohne Kategorie (wenn die Karten bereits unter der Kategorie-Überschrift stehen)
 const tagOf = (p, lang, mode) => [mode === 'typ' ? '' : CATS[p.kategorie][lang], typNeu(p, lang) ? TYPES[p.projektart][lang] : ''].filter(Boolean).join(' · ');
 function projectCard(p, lang, mode) {
-  const pic = p.bilder[0], tag = tagOf(p, lang, mode);
+  const pic = p.bilder[0], tag = mode === 'typ' ? '' : CATS[p.kategorie][lang], art = typNeu(p, lang) ? TYPES[p.projektart][lang] + ' · ' : ''; // einheitlich: Karten unter einer Kategorie-Überschrift ohne Zeile über dem Titel
   return `<article class="card project" ${pdata(p, lang)}>
   <a href="${u(lang, `/projekte/${p.slug}/`)}">
     <div class="thumb">${pic ? `<img src="${img(pic, 640, 480)}" alt="${esc(p.t[lang])}, ${esc(p.ort)}" loading="lazy" width="640" height="480">` : `<div class="ph" aria-hidden="true">${hell(ILLUS[p.kategorie === 'wohnen' ? 'wohnbau' : 'gewerbe'] || '')}</div>`}</div>
-    <div class="card-body">${tag ? `<p class="tag">${tag}</p>` : ''}<h3>${esc(p.t[lang])}</h3><p class="meta">${esc(p.ort)}${p.ktx} · ${p.zeit}${p.vol ? ' · ' + esc(p.vol) : ''}</p><p class="meta leist">${p.leist[lang].map(esc).join(', ')}</p></div>
+    <div class="card-body">${tag ? `<p class="tag">${tag}</p>` : ''}<h3>${esc(p.t[lang])}</h3><p class="meta">${art}${esc(p.ort)}${p.ktx} · ${p.zeit}${p.vol ? ' · ' + esc(p.vol) : ''}</p><p class="meta leist">${p.leist[lang].map(esc).join(', ')}</p></div>
   </a></article>`;
 }
 const articleCard = (a, lang) => `<article class="card"><a href="${a.url}"><div class="card-body"><p class="tag">${esc(a.category)}</p><h3>${esc(a.title)}</h3><p>${esc(a.description)}</p><p class="meta more">${a.min} ${T[lang].wissen.min}</p></div></a></article>`;
