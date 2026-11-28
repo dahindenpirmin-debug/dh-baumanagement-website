@@ -1,0 +1,31 @@
+{
+  "slug": "sbb-hauptbahnhof-zuerich-wc-anlage",
+  "titel_de": "SBB – Hauptbahnhof Zürich – WC-Anlage",
+  "titel_en": "SBB – Zurich main station – public toilet facility",
+  "kategorie": "gewerbe",
+  "projektart": "umbau",
+  "ort": "Zürich",
+  "kanton": "ZH",
+  "jahr_von": "2024",
+  "jahr_bis": "2025",
+  "bauvolumen_mchf": "",
+  "bauherr": "SBB",
+  "leistungen_de": [
+    "Baumanagement"
+  ],
+  "leistungen_en": [
+    "Construction management"
+  ],
+  "beschreibung_de": "",
+  "beschreibung_en": "",
+  "kennzahlen_de": [],
+  "kennzahlen_en": [],
+  "zitat_de": "",
+  "zitat_en": "",
+  "zitat_von": "",
+  "lat": "47.378",
+  "lng": "8.54",
+  "featured": true,
+  "versteckt": false,
+  "erfasst": "2026-11-28"
+}

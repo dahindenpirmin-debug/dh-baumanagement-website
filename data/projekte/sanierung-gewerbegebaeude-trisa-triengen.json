@@ -1,0 +1,31 @@
+{
+  "slug": "sanierung-gewerbegebaeude-trisa-triengen",
+  "titel_de": "Sanierung Gewerbegebäude Trisa AG",
+  "titel_en": "Refurbishment of commercial building, Trisa AG",
+  "kategorie": "gewerbe",
+  "projektart": "sanierung",
+  "ort": "Triengen",
+  "kanton": "LU",
+  "jahr_von": "2023",
+  "jahr_bis": "2025",
+  "bauvolumen_mchf": "",
+  "bauherr": "Trisa AG",
+  "leistungen_de": [
+    "Baumanagement"
+  ],
+  "leistungen_en": [
+    "Construction management"
+  ],
+  "beschreibung_de": "",
+  "beschreibung_en": "",
+  "kennzahlen_de": [],
+  "kennzahlen_en": [],
+  "zitat_de": "",
+  "zitat_en": "",
+  "zitat_von": "",
+  "lat": "47.235",
+  "lng": "8.077",
+  "featured": true,
+  "versteckt": false,
+  "erfasst": "2026-11-28"
+}
