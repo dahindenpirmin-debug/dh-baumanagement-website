@@ -1,0 +1,34 @@
+{
+  "slug": "arealentwicklung-sanierung-havo-aarburg",
+  "titel_de": "Arealentwicklung & Sanierung HAVO",
+  "titel_en": "Site development & refurbishment HAVO",
+  "kategorie": "gewerbe",
+  "projektart": "arealentwicklung",
+  "ort": "Aarburg",
+  "kanton": "AG",
+  "jahr_von": "2022",
+  "jahr_bis": "2026",
+  "bauvolumen_mchf": "",
+  "bauherr": "",
+  "leistungen_de": [
+    "Gesamtprojektleitung",
+    "Baumanagement",
+    "Planungskoordination",
+    "Kostenplanung"
+  ],
+  "leistungen_en": [
+    "Overall project management",
+    "Construction management",
+    "Design coordination",
+    "Cost planning"
+  ],
+  "beschreibung_de": "",
+  "beschreibung_en": "",
+  "kennzahlen_de": [],
+  "kennzahlen_en": [],
+  "lat": "47.321",
+  "lng": "7.9",
+  "featured": true,
+  "versteckt": false,
+  "erfasst": "2026-11-26"
+}
