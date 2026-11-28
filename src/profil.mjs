@@ -69,13 +69,13 @@ export function buildProfile({ TEAM = [], variant = 'liste', lang, outDir, root,
   if (t.werte) {
     h1(t.werte.h);
     p(t.werte.lead); doc.y += 22;
-    const gap = 30, cw = (CW - gap) / 2, tx = 44;
+    const gap = 30, cw = (CW - gap) / 2, tx = 16;
     const hOf = ([a, b]) => doc.font('Helvetica-Bold').fontSize(12.5).heightOfString(a, { width: cw - tx }) + 6 + doc.font('Helvetica').fontSize(10).heightOfString(b, { width: cw - tx, lineGap: 3 });
     for (let i = 0; i < t.werte.items.length; i += 2) {
       const pair = t.werte.items.slice(i, i + 2), rh = Math.max(...pair.map(hOf)), y0 = doc.y;
       pair.forEach(([a, b], j) => {
         const x0 = M + j * (cw + gap);
-        doc.font('Helvetica-Bold').fontSize(24).fillColor(ACC).text(`0${i + j + 1}`, x0, y0 - 3, { width: tx, lineBreak: false });
+        doc.rect(x0, y0 + 1, 3, hOf([a, b]) - 2).fill(ACC); // Goldbalken statt Nummer
         doc.font('Helvetica-Bold').fontSize(12.5).fillColor(INK).text(a, x0 + tx, y0, { width: cw - tx });
         doc.font('Helvetica').fontSize(10).fillColor(SOFT).text(b, x0 + tx, doc.y + 6, { width: cw - tx, lineGap: 3 });
       });

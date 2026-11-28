@@ -61,10 +61,38 @@
   function renderList() {
     $('list').tBodies[0].innerHTML = projekte.map(function (p, i) {
       var zeit = p.jahr_bis && p.jahr_bis !== p.jahr_von ? p.jahr_von + '–' + p.jahr_bis : p.jahr_von;
-      return '<tr data-i="' + i + '"' + (p.versteckt ? ' class="hid"' : '') + '><td><strong>' + esc(p.titel_de) + '</strong></td><td>' + esc(p.ort) + (p.kanton ? ' (' + esc(p.kanton) + ')' : '') + '</td><td>' + esc(zeit) + '</td><td>' + esc(cfg.cats[p.kategorie] || p.kategorie) + '</td><td>' + esc(cfg.types[p.projektart] || p.projektart) + '</td><td>' + esc(p.bauvolumen_mchf || '–') + '</td><td>' + esc(p.fotos) + '</td><td>' + (p.versteckt ? 'ausgeblendet' : p.neu ? 'gespeichert' : 'online') + '</td></tr>';
+      return '<tr data-i="' + i + '"' + (p.versteckt ? ' class="hid"' : '') + '><td><strong>' + esc(p.titel_de) + '</strong></td><td>' + esc(p.ort) + (p.kanton ? ' (' + esc(p.kanton) + ')' : '') + '</td><td>' + esc(zeit) + '</td><td>' + esc(cfg.cats[p.kategorie] || p.kategorie) + '</td><td>' + esc(cfg.types[p.projektart] || p.projektart) + '</td><td>' + esc(p.bauvolumen_mchf || '–') + '</td><td>' + esc(p.fotos) + '</td><td class="akt">' + (+(p.jahr_bis || p.jahr_von) >= new Date().getFullYear() ? '<span title="Läuft im laufenden Jahr oder später: erscheint automatisch">läuft</span>' : '<input type="checkbox" class="akt-box" aria-label="Als aktuelles Projekt zeigen"' + (p.featured ? ' checked' : '') + '>') + '</td><td>' + (p.versteckt ? 'ausgeblendet' : p.neu ? 'gespeichert' : 'online') + '</td></tr>';
     }).join('');
   }
-  $('list').addEventListener('click', function (e) { var tr = e.target.closest('tr[data-i]'); if (tr) edit(projekte[+tr.dataset.i]); });
+  $('list').addEventListener('click', function (e) {
+    var tr = e.target.closest('tr[data-i]'); if (!tr) return;
+    if (e.target.closest('td.akt')) { // Kästchen «Aktuell»: direkt speichern, Maske nicht öffnen
+      var box = e.target.closest('.akt-box'); if (!box) return;
+      var p = projekte[+tr.dataset.i], d = dataOf(p); d.featured = box.checked; box.disabled = true;
+      status('«' + p.titel_de + '» wird gespeichert …');
+      commit('Aktuell ' + (d.featured ? 'markiert' : 'entfernt') + ': ' + p.titel_de + ' [skip netlify]', [jsonEntry(d)])
+        .then(function () { p.featured = d.featured ? 'ja' : ''; status('Gespeichert. Mit «Website jetzt aktualisieren» wird die Startseite angepasst.', 'ok'); })
+        .catch(function (err) { box.checked = !box.checked; status('Speichern fehlgeschlagen: ' + err.message, 'err'); })
+        .then(function () { box.disabled = false; });
+      return;
+    }
+    edit(projekte[+tr.dataset.i]);
+  });
+  // Listeneintrag (Zeichenketten wie in der CSV) -> Projektdatei (JSON)
+  function dataOf(p) {
+    var arr = function (v) { return Array.isArray(v) ? v : lines(v); }, ld = arr(p.leistungen_de), yes = function (v) { return v === true || /^(ja|yes|x|1|true)$/i.test(String(v || '')); };
+    var d = { slug: p.slug, titel_de: p.titel_de || '', titel_en: p.titel_en || '', kategorie: p.kategorie || '', projektart: p.projektart || '', ort: p.ort || '', kanton: p.kanton || '',
+      jahr_von: String(p.jahr_von || ''), jahr_bis: String(p.jahr_bis || ''), bauvolumen_mchf: String(p.bauvolumen_mchf || ''), bauherr: p.bauherr || '',
+      leistungen_de: ld, leistungen_en: ld.map(lEn),
+      beschreibung_de: p.beschreibung_de || '', beschreibung_en: p.beschreibung_en || '', kennzahlen_de: arr(p.kennzahlen_de), kennzahlen_en: arr(p.kennzahlen_en),
+      zitat_de: p.zitat_de || '', zitat_en: p.zitat_en || '', zitat_von: p.zitat_von || '', lat: String(p.lat || ''), lng: String(p.lng || ''),
+      featured: yes(p.featured), versteckt: yes(p.versteckt), erfasst: p.erfasst || new Date().toISOString().slice(0, 10) };
+    if (p.dokument) d.dokument = p.dokument;
+    return d;
+  }
+  // Englische Bezeichnung einer Leistung direkt aus der Konfiguration (unabhängig davon, ob die Maske schon geöffnet war)
+  function lEn(x) { var r = x; cfg.leistungen.forEach(function (g) { g.items.forEach(function (it) { if (it[0] === x) r = it[1]; }); }); return r; }
+  function jsonEntry(d) { return { path: 'data/projekte/' + d.slug + '.json', mode: '100644', type: 'blob', content: JSON.stringify(d, null, 2) + '\n' }; }
   $('new').addEventListener('click', function () { edit(null); });
   $('back').addEventListener('click', function () { status(''); show('v-list'); });
 
@@ -210,6 +238,121 @@
     var b = this; b.disabled = true; status('Veröffentlichung wird ausgelöst …');
     commit('Website aktualisieren', []).then(function () { status('Die Website wird jetzt neu gebaut und ist in ein bis zwei Minuten aktuell (1 Deploy = 15 Netlify-Credits).', 'ok'); })
       .catch(function (err) { status('Fehlgeschlagen: ' + err.message, 'err'); }).then(function () { b.disabled = false; });
+  });
+
+  /* ---------- Excel-Import ---------- */
+  // .xlsx ist ein ZIP mit XML-Dateien: ohne Fremdbibliothek mit Bordmitteln des Browsers gelesen
+  function unzip(buf) {
+    var dv = new DataView(buf), u8 = new Uint8Array(buf), td = new TextDecoder(), i = buf.byteLength - 22, files = {};
+    while (i >= 0 && dv.getUint32(i, true) !== 0x06054b50) i--;
+    if (i < 0) return Promise.reject(new Error('Die Datei ist keine gültige Excel-Datei (.xlsx).'));
+    var n = dv.getUint16(i + 10, true), off = dv.getUint32(i + 16, true), jobs = [];
+    for (var k = 0; k < n; k++) {
+      var method = dv.getUint16(off + 10, true), csize = dv.getUint32(off + 20, true), nl = dv.getUint16(off + 28, true), el = dv.getUint16(off + 30, true), cl = dv.getUint16(off + 32, true), lo = dv.getUint32(off + 42, true);
+      var name = td.decode(u8.subarray(off + 46, off + 46 + nl)); off += 46 + nl + el + cl;
+      if (!/^xl\/(workbook\.xml|sharedStrings\.xml|_rels\/workbook\.xml\.rels|worksheets\/[^/]+\.xml)$/.test(name)) continue;
+      var start = lo + 30 + dv.getUint16(lo + 26, true) + dv.getUint16(lo + 28, true), raw = u8.subarray(start, start + csize);
+      jobs.push((function (name, raw, method) {
+        var p = method === 0 ? Promise.resolve(raw.buffer.slice(raw.byteOffset, raw.byteOffset + raw.byteLength))
+          : new Response(new Blob([raw]).stream().pipeThrough(new DecompressionStream('deflate-raw'))).arrayBuffer();
+        return p.then(function (b) { files[name] = td.decode(b); });
+      })(name, raw, method));
+    }
+    return Promise.all(jobs).then(function () { return files; });
+  }
+  function readXlsx(buf) {
+    return unzip(buf).then(function (f) {
+      var xml = function (t) { return new DOMParser().parseFromString(t, 'application/xml'); }, tags = function (el, n) { return [].slice.call(el.getElementsByTagName(n)); };
+      var wb = xml(f['xl/workbook.xml'] || ''), rels = xml(f['xl/_rels/workbook.xml.rels'] || ''), sh = tags(wb, 'sheet');
+      var s = sh.filter(function (x) { return x.getAttribute('name') === 'Projekte'; })[0] || sh[0];
+      if (!s) throw new Error('In der Datei wurde kein Tabellenblatt gefunden.');
+      var rid = s.getAttribute('r:id') || s.getAttributeNS('http://schemas.openxmlformats.org/officeDocument/2006/relationships', 'id');
+      var rel = tags(rels, 'Relationship').filter(function (r) { return r.getAttribute('Id') === rid; })[0];
+      var path = 'xl/' + (rel ? rel.getAttribute('Target').replace(/^\/?xl\//, '').replace(/^\//, '') : 'worksheets/sheet1.xml');
+      var text = function (el) { return tags(el, 't').filter(function (t) { return t.parentNode.nodeName !== 'rPh'; }).map(function (t) { return t.textContent; }).join(''); };
+      var strings = f['xl/sharedStrings.xml'] ? tags(xml(f['xl/sharedStrings.xml']), 'si').map(text) : [];
+      if (!f[path]) throw new Error('Das Blatt «Projekte» konnte nicht gelesen werden.');
+      return tags(xml(f[path]), 'row').map(function (row) {
+        var out = [];
+        tags(row, 'c').forEach(function (c) {
+          var ref = (c.getAttribute('r') || '').replace(/\d+/g, ''), col = 0; for (var i = 0; i < ref.length; i++) col = col * 26 + ref.charCodeAt(i) - 64;
+          var t = c.getAttribute('t'), v = c.getElementsByTagName('v')[0], val = t === 'inlineStr' ? text(c) : v ? v.textContent : '';
+          if (t === 's') val = strings[+val] || '';
+          else if (t === 'b') val = val === '1' ? 'ja' : 'nein';
+          else if (!t && val !== '' && !isNaN(+val)) val = String(+(+val).toFixed(6)); // Zahl ohne Rundungsreste
+          out[col - 1] = String(val).replace(/\r\n?/g, '\n').trim();
+        });
+        return out;
+      });
+    });
+  }
+  var xlPlan = null;
+  function pruefeExcel(rows) {
+    var map = {}; (cfg.excel || []).forEach(function (c) { map[c.label.toLowerCase()] = c.key; });
+    var head = (rows[0] || []).map(function (h) { return map[String(h || '').toLowerCase()]; });
+    if (head.indexOf('titel_de') < 0 || head.indexOf('ort') < 0) throw new Error('Die Spaltentitel wurden nicht erkannt. Bitte die Vorlage über «Excel herunterladen» verwenden und die Kopfzeile nicht ändern.');
+    var inv = function (o) { var r = {}; Object.keys(o).forEach(function (k) { r[String(o[k]).toLowerCase()] = k; }); return r; }, cats = inv(cfg.cats), types = inv(cfg.types), jahr = new Date().getFullYear();
+    var bekannt = {}; cfg.leistungen.forEach(function (g) { g.items.forEach(function (it) { bekannt[it[0].toLowerCase()] = it[0]; }); });
+    var yes = function (v) { return /^(ja|yes|x|1|true)$/i.test(v || ''); }, plan = [], seen = {};
+    rows.slice(1).forEach(function (r, n) {
+      var x = {}; head.forEach(function (k, i) { if (k) x[k] = r[i] || ''; });
+      if (!Object.keys(x).some(function (k) { return k !== 'slug' && x[k]; })) return; // leere Zeile
+      var err = [], zeile = n + 2, alt = x.slug ? projekte.filter(function (p) { return p.slug === x.slug; })[0] : null;
+      if (x.slug && !alt) err.push('Kennung «' + x.slug + '» ist unbekannt (bei neuen Projekten leer lassen)');
+      ['titel_de', 'ort', 'jahr_von'].forEach(function (k) { if (!x[k]) err.push({ titel_de: 'Titel', ort: 'Ort', jahr_von: 'Jahr von' }[k] + ' fehlt'); });
+      var kat = cats[(x.kategorie || '').toLowerCase()] || (cfg.cats[x.kategorie] ? x.kategorie : ''), art = types[(x.projektart || '').toLowerCase()] || (cfg.types[x.projektart] ? x.projektart : '');
+      if (!kat) err.push('Kategorie ' + (x.kategorie ? '«' + x.kategorie + '» unbekannt' : 'fehlt'));
+      if (!art) err.push('Projektart ' + (x.projektart ? '«' + x.projektart + '» unbekannt' : 'fehlt'));
+      var kt = (x.kanton || '').toUpperCase(); if (kt && !cfg.kantone[kt]) err.push('Kanton «' + x.kanton + '» unbekannt (Kürzel, z. B. LU)');
+      var jv = +x.jahr_von, jb = x.jahr_bis ? +x.jahr_bis : 0;
+      if (x.jahr_von && !(jv >= 1990 && jv <= jahr + 10 && jv % 1 === 0)) err.push('Jahr von «' + x.jahr_von + '» ungültig');
+      if (x.jahr_bis && !(jb >= jv && jb <= jahr + 15 && jb % 1 === 0)) err.push('Jahr bis «' + x.jahr_bis + '» ungültig oder vor «Jahr von»');
+      var bv = (x.bauvolumen_mchf || '').replace(',', '.'); if (bv && !(+bv > 0 && +bv < 2000)) err.push('Bauvolumen «' + x.bauvolumen_mchf + '» ist keine Zahl in Mio. CHF');
+      var la = (x.lat || '').replace(',', '.'), lo = (x.lng || '').replace(',', '.');
+      if ((la || lo) && !(+la > 45.7 && +la < 47.9 && +lo > 5.8 && +lo < 10.6)) err.push('Koordinaten liegen nicht in der Schweiz');
+      var le = []; [1, 2, 3, 4, 5, 6, 7, 8, 9, 10].forEach(function (i) { var v = x['leistung_' + i]; if (!v) return; var b = bekannt[v.toLowerCase()]; if (!b) err.push('Leistung «' + v + '» ist nicht in der Liste'); else if (le.indexOf(b) < 0) le.push(b); });
+      if (!le.length) err.push('mindestens eine Leistung fehlt');
+      var slug = alt ? alt.slug : slugify((x.titel_de || '') + ' ' + (x.ort || ''));
+      if (!alt && slug && (projekte.some(function (p) { return p.slug === slug; }) || seen[slug])) err.push('ein Projekt mit diesem Titel und Ort gibt es bereits (zum Ändern die Kennung aus der Liste eintragen)');
+      seen[slug] = 1;
+      var d = alt ? dataOf(alt) : dataOf({ slug: slug }), vorher = JSON.stringify(d);
+      Object.assign(d, { titel_de: x.titel_de, titel_en: x.titel_en || '', kategorie: kat, projektart: art, ort: x.ort, kanton: kt, jahr_von: x.jahr_von, jahr_bis: x.jahr_bis || '', bauvolumen_mchf: bv, bauherr: x.bauherr || '',
+        leistungen_de: le, leistungen_en: le.map(lEn), beschreibung_de: x.beschreibung_de || '', beschreibung_en: x.beschreibung_en || '',
+        kennzahlen_de: lines(x.kennzahlen_de), kennzahlen_en: lines(x.kennzahlen_en), zitat_de: x.zitat_de || '', zitat_von: x.zitat_von || '', lat: la, lng: lo, featured: yes(x.featured), versteckt: yes(x.versteckt) });
+      if (alt && alt.zitat_de !== d.zitat_de) d.zitat_en = '';
+      // Vergleich ohne Unterschiede, die nur aus der Schreibweise stammen
+      var norm = function (j) { var o = JSON.parse(j); ['beschreibung_de', 'beschreibung_en'].forEach(function (k) { o[k] = String(o[k]).replace(/\\n/g, '\n').replace(/\s+/g, ' ').trim(); }); ['bauvolumen_mchf', 'lat', 'lng'].forEach(function (k) { o[k] = o[k] === '' ? '' : String(+o[k]); }); if (o.jahr_bis === o.jahr_von) o.jahr_bis = ''; return JSON.stringify(o); };
+      plan.push({ zeile: zeile, titel: x.titel_de || '(ohne Titel)', ort: x.ort || '', err: err, art: err.length ? 'fehler' : !alt ? 'neu' : norm(vorher) === norm(JSON.stringify(d)) ? 'gleich' : 'geaendert', data: d });
+    });
+    return plan;
+  }
+  function zeigePlan(plan) {
+    xlPlan = plan; var box = $('xl-prev'), n = function (a) { return plan.filter(function (p) { return p.art === a; }).length; }, todo = n('neu') + n('geaendert');
+    var lab = { neu: 'neu', geaendert: 'geändert', gleich: 'unverändert', fehler: 'Fehler' };
+    box.innerHTML = '<h2>Excel-Import: Vorschau</h2><p><strong>' + n('neu') + '</strong> neu · <strong>' + n('geaendert') + '</strong> geändert · ' + n('gleich') + ' unverändert · <strong' + (n('fehler') ? ' class="xl-err"' : '') + '>' + n('fehler') + '</strong> mit Fehler</p>'
+      + (plan.some(function (p) { return p.art !== 'gleich'; }) ? '<div class="table-wrap"><table><thead><tr><th>Zeile</th><th>Projekt</th><th>Ort</th><th>Status</th><th>Hinweis</th></tr></thead><tbody>' + plan.filter(function (p) { return p.art !== 'gleich'; }).map(function (p) {
+        return '<tr class="xl-' + p.art + '"><td>' + p.zeile + '</td><td><strong>' + esc(p.titel) + '</strong></td><td>' + esc(p.ort) + '</td><td>' + lab[p.art] + '</td><td>' + esc(p.err.join(' · ')) + '</td></tr>'; }).join('') + '</tbody></table></div>' : '')
+      + (n('fehler') ? '<p class="meta">Zeilen mit Fehler werden nicht gespeichert. Bitte in Excel korrigieren und die Datei erneut hochladen.</p>' : '')
+      + '<p class="a-actions"><button type="button" class="btn" id="xl-save"' + (todo ? '' : ' disabled') + '>' + (todo ? todo + (todo === 1 ? ' Projekt' : ' Projekte') + ' speichern' : 'Nichts zu speichern') + '</button><label class="check"><input type="checkbox" id="xl-pub"> Sofort veröffentlichen (1 Deploy)</label><button type="button" class="btn ghost" id="xl-cancel">Abbrechen</button></p>';
+    box.hidden = false; box.scrollIntoView({ block: 'nearest' });
+  }
+  $('xl-up').addEventListener('click', function () { $('xl-file').value = ''; $('xl-file').click(); });
+  $('xl-file').addEventListener('change', function () {
+    var f = this.files[0]; if (!f) return;
+    if (!/\.xlsx$/i.test(f.name)) { status('Bitte eine Excel-Datei im Format .xlsx wählen.', 'err'); return; }
+    status('Excel-Datei wird gelesen …');
+    f.arrayBuffer().then(readXlsx).then(function (rows) { var plan = pruefeExcel(rows); if (!plan.length) throw new Error('Die Datei enthält keine ausgefüllten Zeilen.'); zeigePlan(plan); status(''); })
+      .catch(function (err) { $('xl-prev').hidden = true; status('Excel konnte nicht gelesen werden: ' + err.message, 'err'); });
+  });
+  $('xl-prev').addEventListener('click', function (e) {
+    if (e.target.id === 'xl-cancel') { $('xl-prev').hidden = true; xlPlan = null; return; }
+    if (e.target.id !== 'xl-save' || !xlPlan) return;
+    var todo = xlPlan.filter(function (p) { return p.art === 'neu' || p.art === 'geaendert'; }), pub = $('xl-pub').checked, btn = e.target; btn.disabled = true;
+    status(todo.length + ' Projekte werden gespeichert …');
+    commit('Excel-Import: ' + todo.length + (todo.length === 1 ? ' Projekt' : ' Projekte') + (pub ? '' : ' [skip netlify]'), todo.map(function (p) { return jsonEntry(p.data); }))
+      .then(function () { $('xl-prev').hidden = true; xlPlan = null; return loadList(); })
+      .then(function () { status(todo.length + (todo.length === 1 ? ' Projekt' : ' Projekte') + ' gespeichert. ' + (pub ? 'Die Website wird jetzt neu gebaut.' : 'Mit «Website jetzt aktualisieren» gehen sie online.') + ' Fotos bitte pro Projekt in der Maske hinzufügen.', 'ok'); })
+      .catch(function (err) { btn.disabled = false; status('Speichern fehlgeschlagen: ' + err.message, 'err'); });
   });
 
   /* ---------- Start ---------- */

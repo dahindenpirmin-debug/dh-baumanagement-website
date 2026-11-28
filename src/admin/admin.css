@@ -48,3 +48,9 @@ body.admin { background: #fff; }
 .a-form fieldset.a-grp legend { font-size: .78rem; text-transform: uppercase; letter-spacing: .04em; color: var(--accent-dark); padding: 0; float: left; width: 100%; margin-bottom: 6px; }
 .a-form fieldset.a-grp label.check { display: flex; padding: 3px 0; font-size: .92rem; clear: both; }
 .a-form fieldset.a-grp.alt { background: #fbeceb; }
+
+/* Liste: Kästchen «Aktuell»; Excel-Import-Vorschau */
+#list td.akt { cursor: default; white-space: nowrap; } #list td.akt span { color: var(--ink-soft); font-size: .85rem; } .akt-box { width: 20px; height: 20px; cursor: pointer; }
+.xl-prev { border: 1px solid var(--line); border-left: 4px solid var(--accent); background: #fff; padding: 18px 20px; margin: 0 0 22px; }
+.xl-prev h2 { font-size: 1.15rem; margin: 0 0 8px; } .xl-prev table { width: 100%; border-collapse: collapse; font-size: .9rem; margin: 10px 0; } .xl-prev td, .xl-prev th { text-align: left; padding: 6px 8px; border-bottom: 1px solid var(--line); vertical-align: top; }
+.xl-fehler td { background: #fdf1f0; } .xl-neu td:nth-child(4) { color: #1b6e3c; font-weight: 700; } .xl-geaendert td:nth-child(4) { font-weight: 700; } .xl-err { color: #b3261e; }

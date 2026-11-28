@@ -42,9 +42,10 @@
 
   <!-- Liste -->
   <section id="v-list" hidden>
-    <div class="h-row"><h1>Referenzen</h1><div class="a-actions"><button type="button" class="btn ghost" id="publish" title="Veröffentlicht alle gespeicherten, noch nicht veröffentlichten Änderungen">Website jetzt aktualisieren</button><button type="button" class="btn" id="new">+ Neues Projekt</button></div></div>
-    <p class="meta">Projekt anklicken zum Bearbeiten. Änderungen erscheinen ein bis zwei Minuten nach dem Veröffentlichen auf der Website.</p>
-    <div class="table-wrap"><table id="list"><thead><tr><th>Projekt</th><th>Ort</th><th>Zeitraum</th><th>Kategorie</th><th>Art</th><th>MCHF</th><th>Fotos</th><th>Status</th></tr></thead><tbody></tbody></table></div>
+    <div class="h-row"><h1>Referenzen</h1><div class="a-actions"><button type="button" class="btn ghost" id="publish" title="Veröffentlicht alle gespeicherten, noch nicht veröffentlichten Änderungen">Website jetzt aktualisieren</button><a class="btn ghost" href="/admin/DH-Referenzen.xlsx" download title="Alle Projekte als Excel-Liste, zugleich Vorlage für neue Projekte">Excel herunterladen</a><button type="button" class="btn ghost" id="xl-up" title="Ausgefüllte Excel-Liste einlesen; vor dem Speichern erscheint eine Vorschau">Excel hochladen</button><input type="file" id="xl-file" accept=".xlsx" hidden><button type="button" class="btn" id="new">+ Neues Projekt</button></div></div>
+    <div id="xl-prev" class="xl-prev" hidden></div>
+    <p class="meta">Projekt anklicken zum Bearbeiten. Das Kästchen «Aktuell» zeigt ein Projekt auf der Startseite unter «Aktuelle Projekte»; Projekte, die im laufenden Jahr oder später enden, erscheinen dort automatisch. Änderungen erscheinen ein bis zwei Minuten nach dem Veröffentlichen auf der Website.</p>
+    <div class="table-wrap"><table id="list"><thead><tr><th>Projekt</th><th>Ort</th><th>Zeitraum</th><th>Kategorie</th><th>Art</th><th>MCHF</th><th>Fotos</th><th>Aktuell</th><th>Status</th></tr></thead><tbody></tbody></table></div>
   </section>
 
   <!-- Eingabemaske -->
@@ -82,7 +83,7 @@
           <p class="meta">Keine Personen oder Autokennzeichen ohne Einwilligung.</p></div>
       </fieldset>
       <fieldset><legend>Anzeige</legend>
-        <label class="check"><input type="checkbox" name="featured"> Auf der Startseite zeigen (höchstens 6 Projekte)</label>
+        <label class="check"><input type="checkbox" name="featured"> Auf der Startseite unter «Aktuelle Projekte» zeigen (laufende Projekte erscheinen dort automatisch)</label>
         <label class="check"><input type="checkbox" name="versteckt"> Projekt ausblenden (bleibt gespeichert, erscheint nicht auf der Website)</label>
       </fieldset>
       <div class="a-save">

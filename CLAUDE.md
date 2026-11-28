@@ -45,6 +45,8 @@ Der Benutzer kann Referenzen selbst erfassen: `https://<domain>/admin/` (Liste, 
 - Jedes gespeicherte Projekt ist eine Datei `data/projekte/<slug>.json` mit denselben Feldnamen wie die CSV-Spalten (Listen als Arrays, dazu `lat`, `lng`, `versteckt`, `erfasst`). Fotos landen verkleinert in `src/images/projekte/<slug>/NN.jpg`.
 - Der Build führt CSV und JSON zusammen: Eine JSON-Datei überschreibt die CSV-Zeile mit demselben Slug; neue JSON-Projekte erscheinen zuoberst. `versteckt: true` blendet ein Projekt aus.
 - Ein Speichern mit Haken «Sofort veröffentlichen» ist ein Commit auf `main` und damit ein Netlify-Deploy; ohne Haken trägt der Commit `[skip netlify]`.
+- Liste: Das Kästchen «Aktuell» setzt `featured` direkt (Commit mit `[skip netlify]`).
+- Excel: «Excel herunterladen» liefert `/admin/DH-Referenzen.xlsx` (bei jedem Build aus allen Projekten erzeugt, `src/excel.mjs`, mit Auswahllisten). «Excel hochladen» liest die Datei im Browser, prüft jede Zeile und speichert neue und geänderte Projekte als JSON in einem Commit. Spalten stehen in `EXCEL_COLS`; die Spaltentitel sind der Schlüssel für den Import. Fotos kommen weiterhin über die Maske.
 - Englische Felder dürfen leer bleiben (dann erscheint der deutsche Text). Auf Wunsch übersetzt Claude nachträglich direkt in der JSON-Datei.
 - Karte der Referenzseite und des Admin-Bereichs: `src/karte.mjs` (Umriss, Kantonsgrenzen, Seen; keine externen Kartendienste). Pins entstehen aus `lat`/`lng`.
 
@@ -66,7 +68,7 @@ Der Benutzer liefert im Chat: Titel, Ort, Zeitraum, Leistungen, Kategorie, evtl.
    - `beschreibung_de`, `beschreibung_en` (optional; leer = automatisch erzeugter Kurztext). Absätze mit `\n\n` trennen. Enthält der Text einen Strichpunkt, das Feld in "Anführungszeichen" setzen.
    - `kennzahlen_de`, `kennzahlen_en` (optional, mit `|` getrennt, z. B. `Bausumme CHF 4.2 Mio.|Geschossfläche 2'400 m²`)
    - `bilder`: leer lassen, wenn die Bilder im Projektordner liegen (empfohlen). Sonst Dateinamen oder URLs mit `|` getrennt.
-   - `dokument` (optional, Link zu einem PDF), `featured` (`ja` = erscheint auf der Startseite, maximal 6)
+   - `dokument` (optional, Link zu einem PDF), `featured` (`ja` = von Hand als «aktuell» markiert; erscheint auf der Startseite unter «Aktuelle Projekte». Projekte, die im laufenden Jahr oder später enden, erscheinen dort automatisch)
 3. **Bilder ablegen** unter `src/images/projekte/<slug>/`, benannt `01.jpg`, `02.jpg` … (das erste ist das Titelbild). Vorher auf maximal 2400 px Breite verkleinern, JPG-Qualität ca. 82. Keine Personen oder Autokennzeichen ohne Einwilligung.
 4. **Prüfen:** `npm run build` muss ohne Fehler durchlaufen. Der Build bricht mit klarer Meldung ab, wenn Kategorie oder Projektart unbekannt sind.
 5. **Veröffentlichen:** auf `entwurf` committen; nach Freigabe in `main` mergen und pushen (`Projekt hinzugefügt: <Titel>`), siehe «Veröffentlichen sparsam». Netlify deployt in ein bis zwei Minuten.

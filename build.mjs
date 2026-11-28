@@ -1,5 +1,6 @@
 // Statischer Website-Generator der DH Baumanagement AG.
 // Aufruf: `npm run build` -> erzeugt den Ordner dist/ (wird von Netlify veröffentlicht).
+import { buildExcel, EXCEL_COLS } from './src/excel.mjs';
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -254,15 +255,15 @@ const toolCard = (tl, lang) => `<article class="card"><a href="${u(lang, `/tools
 /* ---------- Seiten ---------- */
 function buildHome(lang) {
   const t = T[lang], h = t.home, paths = { de: '/', en: '/en/' };
-  // Aktuelle Projekte: alles, was im laufenden Jahr noch läuft oder später endet (spätestes Ende zuerst). Gibt es keine, erscheinen die als «featured» markierten.
-  const jahr = new Date().getFullYear(), aktuell = projects.filter((p) => +(p.jahr_bis || p.jahr_von) >= jahr).sort((a, b) => +(b.jahr_bis || b.jahr_von) - +(a.jahr_bis || a.jahr_von));
+  // Aktuelle Projekte: alles, was im laufenden Jahr noch läuft oder später endet (spätestes Ende zuerst). Dazu kommen von Hand markierte Projekte (Feld «featured», im Admin-Bereich «Aktuell»). Gibt es keine, erscheinen die sechs obersten.
+  const jahr = new Date().getFullYear(), aktuell = projects.filter((p) => p.featured || +(p.jahr_bis || p.jahr_von) >= jahr).sort((a, b) => +(b.jahr_bis || b.jahr_von) - +(a.jahr_bis || a.jahr_von));
   const body = `<section class="hero" style="background-image:linear-gradient(90deg,rgba(10,36,54,.94) 0%,rgba(14,47,71,.78) 45%,rgba(14,47,71,.15) 100%),url('${img(HEROP || HERO, 2000, 1100)}')">
   <div class="wrap"><p class="eyebrow">${SITE.name} · ${SITE.city}</p><h1>${h.h1.replace('Gesamtdienstleistungsanbieter', 'Gesamtdienst&shy;leistungs&shy;anbieter')}</h1><p class="lead">${h.lead}</p>
   <p><a class="btn" href="${u(lang, '/kontakt/')}">${h.cta1}</a> <a class="btn ghost light" href="${u(lang, '/projekte/')}">${h.cta2}</a></p></div></section>
 <section class="facts"><div class="wrap grid3">${h.facts.map(([n, l]) => `<div><strong>${n}</strong><span>${l}</span></div>`).join('')}</div></section>
 <section><div class="wrap"><h2>${h.servicesH}</h2><div class="grid4">${t.services.map((s) => `<article class="card"><a href="${u(lang, '/leistungen/')}#${s.id}"><div class="card-body">${icon(s.icon)}<h3>${s.t}</h3><p>${s.k}</p></div></a></article>`).join('')}</div></div></section>
 <section class="alt"><div class="wrap"><h2>${t.segments.h}</h2><div class="grid4">${t.segments.items.map(([a, b, l, ic, k]) => `<article class="card"><a href="${u(lang, l)}"><div class="card-body">${icon(ic)}<h3>${a}</h3><p>${k}</p></div></a></article>`).join('')}</div></div></section>
-<section><div class="wrap"><div class="h-row"><h2>${aktuell.length ? h.projectsNow : h.projectsH}</h2><a href="${u(lang, '/projekte/')}">${h.projectsAll} →</a></div><div class="grid3">${(aktuell.length ? aktuell : projects.filter((p) => p.featured).slice(0, 6)).map((p) => projectCard(p, lang)).join('')}</div></div></section>
+<section><div class="wrap"><div class="h-row"><h2>${aktuell.length ? h.projectsNow : h.projectsH}</h2><a href="${u(lang, '/projekte/')}">${h.projectsAll} →</a></div><div class="grid3">${(aktuell.length ? aktuell : projects.slice(0, 6)).map((p) => projectCard(p, lang)).join('')}</div></div></section>
 <section class="alt about"><div class="wrap split"><img src="${img(PORTRAIT, 600, 720)}" alt="Martin Dahinden, ${lang === 'de' ? 'Inhaber und Projektleiter' : 'owner and project manager'}" loading="lazy" width="600" height="720">
   <div><h2>${h.aboutH}</h2><p class="quote">${h.quote}</p><p>${h.about}</p><p class="btns"><a class="btn" href="${u(lang, '/ueber-uns/')}">${t.ueber.link}</a><a class="btn ghost" href="${u(lang, '/ueber-uns/')}#werte">${t.werte.h}</a><a class="btn ghost" href="${profileUrl(lang)}" download>${t.profil.b}</a></p></div></div></section>
 <section><div class="wrap"><div class="h-row"><h2>${RT[lang].h1}</h2><a href="${u(lang, '/regionen/')}">${RT[lang].nav} →</a></div><div class="grid4">${REGIONEN.map((r) => `<article class="card"><a href="${regUrl(r, lang)}"><div class="card-body"><h3>${r.name[lang]}</h3><p>${RT[lang].anzahl(regRefs(r).length)}</p><p class="more">${RT[lang].mehr} →</p></div></a></article>`).join('')}</div></div></section>
@@ -425,7 +426,7 @@ function buildUeber(lang) {
   const body = `${pageHead(k.h1, k.lead, crumbs)}
 <section><div class="wrap"><h2>${k.teamH}</h2><p class="lead">${k.teamP}</p>${teamCards(lang)}</div></section>
 <section class="alt" id="werte"><div class="wrap"><h2>${t.werte.h}</h2><p class="lead">${t.werte.lead}</p>
-<div class="grid3 werte">${t.werte.items.map(([a, b], i) => `<article class="card wert"><div class="card-body"><span class="nr">0${i + 1}</span><h3>${a}</h3><p class="wp">${b}</p></div></article>`).join('')}</div></div></section>
+<div class="grid3 werte">${t.werte.items.map(([a, b], i) => `<article class="card wert"><div class="card-body"><h3>${a}</h3><p class="wp">${b}</p></div></article>`).join('')}</div></div></section>
 <section class="about"><div class="wrap split"><img src="${img(PORTRAIT, 600, 720)}" alt="Martin Dahinden, ${TEAM[0].rolle[lang]}" loading="lazy" width="600" height="720">
   <div><h2>Martin Dahinden</h2><p class="tag">${TEAM[0].rolle[lang]}</p><p class="quote">${h.quote}</p><p>${h.about}</p><p class="btns"><a class="btn" href="${u(lang, '/kontakt/')}">${t.nav.kontakt}</a><a class="btn ghost" href="tel:${SITE.phoneIntl}">${SITE.phone}</a></p></div></div></section>
 ${profileBox(lang)}
@@ -536,7 +537,8 @@ fs.copyFileSync(path.join(ROOT, 'node_modules/jspdf/dist/jspdf.umd.min.js'), pat
 /* Admin-Bereich: statische Seite + Daten für Liste, Auswahlfelder und Karte */
 fs.mkdirSync(path.join(OUT, 'admin'), { recursive: true });
 for (const f of fs.readdirSync(path.join(ROOT, 'src/admin'))) fs.copyFileSync(path.join(ROOT, 'src/admin', f), path.join(OUT, 'admin', f));
-fs.writeFileSync(path.join(OUT, 'admin/config.json'), JSON.stringify({ repo: SITE.repo, branch: SITE.branch, cats: Object.fromEntries(Object.entries(CATS).map(([k, v]) => [k, v.de])), types: Object.fromEntries(Object.entries(TYPES).map(([k, v]) => [k, v.de])), leistungen: LEISTUNGEN, kantone: KT, karte: { ...KARTE, kantone: undefined } }));
+await buildExcel({ file: path.join(OUT, 'admin/DH-Referenzen.xlsx'), rows: ALLROWS.filter((r) => !r.versteckt), cats: Object.fromEntries(Object.entries(CATS).map(([k, v]) => [k, v.de])), types: Object.fromEntries(Object.entries(TYPES).map(([k, v]) => [k, v.de])), kantone: KT, leistungen: LEISTUNGEN });
+fs.writeFileSync(path.join(OUT, 'admin/config.json'), JSON.stringify({ excel: EXCEL_COLS.map((c) => ({ key: c.key, label: c.label })), repo: SITE.repo, branch: SITE.branch, cats: Object.fromEntries(Object.entries(CATS).map(([k, v]) => [k, v.de])), types: Object.fromEntries(Object.entries(TYPES).map(([k, v]) => [k, v.de])), leistungen: LEISTUNGEN, kantone: KT, karte: { ...KARTE, kantone: undefined } }));
 fs.writeFileSync(path.join(OUT, 'admin/projekte.json'), JSON.stringify(ALLROWS.filter((r) => !r.versteckt).map((r) => ({ ...r, bilder: undefined, fotos: (projects.find((p) => p.slug === r.slug) || { bilder: [] }).bilder.length }))));
 /* Referenzblatt pro Projekt (DE und EN), gleicher Aufbau für alle Projekte */
 for (const p of projects) for (const lang of LANGS) {
